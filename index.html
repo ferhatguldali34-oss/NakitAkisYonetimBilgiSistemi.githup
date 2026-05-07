@@ -7602,5 +7602,101 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
+
+
+<!-- V10.6.3 Firma Analizi kart tasarım düzeltmesi -->
+<style id="v1063_firma_card_fix_css">
+/* Firma Analizi kartları eski premium .fc tasarımına geri alındı */
+#pg-firma .fcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:14px}
+#pg-firma .fc{background:var(--ink2);border:1px solid var(--rim);border-radius:var(--r2);padding:13px 14px;cursor:pointer;transition:all .14s ease;position:relative;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,.10)}
+#pg-firma .fc:hover{border-color:var(--rim2);transform:translateY(-1px);box-shadow:0 14px 32px rgba(0,0,0,.16)}
+#pg-firma .fc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+#pg-firma .fc.pos::after{background:var(--sage)}
+#pg-firma .fc.neg::after{background:var(--rose)}
+#pg-firma .fc-name{font-size:11.5px;font-weight:700;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:7px;color:var(--txt)}
+#pg-firma .fc-net{font-family:var(--ffm);font-size:17px;font-weight:700;margin-bottom:4px;font-variant-numeric:tabular-nums}
+#pg-firma .fc-net.pos{color:var(--sage)}
+#pg-firma .fc-net.neg{color:var(--rose)}
+#pg-firma .fc-sub{font-size:10.5px;color:var(--txt3);display:flex;justify-content:space-between;gap:8px;line-height:1.35}
+#pg-firma .fc-mini{margin-top:7px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;color:var(--txt3)}
+#pg-firma .fc-mini b{display:block;color:var(--txt2);font-size:10.5px;margin-bottom:1px;font-weight:700}
+#pg-firma .fc-warn{position:absolute;top:7px;right:8px;font-size:9px;background:var(--rose2);color:var(--rose);padding:1px 5px;border-radius:4px;font-weight:800;border:1px solid rgba(251,113,133,.2)}
+[data-theme="light"] #pg-firma .fc{background:var(--s1);border-color:var(--b1);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+[data-theme="light"] #pg-firma .fc:hover{box-shadow:0 5px 16px rgba(0,0,0,.10)}
+[data-theme="light"] #pg-firma .fc-name{color:var(--txt)}
+[data-theme="light"] #pg-firma .fc-sub,[data-theme="light"] #pg-firma .fc-mini{color:var(--txt3)}
+</style>
+<script id="v1063_firma_card_fix_js">
+(function(){
+  'use strict';
+  function N(v){ if(typeof v==='number') return isFinite(v)?v:0; var s=String(v==null?'':v).replace(/\s/g,''); if(!s) return 0; if(s.indexOf(',')>-1){ s=s.replace(/\./g,'').replace(',','.'); } var n=Number(s); return isFinite(n)?n:0; }
+  function E(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function shortMoney(v){ if(typeof window.moneyShort==='function') return window.moneyShort(v); if(typeof window.fK==='function') return window.fK(v); var n=N(v),a=Math.abs(n); if(a>=1e9)return (n/1e9).toLocaleString('tr-TR',{maximumFractionDigits:1})+' Mr'; if(a>=1e6)return (n/1e6).toLocaleString('tr-TR',{maximumFractionDigits:1})+' Mn'; if(a>=1e3)return (n/1e3).toLocaleString('tr-TR',{maximumFractionDigits:1})+' B'; return n.toLocaleString('tr-TR',{maximumFractionDigits:0}); }
+  function money(v){ if(typeof window.money==='function') return window.money(v); if(typeof window.fK==='function') return window.fK(v); return N(v).toLocaleString('tr-TR',{maximumFractionDigits:1}); }
+  function rows(){ return Array.isArray(window.F)?window.F:[]; }
+  function getFirma(d){ return d.firma || d.Firma || d['İşlem Yapan Firma'] || d.company || 'Bilinmiyor'; }
+  function getYon(d){ return d.yon || d['Nakit Yönü'] || d.nakit_yonu || (N(d.tutar||d.Tutar||d.amount)>0?'GİRİŞ':N(d.tutar||d.Tutar||d.amount)<0?'ÇIKIŞ':'NÖTR'); }
+  function getTutar(d){ return N(d.tutar!=null?d.tutar:(d.Tutar!=null?d.Tutar:d.amount)); }
+  function escapeArg(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+  function currentFilters(){ try{ if(typeof window.getFl==='function') return window.getFl(); }catch(e){} try{ if(typeof window.getF==='function') return window.getF(); }catch(e){} return {}; }
+  function openingForFirma(firma){
+    try{
+      if(typeof window.opening==='function'){
+        var fl=Object.assign({}, currentFilters(), {firmalar:[firma]});
+        return N(window.opening(fl));
+      }
+    }catch(e){}
+    return 0;
+  }
+  window.renderFirmaPage=function(){
+    var source=rows();
+    var by={};
+    source.forEach(function(d){
+      var f=getFirma(d); if(!by[f]) by[f]={firma:f,g:0,c:0,n:0};
+      var y=String(getYon(d)||'').toUpperCase(), t=getTutar(d);
+      if(y==='GİRİŞ' || t>0) by[f].g+=t;
+      else if(y==='ÇIKIŞ' || t<0) by[f].c+=t;
+      by[f].n++;
+    });
+    Object.keys(by).forEach(function(f){
+      by[f].o=openingForFirma(f);
+      by[f].net=by[f].g+by[f].c;
+      by[f].closing=by[f].o+by[f].net;
+      by[f].burn=Math.abs(by[f].c||0);
+    });
+    var arr=Object.values(by).filter(function(x){return x.n>0;});
+    var sort=window.fcSort||'closing';
+    arr.sort(function(a,b){
+      var k=sort==='giris'?'g':sort==='cikis'?'c':sort==='net'?'net':sort==='burn'?'burn':'closing';
+      return Math.abs(b[k]||0)-Math.abs(a[k]||0);
+    });
+    var grid=document.getElementById('fcgrid');
+    if(grid){
+      grid.innerHTML=arr.slice(0,30).map(function(f){
+        var cls=f.closing>=0?'pos':'neg';
+        var ortak=(window.ORTAKLAR && window.ORTAKLAR.has && window.ORTAKLAR.has(f.firma));
+        return '<div class="fc '+cls+'" onclick="drillFirma&&drillFirma(\''+escapeArg(f.firma)+'\')">'+
+          (ortak?'<div class="fc-warn" style="background:rgba(201,168,76,.2);color:var(--gold);border-color:rgba(201,168,76,.3)">★ ORTAK</div>':'')+
+          '<div class="fc-name">'+E(f.firma)+'</div>'+
+          '<div class="fc-net '+cls+'">'+shortMoney(f.closing)+'</div>'+
+          '<div class="fc-sub"><span>'+Number(f.n||0).toLocaleString('tr-TR')+' işlem</span><span>Net: '+shortMoney(f.net)+'</span></div>'+
+          '<div class="fc-mini"><div><b>Dönem Başı</b>'+shortMoney(f.o)+'</div><div><b>Çıkış</b>'+shortMoney(f.c)+'</div></div>'+
+        '</div>';
+      }).join('') || '<div class="empty">Firma verisi yok</div>';
+    }
+    var head=document.querySelector('#pg-firma table thead tr');
+    if(head){ head.innerHTML='<th>Firma</th><th>İşlem</th><th>Dönem Başı</th><th>Giriş</th><th>Çıkış</th><th>Net Nakit Pozisyonu</th><th>Dönem Sonu Pozisyonu</th><th>Durum</th>'; }
+    var body=document.getElementById('tFB');
+    if(body){
+      body.innerHTML=arr.map(function(f){
+        return '<tr onclick="drillFirma&&drillFirma(\''+escapeArg(f.firma)+'\')" style="cursor:pointer"><td class="fw6">'+E(f.firma)+'</td><td class="num">'+Number(f.n||0).toLocaleString('tr-TR')+'</td><td class="num pos">'+money(f.o)+'</td><td class="num pos">'+money(f.g)+'</td><td class="num neg">'+money(f.c)+'</td><td class="num '+(f.net>=0?'pos':'neg')+' fw7">'+money(f.net)+'</td><td class="num '+(f.closing>=0?'pos':'neg')+' fw7">'+money(f.closing)+'</td><td><span class="badge '+(f.closing>=0?'bg':'br')+'">'+(f.closing>=0?'▲ Pozitif':'▼ Negatif')+'</span></td></tr>';
+      }).join('') || '<tr><td colspan="8" class="empty">Firma verisi yok</td></tr>';
+    }
+    var cnt=document.getElementById('fcCount'); if(cnt) cnt.textContent=arr.length.toLocaleString('tr-TR')+' firma';
+  };
+  window.sortFC=function(k){ window.fcSort=k; try{ window.renderFirmaPage(); }catch(e){ console.error('renderFirmaPage',e); } };
+})();
+</script>
+
 </body>
 </html>
