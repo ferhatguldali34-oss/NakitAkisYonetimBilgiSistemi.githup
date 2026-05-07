@@ -1330,7 +1330,7 @@ html[data-theme="dark"] .sidebar, html[data-theme="dark"] .topbar, html[data-the
      <div class="ms-drop" id="fFirmaDrop"><div class="ms-search"><input placeholder="Ara..." oninput="msFilter('fFirma',this.value)"></div><div class="ms-list" id="fFirmaList"></div><div class="ms-foot"><span class="ms-all" onclick="msAll('fFirma')">Tümünü Seç</span><span class="ms-all" onclick="msNone('fFirma')">Temizle</span></div></div>
     </div>
     <div class="fg"><div class="flbl">Firma Tipi</div>
-     <select id="fFirmaTip" class="fi"><option value="">Tümü</option><option value="ticari" selected>Ticari</option><option value="ortak">Ortak ★</option><option value="pasif">Pasif</option></select>
+     <select id="fFirmaTip" class="fi"><option value="" selected>Tümü</option><option value="ticari">Ticari</option><option value="ortak">Ortak ★</option><option value="pasif">Pasif</option></select>
     </div>
     <div class="fg"><div class="flbl">Nakit Yönü</div>
      <select id="fYon" class="fi"><option value="">Tümü</option><option value="GİRİŞ">Giriş</option><option value="ÇIKIŞ">Çıkış</option><option value="NÖTR">Nötr</option></select>
@@ -7604,269 +7604,251 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
-<!-- V10.6.3 Firma Analizi kart tasarım düzeltmesi -->
-<style id="v1063_firma_card_fix_css">
-/* Firma Analizi kartları eski premium .fc tasarımına geri alındı */
-#pg-firma .fcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:14px}
-#pg-firma .fc{background:var(--ink2);border:1px solid var(--rim);border-radius:var(--r2);padding:13px 14px;cursor:pointer;transition:all .14s ease;position:relative;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,.10)}
-#pg-firma .fc:hover{border-color:var(--rim2);transform:translateY(-1px);box-shadow:0 14px 32px rgba(0,0,0,.16)}
-#pg-firma .fc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
-#pg-firma .fc.pos::after{background:var(--sage)}
-#pg-firma .fc.neg::after{background:var(--rose)}
-#pg-firma .fc-name{font-size:11.5px;font-weight:700;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:7px;color:var(--txt)}
-#pg-firma .fc-net{font-family:var(--ffm);font-size:17px;font-weight:700;margin-bottom:4px;font-variant-numeric:tabular-nums}
-#pg-firma .fc-net.pos{color:var(--sage)}
-#pg-firma .fc-net.neg{color:var(--rose)}
-#pg-firma .fc-sub{font-size:10.5px;color:var(--txt3);display:flex;justify-content:space-between;gap:8px;line-height:1.35}
-#pg-firma .fc-mini{margin-top:7px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;color:var(--txt3)}
-#pg-firma .fc-mini b{display:block;color:var(--txt2);font-size:10.5px;margin-bottom:1px;font-weight:700}
-#pg-firma .fc-warn{position:absolute;top:7px;right:8px;font-size:9px;background:var(--rose2);color:var(--rose);padding:1px 5px;border-radius:4px;font-weight:800;border:1px solid rgba(251,113,133,.2)}
-[data-theme="light"] #pg-firma .fc{background:var(--s1);border-color:var(--b1);box-shadow:0 1px 4px rgba(0,0,0,.06)}
-[data-theme="light"] #pg-firma .fc:hover{box-shadow:0 5px 16px rgba(0,0,0,.10)}
-[data-theme="light"] #pg-firma .fc-name{color:var(--txt)}
-[data-theme="light"] #pg-firma .fc-sub,[data-theme="light"] #pg-firma .fc-mini{color:var(--txt3)}
+
+<!-- V106.2-STANDARD-FIRMA-CARD: Sadece Firma Analizi kartlarının standart görünümü. Hesaplama ve içerik değiştirilmedi. -->
+<style id="v1062-standard-firma-card-only">
+  #pg-firma .fcgrid{
+    grid-template-columns:repeat(auto-fill,minmax(185px,1fr))!important;
+    gap:8px!important;
+  }
+  #pg-firma .fcard{
+    background:#fff!important;
+    border:1px solid #d6dee9!important;
+    border-radius:14px!important;
+    padding:12px 14px!important;
+    min-height:auto!important;
+    box-shadow:0 1px 4px rgba(15,23,42,.06)!important;
+    cursor:pointer!important;
+    position:relative!important;
+    overflow:hidden!important;
+    color:#0f2342!important;
+    transition:border-color .12s, box-shadow .12s, transform .12s!important;
+  }
+  #pg-firma .fcard:hover{
+    border-color:#b7c4d6!important;
+    box-shadow:0 4px 12px rgba(15,23,42,.10)!important;
+    transform:translateY(-1px)!important;
+  }
+  #pg-firma .fcard::after{
+    content:'';
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:2px;
+    background:#fb7185;
+  }
+  #pg-firma .fcard:has(.fcard-v.pos)::after{background:#22c55e;}
+  #pg-firma .fcard-t{
+    font-size:11.5px!important;
+    font-weight:700!important;
+    color:#0f2342!important;
+    margin-bottom:8px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #pg-firma .fcard-v{
+    font-family:var(--ffm)!important;
+    font-size:16px!important;
+    font-weight:700!important;
+    line-height:1.2!important;
+    margin-bottom:5px!important;
+  }
+  #pg-firma .fcard-v.pos{color:#22c55e!important;}
+  #pg-firma .fcard-v.neg{color:#fb7185!important;}
+  #pg-firma .fcard-s{
+    font-size:10.5px!important;
+    color:#64748b!important;
+    line-height:1.35!important;
+    margin-top:4px!important;
+  }
+  [data-theme="dark"] #pg-firma .fcard{
+    background:#fff!important;
+    color:#0f2342!important;
+  }
 </style>
-<script id="v1063_firma_card_fix_js">
+<script>
+/* =========================================================
+   V106_2 KPI DRILL LOCAL FILTER PATCH
+   Sadece yönetici panelindeki KPI kart detay filtresini değiştirir.
+   Global filtreler, net hesaplama ve dönem başı kurgusuna dokunmaz.
+   ========================================================= */
+(function(){
+  function escHtml(v){
+    return String(v ?? '').replace(/[&<>"]/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]; });
+  }
+  function enc(v){ return encodeURIComponent(String(v ?? '')); }
+  function dec(v){ return decodeURIComponent(String(v ?? '')); }
+
+  window.__kpiDrillState = { type:null, firma:'', banka:'', rm:'' };
+
+  function kpiBaseRows(type){
+    const src = Array.isArray(window.F) ? window.F : [];
+    if(type === 'giris') return src.filter(d => d && d.yon === 'GİRİŞ').sort((a,b)=>(b.tutar||0)-(a.tutar||0));
+    if(type === 'cikis') return src.filter(d => d && d.yon === 'ÇIKIŞ').sort((a,b)=>(a.tutar||0)-(b.tutar||0));
+    return src.filter(Boolean).slice().sort((a,b)=>Math.abs(b.tutar||0)-Math.abs(a.tutar||0));
+  }
+
+  function applyLocalKpiFilters(rows, st){
+    return rows.filter(d => {
+      if(st.firma && d.firma !== st.firma) return false;
+      if(st.banka && (d.banka || 'Bilinmiyor') !== st.banka) return false;
+      if(st.rm && (d.rm || 'Bilinmiyor') !== st.rm) return false;
+      return true;
+    });
+  }
+
+  function sumRows(rows){ return rows.reduce((s,d)=>s+(Number(d.tutar)||0),0); }
+
+  function buildBreakdown(rows, keyFn, type){
+    const m = {};
+    rows.forEach(d => {
+      const k = keyFn(d) || 'Bilinmiyor';
+      if(!m[k]) m[k] = {g:0,c:0,net:0,n:0};
+      const t = Number(d.tutar)||0;
+      if(d.yon === 'GİRİŞ') m[k].g += t;
+      if(d.yon === 'ÇIKIŞ') m[k].c += t;
+      m[k].net += t;
+      m[k].n += 1;
+    });
+    return Object.entries(m).map(([k,v]) => ({k,...v}))
+      .sort((a,b) => type === 'cikis' ? a.net - b.net : b.net - a.net);
+  }
+
+  function titleOf(type){
+    if(type === 'giris') return ['🟢 Toplam Nakit Girişi Detayı','var(--sage)'];
+    if(type === 'cikis') return ['🔴 Toplam Nakit Çıkışı Detayı','var(--rose)'];
+    return ['📊 Net Nakit Pozisyonu Detayı','var(--gold)'];
+  }
+
+  function valueFor(row, type){
+    if(type === 'giris') return row.g;
+    if(type === 'cikis') return row.c;
+    return row.net;
+  }
+
+  function chip(label, val, kind){
+    if(!val) return '';
+    return `<span class="badge bx" style="cursor:pointer;margin-right:6px" onclick="kpiDrillToggle('${kind}','${enc(val)}')">${escHtml(label)}: ${escHtml(val)} ×</span>`;
+  }
+
+  window.kpiDrillToggle = function(kind, encodedValue){
+    const st = window.__kpiDrillState || {type:'net',firma:'',banka:'',rm:''};
+    const val = dec(encodedValue);
+    if(kind === 'firma') st.firma = st.firma === val ? '' : val;
+    if(kind === 'banka') st.banka = st.banka === val ? '' : val;
+    if(kind === 'rm') st.rm = st.rm === val ? '' : val;
+    window.__kpiDrillState = st;
+    renderKpiLocalModal();
+  };
+
+  window.kpiDrillClear = function(){
+    const t = (window.__kpiDrillState && window.__kpiDrillState.type) || 'net';
+    window.__kpiDrillState = { type:t, firma:'', banka:'', rm:'' };
+    renderKpiLocalModal();
+  };
+
+  function renderKpiLocalModal(){
+    const st = window.__kpiDrillState || {type:'net',firma:'',banka:'',rm:''};
+    const type = st.type || 'net';
+    const baseRows = kpiBaseRows(type);
+    const rows = applyLocalKpiFilters(baseRows, st);
+    const [title, color] = titleOf(type);
+    const fmRows = buildBreakdown(rows, d=>d.firma || 'Bilinmiyor', type).slice(0,15);
+    const bmRows = buildBreakdown(rows, d=>d.banka || 'Bilinmiyor', type).slice(0,10);
+    const rmRows = buildBreakdown(rows, d=>d.rm || 'Bilinmiyor', type).slice(0,10);
+    const total = sumRows(rows);
+    const drillTitle = document.getElementById('drillTitle');
+    const drillBody = document.getElementById('drillBody');
+    if(!drillTitle || !drillBody) return;
+    drillTitle.innerHTML = title;
+    drillBody.innerHTML = `
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+        <div>
+          ${chip('Firma', st.firma, 'firma')}${chip('Banka', st.banka, 'banka')}${chip('Mapping', st.rm, 'rm')}
+          ${(!st.firma && !st.banka && !st.rm) ? '<span class="muted" style="font-size:11px">Kart içi filtre yok</span>' : ''}
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="kpiDrillClear()">Kart Filtresini Temizle</button>
+      </div>
+      <div class="krow" style="margin-bottom:14px">
+        <div class="kcard"><div class="kcard-line" style="background:${color}"></div><div class="kcard-lbl">Toplam</div><div class="kcard-val" style="color:${color}">${fM(total)}</div></div>
+        <div class="kcard"><div class="kcard-line" style="background:#60a5fa"></div><div class="kcard-lbl">İşlem</div><div class="kcard-val">${rows.length.toLocaleString('tr')}</div></div>
+        <div class="kcard"><div class="kcard-line" style="background:#c9a84c"></div><div class="kcard-lbl">Global Filtre</div><div class="kcard-val" style="font-size:13px">Değişmedi</div></div>
+      </div>
+      <div class="g3" style="margin-bottom:12px">
+        <div class="card">
+          <div class="card-h"><div class="card-ht">Firma Kırılımı</div></div>
+          <div class="alist">${fmRows.map(x=>`<div class="arow ${st.firma===x.k?'sel':''}" onclick="kpiDrillToggle('firma','${enc(x.k)}')"><div class="albl fw6">${escHtml(x.k)}<div class="muted" style="font-size:10px">${x.n.toLocaleString('tr')} işlem</div></div><div class="aval ${valueFor(x,type)>=0?'pos':'neg'}">${fK(valueFor(x,type))}</div></div>`).join('') || '<div class="empty">Kayıt yok</div>'}</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-ht">Banka Kırılımı</div></div>
+          <div class="alist">${bmRows.map(x=>`<div class="arow ${st.banka===x.k?'sel':''}" onclick="kpiDrillToggle('banka','${enc(x.k)}')"><div class="albl">${escHtml(x.k)}<div class="muted" style="font-size:10px">${x.n.toLocaleString('tr')} işlem</div></div><div class="aval ${valueFor(x,type)>=0?'pos':'neg'}">${fK(valueFor(x,type))}</div></div>`).join('') || '<div class="empty">Kayıt yok</div>'}</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-ht">Rapor Mapping</div></div>
+          <div class="alist">${rmRows.map(x=>`<div class="arow ${st.rm===x.k?'sel':''}" onclick="kpiDrillToggle('rm','${enc(x.k)}')"><div class="albl" style="font-size:11px">${escHtml(x.k)}<div class="muted" style="font-size:10px">${x.n.toLocaleString('tr')} işlem</div></div><div class="aval ${valueFor(x,type)>=0?'pos':'neg'}">${fK(valueFor(x,type))}</div></div>`).join('') || '<div class="empty">Kayıt yok</div>'}</div>
+        </div>
+      </div>
+      <div class="card-h" style="margin-bottom:8px"><div class="card-ht">İşlem Listesi (İlk 80)</div></div>
+      <div class="twrap" style="max-height:240px"><table>
+        <thead><tr><th>Tarih</th><th>Firma</th><th>Banka</th><th>Alıcı / Gönderici</th><th>İşlem Türü</th><th>Tutar</th><th>Döviz</th><th>Rapor Mapping</th><th>Açıklama</th></tr></thead>
+        <tbody>${rows.slice(0,80).map(d=>`<tr>
+          <td style="font-family:var(--ffm);font-size:11px;white-space:nowrap">${escHtml(d.tarih)}</td>
+          <td class="fw6 clip">${escHtml(d.firma)}</td>
+          <td class="clip">${escHtml(d.banka || '—')}</td>
+          <td class="clip col-alici">${escHtml(d.alici || '—')}</td>
+          <td class="clip" style="font-size:11px">${escHtml(d.nakit_det)}</td>
+          <td class="num ${(Number(d.tutar)||0)>=0?'pos':'neg'} fw6">${fK(Number(d.tutar)||0)}</td>
+          <td><span class="badge bx">${escHtml(d.doviz)}</span></td>
+          <td class="clip col-rm" style="font-size:11px;color:var(--txt3)">${escHtml(d.rm)}</td>
+          <td class="clip col-aciklama" style="font-size:11px;color:var(--txt3)">${escHtml(d.aciklama || '—')}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+    const modal = document.getElementById('drillModal');
+    if(modal) modal.classList.add('on');
+  }
+
+  window.showKPIDrill = function(type){
+    window.__kpiDrillState = { type:type || 'net', firma:'', banka:'', rm:'' };
+    renderKpiLocalModal();
+  };
+})();
+</script>
+
+
+
+<!-- V106.2 Firma Analizi Sıralama Buton Fix: sadece Net/Giriş/Burn butonları -->
+<script id="v1062_firma_sort_buttons_fix">
 (function(){
   'use strict';
-  function N(v){ if(typeof v==='number') return isFinite(v)?v:0; var s=String(v==null?'':v).replace(/\s/g,''); if(!s) return 0; if(s.indexOf(',')>-1){ s=s.replace(/\./g,'').replace(',','.'); } var n=Number(s); return isFinite(n)?n:0; }
-  function E(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
-  function shortMoney(v){ if(typeof window.moneyShort==='function') return window.moneyShort(v); if(typeof window.fK==='function') return window.fK(v); var n=N(v),a=Math.abs(n); if(a>=1e9)return (n/1e9).toLocaleString('tr-TR',{maximumFractionDigits:1})+' Mr'; if(a>=1e6)return (n/1e6).toLocaleString('tr-TR',{maximumFractionDigits:1})+' Mn'; if(a>=1e3)return (n/1e3).toLocaleString('tr-TR',{maximumFractionDigits:1})+' B'; return n.toLocaleString('tr-TR',{maximumFractionDigits:0}); }
-  function money(v){ if(typeof window.money==='function') return window.money(v); if(typeof window.fK==='function') return window.fK(v); return N(v).toLocaleString('tr-TR',{maximumFractionDigits:1}); }
-  function rows(){ return Array.isArray(window.F)?window.F:[]; }
-  function getFirma(d){ return d.firma || d.Firma || d['İşlem Yapan Firma'] || d.company || 'Bilinmiyor'; }
-  function getYon(d){ return d.yon || d['Nakit Yönü'] || d.nakit_yonu || (N(d.tutar||d.Tutar||d.amount)>0?'GİRİŞ':N(d.tutar||d.Tutar||d.amount)<0?'ÇIKIŞ':'NÖTR'); }
-  function getTutar(d){ return N(d.tutar!=null?d.tutar:(d.Tutar!=null?d.Tutar:d.amount)); }
-  function escapeArg(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
-  function currentFilters(){ try{ if(typeof window.getFl==='function') return window.getFl(); }catch(e){} try{ if(typeof window.getF==='function') return window.getF(); }catch(e){} return {}; }
-  function openingForFirma(firma){
+  function markActive(k){
     try{
-      if(typeof window.opening==='function'){
-        var fl=Object.assign({}, currentFilters(), {firmalar:[firma]});
-        return N(window.opening(fl));
-      }
+      document.querySelectorAll("button[onclick^="sortFC"]").forEach(function(b){
+        var t=(b.getAttribute('onclick')||'');
+        var on=t.indexOf("'"+k+"'")>-1 || t.indexOf('"'+k+'"')>-1;
+        b.classList.toggle('active', on);
+        if(on){ b.setAttribute('aria-pressed','true'); } else { b.setAttribute('aria-pressed','false'); }
+      });
     }catch(e){}
-    return 0;
   }
-  window.renderFirmaPage=function(){
-    var source=rows();
-    var by={};
-    source.forEach(function(d){
-      var f=getFirma(d); if(!by[f]) by[f]={firma:f,g:0,c:0,n:0};
-      var y=String(getYon(d)||'').toUpperCase(), t=getTutar(d);
-      if(y==='GİRİŞ' || t>0) by[f].g+=t;
-      else if(y==='ÇIKIŞ' || t<0) by[f].c+=t;
-      by[f].n++;
-    });
-    Object.keys(by).forEach(function(f){
-      by[f].o=openingForFirma(f);
-      by[f].net=by[f].g+by[f].c;
-      by[f].closing=by[f].o+by[f].net;
-      by[f].burn=Math.abs(by[f].c||0);
-    });
-    var arr=Object.values(by).filter(function(x){return x.n>0;});
-    var sort=window.fcSort||'closing';
-    arr.sort(function(a,b){
-      var k=sort==='giris'?'g':sort==='cikis'?'c':sort==='net'?'net':sort==='burn'?'burn':'closing';
-      return Math.abs(b[k]||0)-Math.abs(a[k]||0);
-    });
-    var grid=document.getElementById('fcgrid');
-    if(grid){
-      grid.innerHTML=arr.slice(0,30).map(function(f){
-        var cls=f.closing>=0?'pos':'neg';
-        var ortak=(window.ORTAKLAR && window.ORTAKLAR.has && window.ORTAKLAR.has(f.firma));
-        return '<div class="fc '+cls+'" onclick="drillFirma&&drillFirma(\''+escapeArg(f.firma)+'\')">'+
-          (ortak?'<div class="fc-warn" style="background:rgba(201,168,76,.2);color:var(--gold);border-color:rgba(201,168,76,.3)">★ ORTAK</div>':'')+
-          '<div class="fc-name">'+E(f.firma)+'</div>'+
-          '<div class="fc-net '+cls+'">'+shortMoney(f.closing)+'</div>'+
-          '<div class="fc-sub"><span>'+Number(f.n||0).toLocaleString('tr-TR')+' işlem</span><span>Net: '+shortMoney(f.net)+'</span></div>'+
-          '<div class="fc-mini"><div><b>Dönem Başı</b>'+shortMoney(f.o)+'</div><div><b>Çıkış</b>'+shortMoney(f.c)+'</div></div>'+
-        '</div>';
-      }).join('') || '<div class="empty">Firma verisi yok</div>';
-    }
-    var head=document.querySelector('#pg-firma table thead tr');
-    if(head){ head.innerHTML='<th>Firma</th><th>İşlem</th><th>Dönem Başı</th><th>Giriş</th><th>Çıkış</th><th>Net Nakit Pozisyonu</th><th>Dönem Sonu Pozisyonu</th><th>Durum</th>'; }
-    var body=document.getElementById('tFB');
-    if(body){
-      body.innerHTML=arr.map(function(f){
-        return '<tr onclick="drillFirma&&drillFirma(\''+escapeArg(f.firma)+'\')" style="cursor:pointer"><td class="fw6">'+E(f.firma)+'</td><td class="num">'+Number(f.n||0).toLocaleString('tr-TR')+'</td><td class="num pos">'+money(f.o)+'</td><td class="num pos">'+money(f.g)+'</td><td class="num neg">'+money(f.c)+'</td><td class="num '+(f.net>=0?'pos':'neg')+' fw7">'+money(f.net)+'</td><td class="num '+(f.closing>=0?'pos':'neg')+' fw7">'+money(f.closing)+'</td><td><span class="badge '+(f.closing>=0?'bg':'br')+'">'+(f.closing>=0?'▲ Pozitif':'▼ Negatif')+'</span></td></tr>';
-      }).join('') || '<tr><td colspan="8" class="empty">Firma verisi yok</td></tr>';
-    }
-    var cnt=document.getElementById('fcCount'); if(cnt) cnt.textContent=arr.length.toLocaleString('tr-TR')+' firma';
+  window.fcSort = window.fcSort || (typeof fcSort !== 'undefined' ? fcSort : 'net') || 'net';
+  window.sortFC = function(k){
+    k = k || 'net';
+    window.fcSort = k;
+    try{ if(typeof fcSort !== 'undefined') fcSort = k; }catch(e){}
+    markActive(k);
+    try{
+      if(typeof window.renderFirmaPage === 'function') window.renderFirmaPage();
+      else if(typeof renderFirmaPage === 'function') renderFirmaPage();
+    }catch(err){ console.warn('Firma analiz sıralama yenileme hatası', err); }
+    return false;
   };
-  window.sortFC=function(k){ window.fcSort=k; try{ window.renderFirmaPage(); }catch(e){ console.error('renderFirmaPage',e); } };
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ markActive(window.fcSort || 'net'); }, 300); });
 })();
 </script>
-
-
-
-<script id="v106_4_final_firma_tip_opening_fix">
-(function(){
-  'use strict';
-  function el(id){return document.getElementById(id);}
-  function N(v){v=Number(v);return isFinite(v)?v:0;}
-  function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-  function q(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
-  function selected(id){try{return typeof msGetSelected==='function'?(msGetSelected(id)||[]):[]}catch(e){return [];}}
-  function firmaTypeOfName(name){try{return (typeof FIRMA_TYPES!=='undefined'&&FIRMA_TYPES&&FIRMA_TYPES[name])||'ticari';}catch(e){return 'ticari';}}
-  function getFirma(d){return (d&&(d.firma||d.Firma||d['İşlem Yapan Firma']||d.company))||'Bilinmiyor';}
-  function getBank(d){return (d&&(d.banka||d.Banka||d['İşlem Yapan Banka']))||'';}
-  function getDoviz(d){return (d&&(d.doviz||d['Döviz Cinsi']||d.currency))||'';}
-  function getRM(d){return (d&&(d.rm||d['Rapor Mapping']||d.report_mapping))||'';}
-  function getDet(d){return (d&&(d.nakit_det||d['Nakit İşlem Detayı']||d['İşlem Detayı']||d.detail))||'';}
-  function getYon(d){return String((d&&(d.yon||d['Yönü']||d['Nakit Yönü']||d.direction))||'').toUpperCase();}
-  function getTutar(d){var v=d&&(d.tutar!=null?d.tutar:(d.Tutar!=null?d.Tutar:d.amount)); if(typeof v==='number')return isFinite(v)?v:0; var s=String(v==null?'':v).replace(/\s/g,'').replace('TL','').replace('₺',''); if(!s)return 0; if(s.indexOf(',')>-1){s=s.replace(/\./g,'').replace(',','.');} var n=Number(s); return isFinite(n)?n:0;}
-  function ayKey(d){return String((d&&(d.ay||d.tarih||d.Tarih||d.date))||'').slice(0,7).replace('-','');}
-  function isGroupRow(d){return /GRUP\s*İÇİ|GRUP\s*ICI/i.test([getRM(d),getDet(d),d&&d.aciklama,d&&d.alici,d&&d.islem_turu,d&&d.islem_detayi].join(' '));}
-  function isReportExcluded(d){
-    try{ if(window.isReportExcluded) return !!window.isReportExcluded(d); }catch(e){}
-    var rm=String(getRM(d)).toUpperCase();
-    return !!(d&&d.rapor_disi)||rm.indexOf('RAPOR DIŞI')>-1||rm.indexOf('NAKİT DIŞI')>-1||rm.indexOf('NAKİT ETKİSİ YOK')>-1;
-  }
-  function shortMoney(v){try{if(typeof fK==='function')return fK(v);}catch(e){} var n=N(v),a=Math.abs(n); if(a>=1e9)return (n/1e9).toLocaleString('tr-TR',{maximumFractionDigits:1})+' Mr'; if(a>=1e6)return (n/1e6).toLocaleString('tr-TR',{maximumFractionDigits:1})+' Mn'; if(a>=1e3)return (n/1e3).toLocaleString('tr-TR',{maximumFractionDigits:1})+' B'; return n.toLocaleString('tr-TR',{maximumFractionDigits:0});}
-  function money(v){try{if(typeof fK==='function')return fK(v);}catch(e){} return N(v).toLocaleString('tr-TR',{maximumFractionDigits:1});}
-
-  function ensureStartupTicari(){
-    var tip=el('fFirmaTip');
-    if(!tip) return;
-    var touched=sessionStorage.getItem('NA_FIRMA_TIP_CHANGED')==='1';
-    if(!touched && !tip.value) tip.value='ticari';
-  }
-  function bindFirmaTipChange(){
-    var tip=el('fFirmaTip');
-    if(tip && !tip.__v1064Bound){
-      tip.__v1064Bound=true;
-      tip.addEventListener('change',function(){sessionStorage.setItem('NA_FIRMA_TIP_CHANGED','1');});
-    }
-  }
-  function filters(){
-    ensureStartupTicari();
-    return {
-      bas:((el('fBas')&&el('fBas').value)||'2026-01').replace('-',''),
-      bit:((el('fBit')&&el('fBit').value)||'2026-12').replace('-',''),
-      firmalar:selected('fFirma'),
-      firmaTip:(el('fFirmaTip')&&el('fFirmaTip').value)||'',
-      yon:(el('fYon')&&el('fYon').value)||'',
-      rmler:selected('fRM'),
-      bankalar:selected('fBanka'),
-      dovizler:selected('fDoviz'),
-      giderler:selected('fGider'),
-      kaynak:(el('fKaynak')&&el('fKaynak').value)||'',
-      minT:(parseFloat((el('fMin')&&el('fMin').value)||0)||0)*1000,
-      maxT:(parseFloat((el('fMax')&&el('fMax').value)||0)||0)*1000,
-      bankaBoş:(el('fBankaBoş')&&el('fBankaBoş').value)||'',
-      grupIci:(el('fGrupIci')&&el('fGrupIci').value)||'dahil',
-      ortakIci:(el('fOrtakIci')&&el('fOrtakIci').value)||'dahil'
-    };
-  }
-  window.getF=window.getFl=filters;
-
-  function rowMatches(d,fl,includeOpening){
-    var m=ayKey(d); if(m && (m<fl.bas||m>fl.bit)) return false;
-    var firma=getFirma(d);
-    if(fl.firmalar.length && fl.firmalar.indexOf(firma)===-1) return false;
-    var tip=firmaTypeOfName(firma);
-    if(fl.firmaTip && tip!==fl.firmaTip) return false;
-    if(tip==='pasif' && fl.firmaTip!=='pasif') return false;
-    var y=getYon(d), t=getTutar(d);
-    if(fl.yon && y!==fl.yon) return false;
-    if(fl.rmler.length && fl.rmler.indexOf(getRM(d))===-1) return false;
-    if(fl.grupIci==='haric' && isGroupRow(d)) return false;
-    if(fl.bankalar.length && fl.bankalar.indexOf(getBank(d))===-1) return false;
-    if(fl.dovizler.length && fl.dovizler.indexOf(getDoviz(d))===-1) return false;
-    if(fl.giderler.length && fl.giderler.indexOf(getDet(d))===-1) return false;
-    if(fl.kaynak && d&&d.kaynak!==fl.kaynak) return false;
-    if(fl.minT && Math.abs(t)<fl.minT) return false;
-    if(fl.maxT && Math.abs(t)>fl.maxT) return false;
-    var hasBanka=!!String(getBank(d)||'').trim();
-    if(fl.bankaBoş==='dolu' && !hasBanka) return false;
-    if(fl.bankaBoş==='bos' && hasBanka) return false;
-    if(!includeOpening && window.isDonemBasiRow && window.isDonemBasiRow(d)) return false;
-    return true;
-  }
-  function manualMovementRows(fl){
-    var src=(window.D&&Array.isArray(D.detay))?D.detay:[];
-    return src.filter(function(d){return rowMatches(d,fl,false) && !isReportExcluded(d);});
-  }
-  function currentMovementRows(fl){
-    fl=fl||filters();
-    try{ if(window.NAKIT_FIX && typeof window.NAKIT_FIX.movementRows==='function') return window.NAKIT_FIX.movementRows(fl)||[]; }catch(e){}
-    return manualMovementRows(fl);
-  }
-  function openingForFirma(firma,baseFl){
-    var fl=Object.assign({},baseFl||filters(),{firmalar:[firma]});
-    try{ if(window.NAKIT_FIX && typeof window.NAKIT_FIX.opening==='function') return N(window.NAKIT_FIX.opening(fl)); }catch(e){}
-    var src=(window.D&&Array.isArray(D.detay))?D.detay:[];
-    return src.filter(function(d){return getFirma(d)===firma && rowMatches(d,fl,true) && window.isDonemBasiRow && window.isDonemBasiRow(d);}).reduce(function(s,d){return s+getTutar(d);},0);
-  }
-  function allFirmNames(){
-    var set=new Set();
-    try{(D&&D.meta&&D.meta.firms||[]).forEach(function(f){if(f)set.add(f);});}catch(e){}
-    try{(D&&D.firma||[]).forEach(function(x){var f=x.firma||x.Firma||x.name;if(f)set.add(f);});}catch(e){}
-    try{(D&&D.detay||[]).forEach(function(d){set.add(getFirma(d));});}catch(e){}
-    return Array.from(set).filter(Boolean);
-  }
-
-  var oldApply=window.applyF;
-  window.applyF=function(){
-    bindFirmaTipChange(); ensureStartupTicari();
-    if(!window.D || !Array.isArray(D.detay)){return;}
-    var fl=filters();
-    window.F=currentMovementRows(fl);
-    try{ if(typeof renderTags==='function') renderTags(fl); }catch(e){}
-    try{ if(typeof renderAll==='function') renderAll(); }catch(e){console.error('[v106.4 renderAll]',e);}
-    try{ if(typeof updBadges==='function') updBadges(); }catch(e){}
-  };
-
-  window.renderFirmaPage=function(){
-    var fl=filters();
-    var by={};
-    allFirmNames().forEach(function(f){
-      if(fl.firmalar.length && fl.firmalar.indexOf(f)===-1) return;
-      var tip=firmaTypeOfName(f);
-      if(fl.firmaTip && tip!==fl.firmaTip) return;
-      if(tip==='pasif' && fl.firmaTip!=='pasif') return;
-      by[f]={firma:f,g:0,c:0,n:0,o:openingForFirma(f,fl)};
-    });
-    (Array.isArray(window.F)?window.F:currentMovementRows(fl)).forEach(function(d){
-      var f=getFirma(d); if(!by[f]) by[f]={firma:f,g:0,c:0,n:0,o:openingForFirma(f,fl)};
-      var y=getYon(d), t=getTutar(d);
-      if(y==='GİRİŞ' || (y!== 'ÇIKIŞ' && t>0)) by[f].g+=t;
-      if(y==='ÇIKIŞ' || (y!== 'GİRİŞ' && t<0)) by[f].c+=t;
-      by[f].n++;
-    });
-    Object.keys(by).forEach(function(f){by[f].net=by[f].g+by[f].c; by[f].closing=by[f].o+by[f].net; by[f].burn=Math.abs(by[f].c||0);});
-    var arr=Object.values(by).filter(function(x){return x.n>0 || Math.abs(x.o)>0.0001;});
-    var sort=window.fcSort||'closing';
-    arr.sort(function(a,b){var k=sort==='giris'?'g':sort==='cikis'?'c':sort==='net'?'net':sort==='burn'?'burn':'closing'; return Math.abs(b[k]||0)-Math.abs(a[k]||0);});
-    var grid=el('fcgrid');
-    if(grid){
-      grid.innerHTML=arr.slice(0,30).map(function(f){
-        var cls=f.closing>=0?'pos':'neg';
-        var ortak=(window.ORTAKLAR&&window.ORTAKLAR.has&&window.ORTAKLAR.has(f.firma));
-        return '<div class="fc '+cls+'" onclick="drillFirma&&drillFirma(\''+q(f.firma)+'\')">'+
-          (ortak?'<div class="fc-warn" style="background:rgba(201,168,76,.2);color:var(--gold);border-color:rgba(201,168,76,.3)">★ ORTAK</div>':'')+
-          '<div class="fc-name">'+E(f.firma)+'</div>'+
-          '<div class="fc-net '+cls+'">'+shortMoney(f.closing)+'</div>'+
-          '<div class="fc-sub"><span>'+Number(f.n||0).toLocaleString('tr-TR')+' işlem</span><span>Net: '+shortMoney(f.net)+'</span></div>'+
-          '<div class="fc-mini"><div><b>Dönem Başı</b>'+shortMoney(f.o)+'</div><div><b>Çıkış</b>'+shortMoney(f.c)+'</div></div>'+
-        '</div>';
-      }).join('')||'<div class="empty">Firma verisi yok</div>';
-    }
-    var head=document.querySelector('#pg-firma table thead tr');
-    if(head) head.innerHTML='<th>Firma</th><th>İşlem</th><th>Dönem Başı</th><th>Giriş</th><th>Çıkış</th><th>Net Nakit Pozisyonu</th><th>Dönem Sonu Pozisyonu</th><th>Durum</th>';
-    var body=el('tFB');
-    if(body){
-      body.innerHTML=arr.map(function(f){return '<tr onclick="drillFirma&&drillFirma(\''+q(f.firma)+'\')" style="cursor:pointer"><td class="fw6">'+E(f.firma)+'</td><td class="num">'+Number(f.n||0).toLocaleString('tr-TR')+'</td><td class="num '+(f.o>=0?'pos':'neg')+'">'+money(f.o)+'</td><td class="num pos">'+money(f.g)+'</td><td class="num neg">'+money(f.c)+'</td><td class="num '+(f.net>=0?'pos':'neg')+' fw7">'+money(f.net)+'</td><td class="num '+(f.closing>=0?'pos':'neg')+' fw7">'+money(f.closing)+'</td><td><span class="badge '+(f.closing>=0?'bg':'br')+'">'+(f.closing>=0?'▲ Pozitif':'▼ Negatif')+'</span></td></tr>';}).join('')||'<tr><td colspan="8" class="empty">Firma verisi yok</td></tr>';
-    }
-    var cnt=el('fcCount'); if(cnt) cnt.textContent=arr.length.toLocaleString('tr-TR')+' firma';
-  };
-  window.sortFC=function(k){window.fcSort=k;try{window.renderFirmaPage();}catch(e){console.error('[v106.4 firma]',e);}};
-
-  document.addEventListener('DOMContentLoaded',function(){bindFirmaTipChange(); ensureStartupTicari(); setTimeout(function(){try{window.applyF();}catch(e){}},350);});
-  setTimeout(function(){bindFirmaTipChange(); ensureStartupTicari(); try{ if(window.D&&Array.isArray(D.detay)) window.applyF(); }catch(e){}},1200);
-})();
-</script>
+<style id="v1062_firma_sort_buttons_fix_css">
+#pg-firma button[onclick^="sortFC"]{height:24px;padding:3px 9px;border-radius:9px;font-size:11px;line-height:1;background:#fff;border:1px solid #cbd5e1;color:#334155;box-shadow:none;}
+#pg-firma button[onclick^="sortFC"].active{background:#eef2ff;border-color:#94a3b8;color:#0f172a;font-weight:700;}
+</style>
 
 </body>
 </html>
