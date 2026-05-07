@@ -7816,38 +7816,126 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
-<!-- V106.2 Firma Analizi Sıralama Buton Fix: sadece Net/Giriş/Burn butonları -->
-<script id="v1062_firma_sort_buttons_fix">
+
+<!-- V106.2 Firma Analizi Sıralama Buton Fix V2: sadece Net/Giriş/Burn butonları -->
+<script id="v1062_firma_sort_buttons_fix_v2">
 (function(){
   'use strict';
+
+  function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+
   function markActive(k){
-    try{
-      document.querySelectorAll("button[onclick^="sortFC"]").forEach(function(b){
-        var t=(b.getAttribute('onclick')||'');
-        var on=t.indexOf("'"+k+"'")>-1 || t.indexOf('"'+k+'"')>-1;
-        b.classList.toggle('active', on);
-        if(on){ b.setAttribute('aria-pressed','true'); } else { b.setAttribute('aria-pressed','false'); }
-      });
-    }catch(e){}
+    qsa('#pg-firma button').forEach(function(b){
+      var t = (b.getAttribute('onclick') || '') + ' ' + (b.textContent || '');
+      var isSortBtn = t.indexOf('sortFC') > -1 || /Net|Giriş|Giris|Burn/i.test(t);
+      if(!isSortBtn) return;
+      var on = false;
+      if(k === 'net') on = /Net/i.test(t);
+      if(k === 'giris') on = /Giriş|Giris/i.test(t);
+      if(k === 'burn') on = /Burn/i.test(t);
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
   }
-  window.fcSort = window.fcSort || (typeof fcSort !== 'undefined' ? fcSort : 'net') || 'net';
-  window.sortFC = function(k){
-    k = k || 'net';
-    window.fcSort = k;
-    try{ if(typeof fcSort !== 'undefined') fcSort = k; }catch(e){}
-    markActive(k);
+
+  function refreshFirmaPage(){
     try{
       if(typeof window.renderFirmaPage === 'function') window.renderFirmaPage();
       else if(typeof renderFirmaPage === 'function') renderFirmaPage();
-    }catch(err){ console.warn('Firma analiz sıralama yenileme hatası', err); }
+    }catch(err){
+      console.warn('Firma analizi sıralama yenileme hatası', err);
+    }
+  }
+
+  // Asıl düzeltme: hem global window.fcSort hem eski let fcSort değişkeni birlikte güncellenir.
+  window.sortFC = function(k){
+    k = (k || 'net').toString();
+    if(['net','giris','burn'].indexOf(k) === -1) k = 'net';
+    window.fcSort = k;
+    try { fcSort = k; } catch(e) {}
+    markActive(k);
+    refreshFirmaPage();
+    setTimeout(function(){ markActive(k); }, 50);
     return false;
   };
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ markActive(window.fcSort || 'net'); }, 300); });
+
+  // Butonlarda inline onclick kaçırılırsa event delegation ile de yakala.
+  document.addEventListener('click', function(ev){
+    var b = ev.target && ev.target.closest ? ev.target.closest('#pg-firma button') : null;
+    if(!b) return;
+    var txt = (b.textContent || '').trim();
+    var oc = b.getAttribute('onclick') || '';
+    if(oc.indexOf('sortFC') === -1 && !/^(Net|Giriş|Giris|Burn)/i.test(txt)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(/Giriş|Giris/i.test(txt) || oc.indexOf('giris') > -1) return window.sortFC('giris');
+    if(/Burn/i.test(txt) || oc.indexOf('burn') > -1) return window.sortFC('burn');
+    return window.sortFC('net');
+  }, true);
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){ markActive(window.fcSort || (typeof fcSort !== 'undefined' ? fcSort : 'net') || 'net'); }, 300);
+  });
 })();
 </script>
-<style id="v1062_firma_sort_buttons_fix_css">
-#pg-firma button[onclick^="sortFC"]{height:24px;padding:3px 9px;border-radius:9px;font-size:11px;line-height:1;background:#fff;border:1px solid #cbd5e1;color:#334155;box-shadow:none;}
-#pg-firma button[onclick^="sortFC"].active{background:#eef2ff;border-color:#94a3b8;color:#0f172a;font-weight:700;}
+<style id="v1062_firma_sort_buttons_fix_v2_css">
+#pg-firma button[onclick^="sortFC"], #pg-firma button[onclick*="sortFC"]{
+  height:24px!important;
+  padding:3px 9px!important;
+  border-radius:9px!important;
+  font-size:11px!important;
+  line-height:1!important;
+  background:#fff!important;
+  border:1px solid #cbd5e1!important;
+  color:#334155!important;
+  box-shadow:none!important;
+}
+#pg-firma button[onclick^="sortFC"].active, #pg-firma button[onclick*="sortFC"].active{
+  background:#eef2ff!important;
+  border-color:#94a3b8!important;
+  color:#0f172a!important;
+  font-weight:700!important;
+}
+</style>
+
+
+<!-- V106.2-FIRMA-CARD-DARK-THEME-FIX: Sadece Firma Analizi kartlarının koyu tema uyumu. Hesaplama/filtre/sıralama değişmedi. -->
+<style id="v1062-firma-card-dark-theme-fix">
+  /* Açık tema: standart beyaz kart korunur */
+  [data-theme="light"] #pg-firma .fcard{
+    background:#fff!important;
+    border-color:#d6dee9!important;
+    color:#0f2342!important;
+    box-shadow:0 1px 4px rgba(15,23,42,.06)!important;
+  }
+  [data-theme="light"] #pg-firma .fcard-t{color:#0f2342!important;}
+  [data-theme="light"] #pg-firma .fcard-s{color:#64748b!important;}
+
+  /* Koyu tema: kartlar artık beyaz kalmaz, genel koyu tema ile uyumlu olur */
+  [data-theme="dark"] #pg-firma .fcard,
+  html:not([data-theme="light"]) #pg-firma .fcard{
+    background:linear-gradient(180deg,rgba(30,41,59,.96),rgba(15,23,42,.96))!important;
+    border:1px solid rgba(148,163,184,.28)!important;
+    color:#e5edf8!important;
+    box-shadow:0 1px 8px rgba(0,0,0,.22)!important;
+  }
+  [data-theme="dark"] #pg-firma .fcard:hover,
+  html:not([data-theme="light"]) #pg-firma .fcard:hover{
+    border-color:rgba(203,213,225,.42)!important;
+    box-shadow:0 4px 14px rgba(0,0,0,.32)!important;
+  }
+  [data-theme="dark"] #pg-firma .fcard-t,
+  html:not([data-theme="light"]) #pg-firma .fcard-t{
+    color:#f8fafc!important;
+  }
+  [data-theme="dark"] #pg-firma .fcard-s,
+  html:not([data-theme="light"]) #pg-firma .fcard-s{
+    color:#94a3b8!important;
+  }
+  [data-theme="dark"] #pg-firma .fcard .muted,
+  html:not([data-theme="light"]) #pg-firma .fcard .muted{
+    color:#94a3b8!important;
+  }
 </style>
 
 </body>
