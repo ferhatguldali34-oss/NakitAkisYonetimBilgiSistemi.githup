@@ -7993,5 +7993,88 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
+
+
+<!-- V10.6.6 STRICT OPENING BALANCE FIX: Dönem başı sadece 2026 açılış bakiyelerinden alınır -->
+<script id="v106_6_strict_opening_balance_fix">
+(function(){
+  'use strict';
+  function N(v){ v=Number(v); return isFinite(v)?v:0; }
+  function U(v){ return String(v||'').toLocaleUpperCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/İ/g,'I').replace(/Ğ/g,'G').replace(/Ü/g,'U').replace(/Ş/g,'S').replace(/Ö/g,'O').replace(/Ç/g,'C').replace(/\s+/g,' ').trim(); }
+  function val(d,keys){ for(var i=0;i<keys.length;i++){ if(d && d[keys[i]]!=null && d[keys[i]]!=='') return d[keys[i]]; } return ''; }
+  function firma(d){ return String(val(d,['firma','Firma','İşlem Yapan Firma','company'])||'Bilinmiyor'); }
+  function banka(d){ return String(val(d,['banka','Banka','İşlem Yapan Banka','bank'])||''); }
+  function doviz(d){ return String(val(d,['doviz','Döviz Cinsi','currency'])||''); }
+  function rm(d){ return String(val(d,['rm','Rapor Mapping','report_mapping'])||''); }
+  function detay(d){ return String(val(d,['nakit_det','Nakit İşlem Detayı','İşlem Detayı','islem_detayi','detail'])||''); }
+  function tutar(d){ var v=val(d,['tutar','Tutar','amount']); if(typeof v==='number') return isFinite(v)?v:0; var s=String(v==null?'':v).replace(/\s/g,'').replace('TL','').replace('₺',''); if(!s) return 0; if(s.indexOf(',')>-1) s=s.replace(/\./g,'').replace(',','.'); var n=Number(s); return isFinite(n)?n:0; }
+  function ay(d){ var s=String(val(d,['ay','tarih','Tarih','date'])||''); if(/^\d{4}-\d{2}/.test(s)) return s.slice(0,7).replace('-',''); if(/^\d{2}\.\d{2}\.\d{4}/.test(s)) return s.slice(6,10)+s.slice(3,5); return s.slice(0,7).replace('-',''); }
+  function selected(id){ try{ return typeof msGetSelected==='function' ? (msGetSelected(id)||[]) : []; }catch(e){ return []; } }
+  function firmaTipOfName(name){ try{ return (typeof FIRMA_TYPES!=='undefined' && FIRMA_TYPES && FIRMA_TYPES[name]) || 'ticari'; }catch(e){ return 'ticari'; } }
+  function strictOpeningRow(d){
+    var r=U(rm(d)), dt=U(detay(d));
+    // Sadece gerçek açılış kaydı. BAKİYE DÜZELTME/DÜZELTMESİ artık dönem başı sayılmaz.
+    return dt==='ACILIS BAKIYESI' || dt==='ACILIS BAKIYE' || r==='DONEM BASI MEVCUT BAKIYE';
+  }
+  function filters(){
+    return {
+      bas:((document.getElementById('fBas')&&document.getElementById('fBas').value)||'2026-01').replace('-',''),
+      bit:((document.getElementById('fBit')&&document.getElementById('fBit').value)||'2026-12').replace('-',''),
+      firmalar:selected('fFirma'), bankalar:selected('fBanka'), dovizler:selected('fDoviz'),
+      firmaTip:(document.getElementById('fFirmaTip')&&document.getElementById('fFirmaTip').value)||'',
+      bankaBos:(document.getElementById('fBankaBoş')&&document.getElementById('fBankaBoş').value)||''
+    };
+  }
+  function openingCommonOk(d,fl){
+    var f=firma(d), tip=firmaTipOfName(f), b=banka(d), dv=doviz(d), hasB=!!String(b||'').trim();
+    if(fl.firmalar && fl.firmalar.length && fl.firmalar.indexOf(f)===-1) return false;
+    if(fl.firmaTip && tip!==fl.firmaTip) return false;
+    if(tip==='pasif' && fl.firmaTip!=='pasif') return false;
+    if(fl.bankalar && fl.bankalar.length && fl.bankalar.indexOf(b)===-1) return false;
+    if(fl.dovizler && fl.dovizler.length && fl.dovizler.indexOf(dv)===-1) return false;
+    if(fl.bankaBos==='dolu' && !hasB) return false;
+    if(fl.bankaBos==='bos' && hasB) return false;
+    return true;
+  }
+  function getRows(){ return (window.D && Array.isArray(D.detay)) ? D.detay : []; }
+  function strictOpeningRows(fl){
+    fl=Object.assign({},filters(),fl||{});
+    var year=String(fl.bas||'202601').slice(0,4);
+    return getRows().filter(function(d){
+      var m=ay(d);
+      return strictOpeningRow(d) && m.slice(0,4)===year && openingCommonOk(d,fl);
+    });
+  }
+  function strictOpening(fl){ return strictOpeningRows(fl).reduce(function(s,d){ return s+tutar(d); },0); }
+
+  // NAKIT_FIX'in dönem başı motorunu kesin açılış bakiyesi mantığına al.
+  window.NAKIT_FIX = Object.assign(window.NAKIT_FIX||{}, {
+    version:'v10.6.6-strict-acilis-bakiyesi',
+    getOpeningRows: strictOpeningRows,
+    getPriorMovementRows: function(){ return []; },
+    opening: strictOpening,
+    monthOpening: function(month,fl){ fl=Object.assign({},fl||filters(),{bas:String(month||'').replace('-','')}); return strictOpening(fl); }
+  });
+
+  // Eski detay ekranları bu yardımcıları çağırıyorsa aynı sonucu alsın.
+  window.getStrictOpeningRows = strictOpeningRows;
+  window.getStrictOpeningBalance = strictOpening;
+
+  // Firma analizi mevcut override'ı NAKIT_FIX.opening kullandığı için yeniden çiz.
+  var oldApply=window.applyF;
+  window.applyF=function(){
+    if(typeof oldApply==='function') oldApply.apply(this,arguments);
+    if(window.currentPage==='firma' || (document.getElementById('pg-firma') && document.getElementById('pg-firma').style.display!=='none')){
+      try{ if(typeof window.renderFirmaPage==='function') window.renderFirmaPage(); }catch(e){ console.error('[v10.6.6 firma opening redraw]',e); }
+    }
+  };
+
+  setTimeout(function(){
+    try{ if(typeof window.renderFirmaPage==='function') window.renderFirmaPage(); }catch(e){}
+    try{ if(typeof window.renderAll==='function') window.renderAll(); }catch(e){}
+  },250);
+})();
+</script>
+
 </body>
 </html>
