@@ -1698,6 +1698,75 @@ const EMBEDDED_DATA=null; // Büyük işlem verisi data.json dosyasına taşınd
 // ══════════════════════════════════════
 let D=null, F=[], CH={}, dPage=1, fcSort='net', dTimer=null;
 
+// v106.2 FIX: data.json dış dosyadan gelirken bazı durumlarda D/meta hazır olmadan render çalışıyordu.
+// Bu yardımcı tüm veri modelini güvenli hale getirir; renderExec artık D.meta null hatasına düşmez.
+function normalizeDashboardData(raw){
+  let data = raw;
+  if(!data) data = {detay:[]};
+  if(Array.isArray(data)) data = {detay:data};
+  if(typeof data !== 'object') data = {detay:[]};
+  if(!Array.isArray(data.detay)) data.detay = [];
+
+  const clean = v => String(v ?? '').trim();
+  const num = v => {
+    if(typeof v === 'number') return isFinite(v) ? v : 0;
+    let s = String(v ?? '').replace(/₺|TL/g,'').replace(/\s/g,'').trim();
+    if(!s) return 0;
+    if(s.includes(',') && s.includes('.')) s = s.replace(/\./g,'').replace(',', '.');
+    else if(s.includes(',')) s = s.replace(',', '.');
+    const n = parseFloat(s); return isFinite(n) ? n : 0;
+  };
+
+  data.detay = data.detay.map(r=>{
+    const tarih = clean(r.tarih || r.Tarih || r.date || r.Date);
+    const ay = clean(r.ay || r.Ay || (tarih ? tarih.slice(0,7) : ''));
+    const tutar = num(r.tutar ?? r.Tutar ?? r.amount ?? r.Amount);
+    return Object.assign({}, r, {
+      tarih,
+      firma: clean(r.firma || r.Firma || r['İşlem Yapan Firma'] || r.company),
+      banka: clean(r.banka || r.Banka || r['İşlem Yapan Banka'] || r.bank),
+      nakit_det: clean(r.nakit_det || r['Nakit İşlem Detayı'] || r['İşlem Detayı'] || r.detay || r.detail),
+      alici: clean(r.alici || r['Alıcı/Karşı Taraf'] || r.counterparty),
+      tutar,
+      doviz: clean(r.doviz || r['Döviz Cinsi'] || r.currency || 'TL') || 'TL',
+      dov_bak: num(r.dov_bak ?? r['Döviz Bakiye'] ?? r.currency_amount),
+      aciklama: clean(r.aciklama || r['Açıklama'] || r.description),
+      rm: clean(r.rm || r['Rapor Mapping'] || r.report_mapping),
+      yon: clean(r.yon || r['Nakit Yönü'] || r['Yönü'] || r.direction || (tutar>0?'GİRİŞ':(tutar<0?'ÇIKIŞ':'NÖTR'))),
+      ay,
+      kaynak: clean(r.kaynak || r.Kaynak || r.source)
+    });
+  });
+
+  const uniq = arr => Array.from(new Set(arr.filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b),'tr'));
+  const months = uniq(data.detay.map(r=>r.ay)).filter(Boolean);
+  const meta = Object.assign({}, data.meta || {});
+  meta.generated = meta.generated || new Date().toLocaleString('tr-TR');
+  meta.total_rows = Number(meta.total_rows || data.detay.length || 0);
+  meta.aktif_rows = Number(meta.aktif_rows || data.detay.length || 0);
+  meta.months = Array.isArray(meta.months) && meta.months.length ? meta.months : months;
+  meta.firms = Array.isArray(meta.firms) ? meta.firms : uniq(data.detay.map(r=>r.firma));
+  meta.rm_cats = Array.isArray(meta.rm_cats) ? meta.rm_cats : uniq(data.detay.map(r=>r.rm));
+  meta.bankalar = Array.isArray(meta.bankalar) ? meta.bankalar : uniq(data.detay.map(r=>r.banka));
+  meta.nakit_detaylar = Array.isArray(meta.nakit_detaylar) ? meta.nakit_detaylar : uniq(data.detay.map(r=>r.nakit_det));
+  meta.dovizler = Array.isArray(meta.dovizler) ? meta.dovizler : uniq(data.detay.map(r=>r.doviz));
+  meta.firma_tipleri = meta.firma_tipleri || {};
+  data.meta = meta;
+
+  if(!Array.isArray(data.anormal)) data.anormal = [];
+  if(!Array.isArray(data.firma)) data.firma = [];
+  if(!Array.isArray(data.rm)) data.rm = [];
+  if(!Array.isArray(data.monthly)) data.monthly = [];
+  if(!Array.isArray(data.top_cikis)) data.top_cikis = [];
+  if(!Array.isArray(data.top_giris)) data.top_giris = [];
+  if(!Array.isArray(data.doviz_risk)) data.doviz_risk = [];
+  if(!Array.isArray(data.gunluk)) data.gunluk = [];
+  data.grup_network = data.grup_network || {nodes:[],links:[]};
+  data.ortak_analiz = data.ortak_analiz || {firmadan_ortaga:[], ortaktan_firmaya:[]};
+  return data;
+}
+function dashboardReady(){ return !!(D && Array.isArray(D.detay) && D.meta); }
+
 // ══════════════════════════════════════
 // MULTİ-SELECT ENGINE
 // ══════════════════════════════════════
@@ -1986,7 +2055,8 @@ async function loadData(url){
         return;
       }
 
-      D = data;
+      D = normalizeDashboardData(data);
+      window.D = D;
       initApp();
     }catch(e){
       console.error('data.json yükleme hatası:', e);
@@ -2003,6 +2073,9 @@ function setLoader(txt,show){
 function initApp(){
   setLoader('Arayüz hazırlanıyor...',true);
   try{
+    D = normalizeDashboardData(D);
+    window.D = D;
+    if(!dashboardReady()) throw new Error('Veri modeli hazırlanamadı');
     ['dFirma','dRM'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) while(el.options.length>1) el.remove(1);
@@ -2011,10 +2084,10 @@ function initApp(){
     applyF();
     updBadges();
     const m=D.meta;
-    document.getElementById('sbMeta').innerHTML=`<b>${m.total_rows.toLocaleString('tr')}</b> kayıt · ${m.generated}`;
+    document.getElementById('sbMeta').innerHTML=`<b>${Number(m.total_rows||0).toLocaleString('tr')}</b> kayıt · ${m.generated||''}`;
     const userBadge = document.getElementById('topMeta')?.dataset?.userBadge || '';
-    document.getElementById('topMeta').innerHTML = userBadge + `${m.months[0]} → ${m.months[m.months.length-1]}`;
-    toast('✓ Veri yüklendi — '+D.meta.total_rows.toLocaleString('tr')+' kayıt','ok');
+    document.getElementById('topMeta').innerHTML = userBadge + `${(m.months&&m.months[0])||'-'} → ${(m.months&&m.months[m.months.length-1])||'-'}`;
+    toast('✓ data.json yüklendi — '+Number(D.meta.total_rows||0).toLocaleString('tr')+' kayıt','ok');
     const tb=document.getElementById('themeBtn');if(tb)tb.textContent=document.documentElement.getAttribute('data-theme')==='light'?'☾ Karanlık Tema':'☀ Aydınlık Tema'; updateBrandAssets();
   } catch(err){
     console.error('initApp hatası:',err);
@@ -2026,6 +2099,7 @@ function initApp(){
 let FIRMA_TYPES = {}; // firma → 'ortak'|'ticari'
 
 function fillSelects(){
+  D = normalizeDashboardData(D);
   FIRMA_TYPES = D.meta.firma_tipleri || {};
   msInit('fFirma', D.meta.firms, 'Tüm Firmalar');
   if(MS['fFirma']) MS['fFirma'].items=D.meta.firms.map(f=>({val:f,lbl:f+(FIRMA_TYPES[f]==='ortak'?' ★':'')}));
@@ -2044,10 +2118,13 @@ function fillSelects(){
   });
 }
 function updBadges(){
-  if(!D)return;
-  document.getElementById('bAN').textContent=D.anormal.length;
-  document.getElementById('bRK').textContent=D.firma.filter(f=>f.net<-5e6).length;
-  document.getElementById('bRW').textContent=D.firma.filter(f=>f.avg_monthly_burn>3e5&&f.son3ay_net<0).length;
+  if(!dashboardReady())return;
+  D = normalizeDashboardData(D);
+  const an = Array.isArray(D.anormal)?D.anormal:[];
+  const fa = Array.isArray(D.firma)?D.firma:[];
+  document.getElementById('bAN').textContent=an.length;
+  document.getElementById('bRK').textContent=fa.filter(f=>Number(f.net||0)<-5e6).length;
+  document.getElementById('bRW').textContent=fa.filter(f=>Number(f.avg_monthly_burn||0)>3e5&&Number(f.son3ay_net||0)<0).length;
 }
 
 // ══════════════════════════════════════
@@ -2089,7 +2166,8 @@ function getF(){
   };
 }
 function applyF(){
-  if(!D)return;
+  if(!dashboardReady()){F=[]; return;}
+  D = normalizeDashboardData(D);
   const fl=getF();
   F=D.detay.filter(d=>{
     const ay=d.ay.replace('-','');
@@ -2162,6 +2240,8 @@ function renderAll(){
 // EXEC PAGE
 // ══════════════════════════════════════
 function renderExec(){
+  if(!dashboardReady()){return;}
+  D = normalizeDashboardData(D);
   dc('cExecTrend'); dc('cExecFirma');
   const fl=getF();
   const g=F.filter(d=>d.yon==='GİRİŞ').reduce((s,d)=>s+d.tutar,0);
@@ -2189,7 +2269,7 @@ function renderExec(){
     </div>`).join('');
 
   // Mini trend chart
-  const months=D.meta.months.filter(m=>{const a=m.replace('-','');return a>=fl.bas&&a<=fl.bit;});
+  const months=((D&&D.meta&&Array.isArray(D.meta.months))?D.meta.months:[]).filter(m=>{const a=String(m).replace('-','');return a>=fl.bas&&a<=fl.bit;});
   const bm={};
   F.forEach(d=>{if(!bm[d.ay])bm[d.ay]={g:0,c:0};if(d.yon==='GİRİŞ')bm[d.ay].g+=d.tutar;if(d.yon==='ÇIKIŞ')bm[d.ay].c+=d.tutar;});
   const labels=months.map(m=>{const[y,n]=m.split('-');return MN[+n-1];});
@@ -2959,7 +3039,8 @@ function processFile(file){
   reader.onload=e=>{
     try{
       setLoader('Ayrıştırılıyor...',true);
-      D=JSON.parse(e.target.result);
+      D=normalizeDashboardData(JSON.parse(e.target.result));
+      window.D=D;
       closeUpload();initApp();
       st.style.color='var(--sage)';st.textContent='✓ Yüklendi';
     }catch(err){setLoader('',false);st.style.color='var(--rose)';st.textContent='✗ Geçersiz JSON: '+err.message;}
@@ -6590,7 +6671,7 @@ document.addEventListener('DOMContentLoaded',function(){
     try{ if(typeof setLoader==='function') setLoader('data.json kontrol ediliyor...',true); }catch(e){}
     return fetch('data.json?t='+Date.now(),{cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(function(data){
       if(!data || !data.detay) throw new Error('detay alanı yok');
-      window.D=data; D.__source='data.json'; initApp();
+      D=normalizeDashboardData(data); window.D=D; D.__source='data.json'; initApp();
     }).catch(function(err){
       console.warn('data.json okunamadı:',err);
       try{ if(typeof setLoader==='function') setLoader('',false); showUpload(); toast('data.json okunamadı. index.html ile aynı klasörde data.json olmalı.','err'); }catch(e){}
@@ -6602,7 +6683,7 @@ document.addEventListener('DOMContentLoaded',function(){
     try{ if(typeof setLoader==='function') setLoader('Dosya okunuyor...',true); }catch(e){}
     var reader=new FileReader();
     reader.onload=function(e){
-      try{ var data=JSON.parse(e.target.result); if(!data || !Array.isArray(data.detay)) throw new Error('JSON içinde detay dizisi yok'); window.D=data; D.__source='Yüklenen JSON: '+file.name; if(typeof closeUpload==='function') closeUpload(); initApp(); if(st){st.style.color='var(--sage)';st.textContent='✓ Yüklendi: '+file.name;} }
+      try{ var data=JSON.parse(e.target.result); if(!data || !Array.isArray(data.detay)) throw new Error('JSON içinde detay dizisi yok'); D=normalizeDashboardData(data); window.D=D; D.__source='Yüklenen JSON: '+file.name; if(typeof closeUpload==='function') closeUpload(); initApp(); if(st){st.style.color='var(--sage)';st.textContent='✓ Yüklendi: '+file.name;} }
       catch(err){ try{ if(typeof setLoader==='function') setLoader('',false); }catch(e){} if(st){st.style.color='var(--rose)';st.textContent='✗ Geçersiz JSON: '+err.message;} }
     };
     reader.readAsText(file,'utf-8');
@@ -7502,6 +7583,22 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   function boot(){mergeRules(false); applyRulesToData(); rerenderMappingIfVisible(); setTimeout(function(){applyRulesToData(); rerenderMappingIfVisible(); if(document.querySelector('.pg.on')&&document.querySelector('.pg.on').id==='pg-raporDisi')renderRaporDisiV105();},900);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,2100);}); else setTimeout(boot,1200);
+})();
+</script>
+
+
+<script>
+// v106.2 FINAL SAFETY: render zinciri veri yüklenmeden tetiklenirse sessizce bekler.
+(function(){
+  const safe = fn => function(){
+    try{
+      if(typeof dashboardReady==='function' && !dashboardReady()) return;
+      if(typeof normalizeDashboardData==='function'){ D = normalizeDashboardData(D); window.D = D; }
+      return fn.apply(this, arguments);
+    }catch(e){ console.error('[v106.2 safe render]', e); }
+  };
+  if(typeof renderExec==='function') renderExec = safe(renderExec);
+  if(typeof renderAll==='function') renderAll = safe(renderAll);
 })();
 </script>
 
