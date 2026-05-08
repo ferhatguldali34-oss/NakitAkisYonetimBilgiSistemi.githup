@@ -1120,42 +1120,183 @@ html[data-theme="dark"] .sidebar, html[data-theme="dark"] .topbar, html[data-the
 </style>
 
 
-<style id="v116_firma_cards_theme_fix">
-/* v116 - Firma Analizi kartları ana tema ile birlikte değişir.
-   Hesaplama/filtre/render motoruna dokunmaz. */
-:root{
-  --v116-firma-bg:#ffffff;
-  --v116-firma-bg-soft:#f8fafc;
-  --v116-firma-border:#e5e7eb;
-  --v116-firma-text:#111827;
-  --v116-firma-muted:#64748b;
-  --v116-firma-shadow:0 8px 24px rgba(15,23,42,.08);
+<style id="v119_theme_light_fix">
+body[data-theme="light"], html[data-theme="light"] body, body:not(.dark):not(.theme-dark):not(.dark-theme){
+  --v116-firma-bg:#ffffff !important;--v116-firma-bg-soft:#f8fafc !important;--v116-firma-border:#d8e0ec !important;--v116-firma-text:#0f172a !important;--v116-firma-muted:#64748b !important;
 }
+body[data-theme="dark"], html[data-theme="dark"] body, body.dark, body.theme-dark, body.dark-theme{
+  --v116-firma-bg:#151a23 !important;--v116-firma-bg-soft:#111827 !important;--v116-firma-border:#2b3443 !important;--v116-firma-text:#e5e7eb !important;--v116-firma-muted:#94a3b8 !important;
+}
+</style>
+
+<style id="v120_global_theme_fix">
+/* v120 - Tek merkezli global tema düzeltmesi.
+   Hesaplama, filtre ve rapor motoruna dokunmaz. */
+
+/* AÇIK TEMA */
+html[data-theme="light"],
+body[data-theme="light"],
+body:not(.dark):not(.theme-dark):not(.dark-theme){
+  --bg:#f3f6fb !important;
+  --bg2:#ffffff !important;
+  --panel:#ffffff !important;
+  --card:#ffffff !important;
+  --card2:#f8fafc !important;
+  --surface:#ffffff !important;
+  --surface2:#f8fafc !important;
+  --text:#0f172a !important;
+  --muted:#64748b !important;
+  --border:#d8e0ec !important;
+  --line:#e5e7eb !important;
+  --input:#ffffff !important;
+  --input-border:#cbd5e1 !important;
+  --shadow:0 8px 24px rgba(15,23,42,.08) !important;
+  color-scheme:light;
+}
+
+/* KARANLIK TEMA */
+html[data-theme="dark"],
+body[data-theme="dark"],
 body.dark,
-html.dark,
-[data-theme="dark"],
-.dark-theme,
-.theme-dark{
-  --v116-firma-bg:#151a23;
-  --v116-firma-bg-soft:#111827;
-  --v116-firma-border:#2b3443;
-  --v116-firma-text:#e5e7eb;
-  --v116-firma-muted:#94a3b8;
-  --v116-firma-shadow:0 8px 24px rgba(0,0,0,.22);
+html.dark body,
+body.theme-dark,
+body.dark-theme{
+  --bg:#08111f !important;
+  --bg2:#0b1422 !important;
+  --panel:#0f1a2a !important;
+  --card:#111c2d !important;
+  --card2:#0d1726 !important;
+  --surface:#111c2d !important;
+  --surface2:#0d1726 !important;
+  --text:#e5e7eb !important;
+  --muted:#94a3b8 !important;
+  --border:#263448 !important;
+  --line:#223047 !important;
+  --input:#0d1726 !important;
+  --input-border:#334155 !important;
+  --shadow:0 8px 24px rgba(0,0,0,.28) !important;
+  color-scheme:dark;
 }
 
-/* Bazı sürümlerde tema body class yerine body üzerinde data attr veya localStorage ile çalışıyor.
-   Bu nedenle uygulama kökünde karanlık sınıfları yakalanınca kart değişsin. */
-body:has(.theme-toggle.dark),
-body:has(.dark-mode-active){
-  --v116-firma-bg:#151a23;
-  --v116-firma-bg-soft:#111827;
-  --v116-firma-border:#2b3443;
-  --v116-firma-text:#e5e7eb;
-  --v116-firma-muted:#94a3b8;
-  --v116-firma-shadow:0 8px 24px rgba(0,0,0,.22);
+/* Sayfa zemini */
+html, body{
+  background:var(--bg) !important;
+  color:var(--text) !important;
 }
 
+/* Ana alanlar */
+.app,
+.main,
+.content,
+.page,
+.pg,
+.section,
+.dashboard,
+.panel,
+.wrap,
+.container{
+  background:var(--bg) !important;
+  color:var(--text) !important;
+}
+
+/* Kartlar / paneller / modal */
+.card,
+.kcard,
+.fc,
+.firma-card,
+.company-card,
+.panel-card,
+.box,
+.modal,
+.modal-body,
+.drill,
+#drillModal,
+#firmaModal,
+.drawer,
+.sidebar,
+.topbar,
+.header,
+.filterbar,
+.filters,
+.toolbar{
+  background:var(--card) !important;
+  color:var(--text) !important;
+  border-color:var(--border) !important;
+  box-shadow:var(--shadow) !important;
+}
+
+/* İç başlıklar ve yazılar */
+.card *,
+.kcard *,
+.fc *,
+.firma-card *,
+.company-card *,
+.panel *,
+.modal *,
+#drillModal *,
+#firmaModal *{
+  color:inherit;
+}
+
+.muted,
+.v98-muted,
+small,
+.hint,
+.sub,
+.subtext,
+.card-sub,
+.kcard-lbl,
+.label,
+th{
+  color:var(--muted) !important;
+}
+
+/* Tablo */
+table,
+.twrap,
+.table,
+tbody,
+thead{
+  background:var(--card) !important;
+  color:var(--text) !important;
+}
+tr,
+td,
+th{
+  border-color:var(--line) !important;
+}
+tbody tr:hover{
+  background:var(--card2) !important;
+}
+
+/* Form elemanları */
+input,
+select,
+textarea,
+button.btn-ghost,
+.filter-input,
+.filter-select{
+  background:var(--input) !important;
+  color:var(--text) !important;
+  border-color:var(--input-border) !important;
+}
+
+/* Select option görünümü */
+select option{
+  background:var(--input) !important;
+  color:var(--text) !important;
+}
+
+/* Grafik kutuları */
+canvas,
+.chart,
+.chart-card,
+.chart-wrap,
+.chart-container{
+  background:transparent !important;
+}
+
+/* Açık temada beyaz kalması gereken değil, tüm firma analiz kartları ana temayı takip eder */
 #firma .fc,
 #firma .firma-card,
 #firma .company-card,
@@ -1165,60 +1306,24 @@ body:has(.dark-mode-active){
 [data-page="firma"] .fc,
 [data-page="firma"] .firma-card,
 [data-page="firma"] .company-card{
-  background:var(--v116-firma-bg) !important;
-  color:var(--v116-firma-text) !important;
-  border:1px solid var(--v116-firma-border) !important;
-  box-shadow:var(--v116-firma-shadow) !important;
+  background:var(--card) !important;
+  color:var(--text) !important;
+  border:1px solid var(--border) !important;
 }
 
-#firma .fc *,
-#firma .firma-card *,
-#firma .company-card *,
-#firmaAnalizi .fc *,
-#firmaAnalizi .firma-card *,
-#firmaAnalizi .company-card *,
-[data-page="firma"] .fc *,
-[data-page="firma"] .firma-card *,
-[data-page="firma"] .company-card *{
-  color:inherit;
+/* Pozitif/negatif renkleri koru */
+.pos,
+.positive,
+.green{
+  color:#22c55e !important;
 }
-
-#firma .fc small,
-#firma .fc .muted,
-#firma .fc .v98-muted,
-#firma .firma-card small,
-#firma .firma-card .muted,
-#firma .company-card small,
-#firma .company-card .muted,
-#firmaAnalizi .fc small,
-#firmaAnalizi .fc .muted,
-#firmaAnalizi .fc .v98-muted,
-[data-page="firma"] .fc small,
-[data-page="firma"] .fc .muted,
-[data-page="firma"] .fc .v98-muted{
-  color:var(--v116-firma-muted) !important;
-}
-
-#firma .fc .chip,
-#firma .firma-card .chip,
-#firma .company-card .chip,
-#firmaAnalizi .fc .chip,
-[data-page="firma"] .fc .chip{
-  background:var(--v116-firma-bg-soft) !important;
-  border-color:var(--v116-firma-border) !important;
-  color:var(--v116-firma-text) !important;
+.neg,
+.negative,
+.red{
+  color:#fb7185 !important;
 }
 </style>
 
-
-<style id="v119_theme_light_fix">
-body[data-theme="light"], html[data-theme="light"] body, body:not(.dark):not(.theme-dark):not(.dark-theme){
-  --v116-firma-bg:#ffffff !important;--v116-firma-bg-soft:#f8fafc !important;--v116-firma-border:#d8e0ec !important;--v116-firma-text:#0f172a !important;--v116-firma-muted:#64748b !important;
-}
-body[data-theme="dark"], html[data-theme="dark"] body, body.dark, body.theme-dark, body.dark-theme{
-  --v116-firma-bg:#151a23 !important;--v116-firma-bg-soft:#111827 !important;--v116-firma-border:#2b3443 !important;--v116-firma-text:#e5e7eb !important;--v116-firma-muted:#94a3b8 !important;
-}
-</style>
 </head>
 <body>
 
@@ -8587,58 +8692,144 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
-<script id="v116_theme_sync_fix">
+
+<script id="v120_global_theme_sync">
 (function(){
-  function readTheme(){
-    var keys=['theme','appTheme','nakit_theme','uiTheme','tema'];
-    for(var i=0;i<keys.length;i++){
+  const STORAGE_KEYS = ['theme','appTheme','nakit_theme','uiTheme','tema'];
+
+  function getStoredTheme(){
+    for(const k of STORAGE_KEYS){
       try{
-        var v=localStorage.getItem(keys[i]);
-        if(v && /dark|karan/i.test(v)) return 'dark';
-        if(v && /light|aydin|aydın/i.test(v)) return 'light';
+        const v = (localStorage.getItem(k) || '').toLowerCase();
+        if(v.includes('dark') || v.includes('karan')) return 'dark';
+        if(v.includes('light') || v.includes('aydın') || v.includes('aydin')) return 'light';
       }catch(e){}
     }
-    var b=document.body, h=document.documentElement;
-    if((b && (b.classList.contains('dark') || b.classList.contains('theme-dark') || b.classList.contains('dark-theme'))) ||
-       (h && (h.classList.contains('dark') || h.classList.contains('theme-dark') || h.classList.contains('dark-theme')))){
+    return '';
+  }
+
+  function currentTheme(){
+    const stored = getStoredTheme();
+    if(stored) return stored;
+
+    const b = document.body;
+    const h = document.documentElement;
+    if(
+      b.classList.contains('dark') ||
+      h.classList.contains('dark') ||
+      b.classList.contains('theme-dark') ||
+      b.classList.contains('dark-theme') ||
+      b.getAttribute('data-theme') === 'dark' ||
+      h.getAttribute('data-theme') === 'dark'
+    ){
       return 'dark';
     }
     return 'light';
   }
 
-  function syncTheme(){
-    var t=readTheme();
-    document.body.classList.toggle('dark', t==='dark');
-    document.documentElement.classList.toggle('dark', t==='dark');
-    document.body.setAttribute('data-theme', t);
+  function persistTheme(theme){
+    for(const k of STORAGE_KEYS){
+      try{ localStorage.setItem(k, theme); }catch(e){}
+    }
   }
 
-  var oldToggle = window.toggleTheme;
-  if(typeof oldToggle === 'function'){
-    window.toggleTheme = function(){
-      var r = oldToggle.apply(this, arguments);
-      setTimeout(syncTheme, 0);
-      setTimeout(syncTheme, 80);
-      return r;
-    };
+  function applyTheme(theme){
+    const dark = theme === 'dark';
+    const b = document.body;
+    const h = document.documentElement;
+
+    h.setAttribute('data-theme', dark ? 'dark' : 'light');
+    b.setAttribute('data-theme', dark ? 'dark' : 'light');
+
+    h.classList.toggle('dark', dark);
+    b.classList.toggle('dark', dark);
+
+    h.classList.toggle('theme-dark', dark);
+    b.classList.toggle('theme-dark', dark);
+
+    h.classList.toggle('dark-theme', dark);
+    b.classList.toggle('dark-theme', dark);
+
+    h.classList.toggle('light', !dark);
+    b.classList.toggle('light', !dark);
+
+    h.classList.toggle('theme-light', !dark);
+    b.classList.toggle('theme-light', !dark);
+
+    persistTheme(dark ? 'dark' : 'light');
   }
 
+  function toggleThemeFixed(){
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    return next;
+  }
+
+  // Mevcut toggleTheme varsa bozma; ama sonucunu merkezi tema ile düzelt.
+  const oldToggle = window.toggleTheme;
+  window.toggleTheme = function(){
+    const before = currentTheme();
+    let result;
+    try{
+      if(typeof oldToggle === 'function') result = oldToggle.apply(this, arguments);
+    }catch(e){
+      console.warn('[v120] Eski toggleTheme hata verdi, merkezi tema uygulanıyor.', e);
+    }
+    const after = before === 'dark' ? 'light' : 'dark';
+    applyTheme(after);
+    setTimeout(function(){ applyTheme(after); }, 60);
+    setTimeout(function(){ applyTheme(after); }, 180);
+    return result;
+  };
+
+  // Bazı butonlar toggleTheme çağırmadan sadece kendi classını değiştiriyordu; metinden yakala.
   document.addEventListener('click', function(e){
-    var el=e.target.closest('button,.btn,a');
+    const el = e.target.closest('button,.btn,a,[role="button"]');
     if(!el) return;
-    var txt=(el.innerText||el.title||'').toLowerCase();
-    if(txt.includes('aydınlık') || txt.includes('aydinlik') || txt.includes('karanlık') || txt.includes('karanlik') || txt.includes('tema')){
-      setTimeout(syncTheme,0);
-      setTimeout(syncTheme,120);
+
+    const tx = ((el.innerText || '') + ' ' + (el.title || '') + ' ' + (el.getAttribute('aria-label') || '')).toLocaleLowerCase('tr-TR');
+
+    if(tx.includes('aydınlık') || tx.includes('aydinlik')){
+      setTimeout(function(){ applyTheme('light'); }, 0);
+      setTimeout(function(){ applyTheme('light'); }, 120);
+      return;
+    }
+
+    if(tx.includes('karanlık') || tx.includes('karanlik')){
+      setTimeout(function(){ applyTheme('dark'); }, 0);
+      setTimeout(function(){ applyTheme('dark'); }, 120);
+      return;
+    }
+
+    if(tx.includes('tema') || tx.includes('theme')){
+      const next = currentTheme() === 'dark' ? 'light' : 'dark';
+      setTimeout(function(){ applyTheme(next); }, 0);
+      setTimeout(function(){ applyTheme(next); }, 120);
     }
   }, true);
 
-  window.addEventListener('storage', syncTheme);
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', syncTheme);
-  }else{
-    syncTheme();
+  // DOM sonradan render edildiğinde tema classları yeniden sabit kalsın.
+  const observer = new MutationObserver(function(){
+    const t = currentTheme();
+    if(document.body.getAttribute('data-theme') !== t || document.documentElement.getAttribute('data-theme') !== t){
+      applyTheme(t);
+    }
+  });
+
+  function boot(){
+    applyTheme(currentTheme());
+    observer.observe(document.documentElement, {attributes:true, attributeFilter:['class','data-theme']});
+    observer.observe(document.body, {attributes:true, attributeFilter:['class','data-theme']});
   }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  }else{
+    boot();
+  }
+
+  window.__setTheme = applyTheme;
+  window.__toggleThemeFixed = toggleThemeFixed;
 })();
 </script>
 
