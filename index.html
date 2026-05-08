@@ -1119,6 +1119,97 @@ html[data-theme="dark"] .sidebar, html[data-theme="dark"] .topbar, html[data-the
 [data-theme="light"] .safe-ortak-filter .flbl{color:var(--txt3)}
 </style>
 
+
+<style id="v116_firma_cards_theme_fix">
+/* v116 - Firma Analizi kartları ana tema ile birlikte değişir.
+   Hesaplama/filtre/render motoruna dokunmaz. */
+:root{
+  --v116-firma-bg:#ffffff;
+  --v116-firma-bg-soft:#f8fafc;
+  --v116-firma-border:#e5e7eb;
+  --v116-firma-text:#111827;
+  --v116-firma-muted:#64748b;
+  --v116-firma-shadow:0 8px 24px rgba(15,23,42,.08);
+}
+body.dark,
+html.dark,
+[data-theme="dark"],
+.dark-theme,
+.theme-dark{
+  --v116-firma-bg:#151a23;
+  --v116-firma-bg-soft:#111827;
+  --v116-firma-border:#2b3443;
+  --v116-firma-text:#e5e7eb;
+  --v116-firma-muted:#94a3b8;
+  --v116-firma-shadow:0 8px 24px rgba(0,0,0,.22);
+}
+
+/* Bazı sürümlerde tema body class yerine body üzerinde data attr veya localStorage ile çalışıyor.
+   Bu nedenle uygulama kökünde karanlık sınıfları yakalanınca kart değişsin. */
+body:has(.theme-toggle.dark),
+body:has(.dark-mode-active){
+  --v116-firma-bg:#151a23;
+  --v116-firma-bg-soft:#111827;
+  --v116-firma-border:#2b3443;
+  --v116-firma-text:#e5e7eb;
+  --v116-firma-muted:#94a3b8;
+  --v116-firma-shadow:0 8px 24px rgba(0,0,0,.22);
+}
+
+#firma .fc,
+#firma .firma-card,
+#firma .company-card,
+#firmaAnalizi .fc,
+#firmaAnalizi .firma-card,
+#firmaAnalizi .company-card,
+[data-page="firma"] .fc,
+[data-page="firma"] .firma-card,
+[data-page="firma"] .company-card{
+  background:var(--v116-firma-bg) !important;
+  color:var(--v116-firma-text) !important;
+  border:1px solid var(--v116-firma-border) !important;
+  box-shadow:var(--v116-firma-shadow) !important;
+}
+
+#firma .fc *,
+#firma .firma-card *,
+#firma .company-card *,
+#firmaAnalizi .fc *,
+#firmaAnalizi .firma-card *,
+#firmaAnalizi .company-card *,
+[data-page="firma"] .fc *,
+[data-page="firma"] .firma-card *,
+[data-page="firma"] .company-card *{
+  color:inherit;
+}
+
+#firma .fc small,
+#firma .fc .muted,
+#firma .fc .v98-muted,
+#firma .firma-card small,
+#firma .firma-card .muted,
+#firma .company-card small,
+#firma .company-card .muted,
+#firmaAnalizi .fc small,
+#firmaAnalizi .fc .muted,
+#firmaAnalizi .fc .v98-muted,
+[data-page="firma"] .fc small,
+[data-page="firma"] .fc .muted,
+[data-page="firma"] .fc .v98-muted{
+  color:var(--v116-firma-muted) !important;
+}
+
+#firma .fc .chip,
+#firma .firma-card .chip,
+#firma .company-card .chip,
+#firmaAnalizi .fc .chip,
+[data-page="firma"] .fc .chip{
+  background:var(--v116-firma-bg-soft) !important;
+  border-color:var(--v116-firma-border) !important;
+  color:var(--v116-firma-text) !important;
+}
+</style>
+
 </head>
 <body>
 
@@ -8036,7 +8127,7 @@ document.addEventListener('DOMContentLoaded',function(){
   window.__V111_CANONICAL_CONTROLLER__ = true;
 
   var TARGET_RM = 'DÖNEM BAŞI MEVCUT BAKİYE';
-  var STATE = { renderBusy:false, pending:false, reportOutRM:'', defaultTipDone:false, charts:{}, lazyTimers:{}, initialExecHeavyDone:false };
+  var STATE = { renderBusy:false, pending:false, reportOutRM:'', defaultTipDone:false, charts:{}, cache:{}, rulesSig:'', dataSig:'' };
 
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function jsq(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
@@ -8124,8 +8215,10 @@ document.addEventListener('DOMContentLoaded',function(){
   window.NA_isReportOut = isReportOut;
 
   function filteredRows(fl,opt){
-    fl=fl||getFilters(); opt=opt||{}; var rows=rawRows().slice();
-    rows=rows.filter(function(d){
+    fl=fl||getFilters(); opt=opt||{}; ensureDataFresh();
+    var key=cacheKey('filtered',fl,opt);
+    if(STATE.cache[key]) return STATE.cache[key];
+    var rows=rawRows().filter(function(d){
       var mk=monthKey(d); if(!opt.ignoreDate && mk){ if(mk<fl.bas || mk>fl.bit) return false; }
       var firma=rowFirma(d), banka=rowBanka(d), rm=rowRM(d), detay=rowDetay(d), doviz=rowDoviz(d), yon=rowYon(d), tut=rowTutar(d), tip=firmaTipOf(firma);
       if(fl.firmalar && fl.firmalar.length && fl.firmalar.indexOf(firma)<0) return false;
@@ -8144,11 +8237,24 @@ document.addEventListener('DOMContentLoaded',function(){
       if(fl.bankaBos==='bos' && banka) return false;
       return true;
     });
+    STATE.cache[key]=rows;
     return rows;
   }
-  function openingRows(fl){fl=fl||getFilters(); var year=selectedYear(fl); return filteredRows(fl,{ignoreRM:true,ignoreYon:true,ignoreDetail:true}).filter(function(d){return rowYear(d)===year && isOpening(d);});}
-  function movementRows(fl){return filteredRows(fl,{ignoreRM:false}).filter(function(d){return !isOpening(d);});}
-  function kpiRows(fl){return movementRows(fl).filter(function(d){return !isReportOut(d);});}
+  function openingRows(fl){
+    fl=fl||getFilters(); var key=cacheKey('opening',fl,{}); if(STATE.cache[key]) return STATE.cache[key];
+    var year=selectedYear(fl); var rows=filteredRows(fl,{ignoreRM:true,ignoreYon:true,ignoreDetail:true}).filter(function(d){return rowYear(d)===year && isOpening(d);});
+    STATE.cache[key]=rows; return rows;
+  }
+  function movementRows(fl){
+    fl=fl||getFilters(); var key=cacheKey('movement',fl,{}); if(STATE.cache[key]) return STATE.cache[key];
+    var rows=filteredRows(fl,{ignoreRM:false}).filter(function(d){return !isOpening(d);});
+    STATE.cache[key]=rows; return rows;
+  }
+  function kpiRows(fl){
+    fl=fl||getFilters(); var key=cacheKey('kpi',fl,{}); if(STATE.cache[key]) return STATE.cache[key];
+    var rows=movementRows(fl).filter(function(d){return !isReportOut(d);});
+    STATE.cache[key]=rows; return rows;
+  }
   function signedAmount(d){var t=rowTutar(d), y=norm(rowYon(d)); if(y==='GIRIS') return Math.abs(t); if(y==='CIKIS') return -Math.abs(t); return t;}
   function isIn(d){return signedAmount(d)>0;}
   function isOut(d){return signedAmount(d)<0;}
@@ -8170,69 +8276,66 @@ document.addEventListener('DOMContentLoaded',function(){
     bindFirmaTipTouch(); setInitialTicariOnce();
     var rr=rawRows();
     if(!rr.length){window.F=[]; try{F=[];}catch(e){} return;}
-    try{ if(typeof window.applyRulesToData==='function') window.applyRulesToData(); }catch(e){}
-    var rows=filteredRows(getFilters(),{}); window.F=rows; try{F=rows;}catch(e){}
-    try{ if(typeof window.renderTags==='function') window.renderTags(getFilters()); }catch(e){}
+    ensureDataFresh();
+    var sig=STATE.dataSig;
+    if(STATE.rulesSig!==sig){
+      try{ if(typeof window.applyRulesToData==='function') window.applyRulesToData(); }catch(e){}
+      STATE.rulesSig=sig;
+      clearCalcCache();
+    }
+    var fl=getFilters();
+    var rows=filteredRows(fl,{}); window.F=rows; try{F=rows;}catch(e){}
+    try{ if(typeof window.renderTags==='function') window.renderTags(fl); }catch(e){}
     scheduleRender();
   };
   try{applyF=window.applyF;}catch(e){}
 
   function safe(fn){try{ if(typeof fn==='function') fn(); }catch(e){console.warn('[v111]', e);} }
   function activePage(){var on=document.querySelector('.pg.on'); return on ? on.id.replace('pg-','') : 'exec';}
-  function deferHeavy(key, fn, delay){
-    if(STATE.lazyTimers[key]) clearTimeout(STATE.lazyTimers[key]);
-    STATE.lazyTimers[key]=setTimeout(function(){
-      STATE.lazyTimers[key]=null;
-      try{ fn(); }catch(e){ console.warn('[v114 lazy '+key+']', e); }
-    }, delay||120);
+  function cacheKey(name, fl, opt){
+    try{return name+'|'+JSON.stringify(fl||getFilters())+'|'+JSON.stringify(opt||{});}catch(e){return name+'|x';}
   }
-
+  function clearCalcCache(){ STATE.cache={}; }
+  function dataSignature(rows){
+    rows=rows||rawRows();
+    var a=rows[0]||{}, b=rows[rows.length-1]||{};
+    return rows.length+'|'+rowDate(a)+'|'+rowFirma(a)+'|'+rowDate(b)+'|'+rowFirma(b);
+  }
+  function ensureDataFresh(){
+    var sig=dataSignature();
+    if(STATE.dataSig!==sig){ STATE.dataSig=sig; clearCalcCache(); STATE.rulesSig=''; }
+  }
   window.renderAll=function(){
     if(STATE.renderBusy) return;
     if(!rawRows().length) return;
     STATE.renderBusy=true;
     try{
       var pg=activePage();
-
-      // Açılış / Yönetici Özeti: önce yalnızca KPI kartları çizilir.
-      // Ağır grafikler ve firma kırılımları kısa gecikmeyle lazy çalışır.
-      if(pg==='exec' || pg===''){
-        window.renderExecEnhanced();
-        deferHeavy('execSupplement', function(){
-          if(activePage()==='exec' || activePage()==='') window.renderExecSupplementV110();
-        }, STATE.initialExecHeavyDone ? 180 : 650);
-        STATE.initialExecHeavyDone=true;
-      }
-
-      // Kontrol paneli sadece bu sekme açıkken çizilir.
-      if(pg==='dashboard'){
-        deferHeavy('dashboard', function(){ if(activePage()==='dashboard') window.renderDashboardV110(); }, 80);
-      }
-
-      // Firma analizi ilk açılışta hesaplanmaz; sadece sekme açılınca çalışır.
-      if(pg==='firma'){
-        deferHeavy('firma', function(){ if(activePage()==='firma') window.renderFirmaPage(); }, 80);
-      }
-
+      if(pg==='exec' || pg==='dashboard' || pg==='') window.renderExecEnhanced();
+      if(pg==='exec' || pg==='') window.renderExecSupplementV110();
+      if(pg==='dashboard') window.renderDashboardV110();
+      if(pg==='firma') window.renderFirmaPage();
       if(pg==='mapping') safe(window.renderMappingPage || (typeof renderMappingPage==='function'?renderMappingPage:null));
-      if(pg==='runway') deferHeavy('runway', function(){ if(activePage()==='runway') window.renderRunwayPage(); }, 80);
-      if(pg==='risk') deferHeavy('risk', function(){ if(activePage()==='risk') window.renderRiskPageV110(); }, 80);
+      if(pg==='runway') window.renderRunwayPage();
+      if(pg==='risk') window.renderRiskPageV110();
       if(pg==='grup') safe(window.renderGrupPage || (typeof renderGrupPage==='function'?renderGrupPage:null));
       if(pg==='ortak') safe(window.renderOrtakPage || (typeof renderOrtakPage==='function'?renderOrtakPage:null));
       if(pg==='doviz') safe(window.renderDovizPage || (typeof renderDovizPage==='function'?renderDovizPage:null));
       if(pg==='anormal') safe(window.renderAnormalPage || (typeof renderAnormalPage==='function'?renderAnormalPage:null));
-      if(pg==='trend') deferHeavy('trend', function(){ if(activePage()==='trend') window.renderTrendPageV110(); }, 80);
+      if(pg==='trend') window.renderTrendPageV110();
       if(pg==='detay') safe(window.updDetay || (typeof updDetay==='function'?updDetay:null));
-      if(pg==='raporDisi') deferHeavy('raporDisi', function(){ if(activePage()==='raporDisi') window.renderRaporDisiV110(STATE.reportOutRM||''); }, 80);
+      if(pg==='raporDisi') window.renderRaporDisiV110(STATE.reportOutRM||'');
       safe(window.updLogBadge || (typeof updLogBadge==='function'?updLogBadge:null));
     } finally { STATE.renderBusy=false; }
   };
   try{renderAll=window.renderAll;}catch(e){}
 
   function kpiSummary(fl){
-    fl=fl||getFilters(); var open=openingRows(fl), mov=kpiRows(fl);
+    fl=fl||getFilters(); var key=cacheKey('summary',fl,{}); if(STATE.cache[key]) return STATE.cache[key];
+    var open=openingRows(fl), mov=kpiRows(fl);
     var opening=sum(open,false), g=sum(inRows(mov),true), c=sum(outRows(mov),true), net=g+c, closing=opening+net;
-    return {openRows:open,movRows:mov,opening:opening,g:g,c:c,net:net,closing:closing};
+    var obj={openRows:open,movRows:mov,opening:opening,g:g,c:c,net:net,closing:closing};
+    STATE.cache[key]=obj; return obj;
   }
   window.renderExecEnhanced=function(){
     var el=document.getElementById('execKpi'); if(!el) return;
@@ -8250,12 +8353,16 @@ document.addEventListener('DOMContentLoaded',function(){
   function destroyChart(id){try{window.CH=window.CH||{}; if(window.CH[id]){window.CH[id].destroy(); delete window.CH[id];}}catch(e){}}
   function chartColors(){var isLight=document.documentElement.getAttribute('data-theme')==='light'||document.body.classList.contains('light')||document.documentElement.classList.contains('light'); return {text:isLight?'#334155':'#8fa3be', grid:isLight?'rgba(100,116,139,.18)':'rgba(148,163,184,.12)', border:isLight?'#fff':'#12161e'};}
   function monthlyGroups(fl){
-    var m={}; kpiRows(fl||getFilters()).forEach(function(d){var k=monthKey(d)||rowDate(d).slice(0,7).replace('-',''); if(!k)return; if(!m[k])m[k]={g:0,c:0,net:0,n:0}; var t=signedAmount(d); if(t>0)m[k].g+=t; if(t<0)m[k].c+=t; m[k].net+=t; m[k].n++;});
-    return Object.keys(m).sort().map(function(k){return {key:k,label:monthLabel(k),g:m[k].g,c:m[k].c,net:m[k].net,n:m[k].n};});
+    fl=fl||getFilters(); var key=cacheKey('monthly',fl,{}); if(STATE.cache[key]) return STATE.cache[key];
+    var m={}; kpiRows(fl).forEach(function(d){var k=monthKey(d)||rowDate(d).slice(0,7).replace('-',''); if(!k)return; if(!m[k])m[k]={g:0,c:0,net:0,n:0}; var t=signedAmount(d); if(t>0)m[k].g+=t; if(t<0)m[k].c+=t; m[k].net+=t; m[k].n++;});
+    var rows=Object.keys(m).sort().map(function(k){return {key:k,label:monthLabel(k),g:m[k].g,c:m[k].c,net:m[k].net,n:m[k].n};});
+    STATE.cache[key]=rows; return rows;
   }
   function dailyGroups(fl){
-    var m={}; kpiRows(fl||getFilters()).forEach(function(d){var k=rowDate(d); if(!k)return; if(!m[k])m[k]={g:0,c:0,net:0,n:0}; var t=signedAmount(d); if(t>0)m[k].g+=t; if(t<0)m[k].c+=t; m[k].net+=t; m[k].n++;});
-    return Object.keys(m).sort().map(function(k){return {key:k,label:k,g:m[k].g,c:m[k].c,net:m[k].net,n:m[k].n};});
+    fl=fl||getFilters(); var key=cacheKey('daily',fl,{}); if(STATE.cache[key]) return STATE.cache[key];
+    var m={}; kpiRows(fl).forEach(function(d){var k=rowDate(d); if(!k)return; if(!m[k])m[k]={g:0,c:0,net:0,n:0}; var t=signedAmount(d); if(t>0)m[k].g+=t; if(t<0)m[k].c+=t; m[k].net+=t; m[k].n++;});
+    var rows=Object.keys(m).sort().map(function(k){return {key:k,label:k,g:m[k].g,c:m[k].c,net:m[k].net,n:m[k].n};});
+    STATE.cache[key]=rows; return rows;
   }
   function renderTrendChart(canvasId, rows, title){
     var canvas=document.getElementById(canvasId); if(!canvas || typeof Chart==='undefined') return;
@@ -8333,12 +8440,13 @@ document.addEventListener('DOMContentLoaded',function(){
 
   window.sortFC=function(k){window.fcSort=k; try{fcSort=k;}catch(e){} window.renderFirmaPage();}; try{sortFC=window.sortFC;}catch(e){}
   function companyStats(fl){
+    fl=fl||getFilters(); var key=cacheKey('companyStats',fl,{}); if(STATE.cache[key]) return STATE.cache[key];
     var openings=openingRows(fl), moves=kpiRows(fl), m={};
     function ensure(f){ if(!m[f]) m[f]={firma:f,opening:0,g:0,c:0,net:0,closing:0,n:0,months:{}}; return m[f]; }
     openings.forEach(function(d){var o=ensure(rowFirma(d)); o.opening+=rowTutar(d);});
     moves.forEach(function(d){var o=ensure(rowFirma(d)), t=signedAmount(d), mk=monthKey(d); if(t>0)o.g+=t; if(t<0)o.c+=t; o.net+=t; o.n++; if(mk){ if(!o.months[mk])o.months[mk]=0; o.months[mk]+=t; }});
     Object.keys(m).forEach(function(k){m[k].closing=m[k].opening+m[k].net;});
-    return m;
+    STATE.cache[key]=m; return m;
   }
   window.renderFirmaPage=function(){
     var grid=document.getElementById('fcgrid'), tbody=document.getElementById('tFB'); if(!grid&&!tbody) return;
@@ -8527,6 +8635,62 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 
 
+
+
+<script id="v116_theme_sync_fix">
+(function(){
+  function readTheme(){
+    var keys=['theme','appTheme','nakit_theme','uiTheme','tema'];
+    for(var i=0;i<keys.length;i++){
+      try{
+        var v=localStorage.getItem(keys[i]);
+        if(v && /dark|karan/i.test(v)) return 'dark';
+        if(v && /light|aydin|aydın/i.test(v)) return 'light';
+      }catch(e){}
+    }
+    var b=document.body, h=document.documentElement;
+    if((b && (b.classList.contains('dark') || b.classList.contains('theme-dark') || b.classList.contains('dark-theme'))) ||
+       (h && (h.classList.contains('dark') || h.classList.contains('theme-dark') || h.classList.contains('dark-theme')))){
+      return 'dark';
+    }
+    return 'light';
+  }
+
+  function syncTheme(){
+    var t=readTheme();
+    document.body.classList.toggle('dark', t==='dark');
+    document.documentElement.classList.toggle('dark', t==='dark');
+    document.body.setAttribute('data-theme', t);
+  }
+
+  var oldToggle = window.toggleTheme;
+  if(typeof oldToggle === 'function'){
+    window.toggleTheme = function(){
+      var r = oldToggle.apply(this, arguments);
+      setTimeout(syncTheme, 0);
+      setTimeout(syncTheme, 80);
+      return r;
+    };
+  }
+
+  document.addEventListener('click', function(e){
+    var el=e.target.closest('button,.btn,a');
+    if(!el) return;
+    var txt=(el.innerText||el.title||'').toLowerCase();
+    if(txt.includes('aydınlık') || txt.includes('aydinlik') || txt.includes('karanlık') || txt.includes('karanlik') || txt.includes('tema')){
+      setTimeout(syncTheme,0);
+      setTimeout(syncTheme,120);
+    }
+  }, true);
+
+  window.addEventListener('storage', syncTheme);
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', syncTheme);
+  }else{
+    syncTheme();
+  }
+})();
+</script>
 
 </body>
 </html>
