@@ -1439,10 +1439,10 @@ html[data-theme="dark"] .sidebar, html[data-theme="dark"] .topbar, html[data-the
      <div class="twrap">
        <table>
          <thead><tr>
-           <th onclick="sT('tF',0)">Firma</th><th onclick="sT('tF',1)">İşlem</th>
-           <th onclick="sT('tF',2)">Giriş</th><th onclick="sT('tF',3)">Çıkış</th>
-           <th onclick="sT('tF',4)">Net</th><th onclick="sT('tF',5)">Aylık Nakit Tüketim</th>
-           <th onclick="sT('tF',6)">Fin.Bağ%</th><th>Durum</th>
+           <th onclick="sT('tF',0)">Firma</th><th onclick="sT('tF',1)">Hareket</th>
+           <th onclick="sT('tF',2)">Dönem Başı</th><th onclick="sT('tF',3)">Giriş</th>
+           <th onclick="sT('tF',4)">Çıkış</th><th onclick="sT('tF',5)">Net Hareket</th>
+           <th onclick="sT('tF',6)">Net Pozisyon</th><th>Durum</th>
          </tr></thead>
          <tbody id="tFB"></tbody>
        </table>
@@ -3032,20 +3032,26 @@ function onFileInput(inp){if(inp.files[0])processFile(inp.files[0]);}
 function loadFromUrl(){const url=document.getElementById('jUrl').value.trim();if(!url)return;closeUpload();loadData(url);}
 function processFile(file){
   const st=document.getElementById('uStatus');
-  st.style.display='block';st.style.color='var(--txt2)';
-  st.textContent='⏳ Okunuyor: '+file.name+' ('+( file.size/1024/1024).toFixed(1)+' MB)';
+  if(st){st.style.display='block';st.style.color='var(--txt2)';st.textContent='⏳ Okunuyor: '+file.name+' ('+(file.size/1024/1024).toFixed(1)+' MB)';}
   setLoader('Dosya okunuyor...',true);
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
+  Promise.resolve()
+    .then(()=>file.text())
+    .then(txt=>{
       setLoader('Ayrıştırılıyor...',true);
-      D=normalizeDashboardData(JSON.parse(e.target.result));
-      window.D=D;
-      closeUpload();initApp();
-      st.style.color='var(--sage)';st.textContent='✓ Yüklendi';
-    }catch(err){setLoader('',false);st.style.color='var(--rose)';st.textContent='✗ Geçersiz JSON: '+err.message;}
-  };
-  reader.readAsText(file,'utf-8');
+      return JSON.parse(txt);
+    })
+    .then(obj=>{
+      D=normalizeDashboardData(obj); window.D=D;
+      closeUpload();
+      initApp();
+      if(st){st.style.color='var(--sage)';st.textContent='✓ Yüklendi';}
+    })
+    .catch(err=>{
+      console.error('Dosya okuma/ayrıştırma hatası:',err);
+      setLoader('',false);
+      if(st){st.style.color='var(--rose)';st.textContent='✗ Geçersiz JSON: '+err.message;}
+      toast('Dosya okunamadı: '+err.message,'err');
+    });
 }
 
 // ══════════════════════════════════════
@@ -7937,6 +7943,565 @@ document.addEventListener('DOMContentLoaded',function(){
     color:#94a3b8!important;
   }
 </style>
+
+
+
+<script id="v106_8_mapping_defaults_theme_fix">
+/* V10.6.8 — Kullanıcının son mapping tablosunu Ayarlar'a kaydet + tema butonu ilk tıklama düzeltmesi.
+   Hesaplama/dönem başı/net kurgusuna dokunmaz; sadece mapping ayar localStorage'ını günceller ve tema toggle akışını düzeltir. */
+(function(){
+  'use strict';
+  var STORE_KEY='NAKIT_MAPPING_RULES_V103';
+  var VERSION_KEY='NAKIT_MAPPING_RULES_VERSION_V106_8';
+  var VERSION='2026-05-07-son-mapping';
+  var FINAL_RULES=[{"detay": "AİDAT ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / AİDAT", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "ARAÇ ALIM ÖDEMESİ", "rm": "YATIRIM NAKİT ÇIKIŞI / ARAÇ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "ARSA/ARAZİ ALIŞI ÖDEMESİ", "rm": "YATIRIM NAKİT ÇIKIŞI / ARSA ARAZİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "AVANS ALINMASI", "rm": "FAALİYET NAKİT GİRİŞİ / ALINAN AVANS", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "AVANS MAHSUBU", "rm": "NAKİT ETKİSİ YOK / MAHSUP", "yon": "NÖTR", "raporDisi": true}, {"detay": "AVANS VERİLMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / VERİLEN AVANS", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "BAKİYE DÜZELTME", "rm": "NAKİT DIŞI DÜZELTME", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "BANKA MASRAFI", "rm": "FAALİYET NAKİT ÇIKIŞI / BANKA MASRAFI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "BANKALAR ARASI VİRMAN", "rm": "NAKİT AKTARIMI / RAPOR DIŞI", "yon": "NÖTR", "raporDisi": true}, {"detay": "BAYRAM İKRAMİYESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / PERSONEL", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "BES ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / PERSONEL", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "BORÇ ALMA", "rm": "FİNANSMAN NAKİT GİRİŞİ / BORÇ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "BORÇ ÖDEMESİ", "rm": "FİNANSMAN NAKİT ÇIKIŞI / BORÇ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "BORÇ ALMA ORTAK", "rm": "FİNANSMAN NAKİT GİRİŞİ / BORÇ ORTAK", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "BORÇ ÖDEMESİ ORTAK", "rm": "FİNANSMAN NAKİT ÇIKIŞI / BORÇ ORTAK", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "BURS ÖDEMESİ", "rm": "FAALİYET DIŞI NAKİT ÇIKIŞI / BURS", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "CARİ MAHSUP", "rm": "NAKİT ETKİSİ YOK / MAHSUP", "yon": "NÖTR", "raporDisi": true}, {"detay": "ÇEK ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / ÇEK", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "ÇEK ÖDEMESİ GRUP İÇİ", "rm": "GRUP İÇİ NAKİT ÇIKIŞI / ÇEK", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "ÇEK TAHSİLATI", "rm": "FAALİYET NAKİT GİRİŞİ / ÇEK", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "ÇEK TAHSİLATI GRUP İÇİ", "rm": "GRUP İÇİ NAKİT GİRİŞİ / ÇEK", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "DAMGA VERGİSİ ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / VERGİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "DEMİRBAŞ ALIMI ÖDEMESİ", "rm": "YATIRIM NAKİT ÇIKIŞI / DEMİRBAŞ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "DEPOZİTO İADESİ", "rm": "OPERASYON DIŞI NAKİT GİRİŞİ / DEPOZİTO İADESİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "DEPOZİTO ÖDEMESİ", "rm": "OPERASYON DIŞI NAKİT ÇIKIŞI / DEPOZİTO", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "DİĞER NAKİT ÇIKIŞI", "rm": "DİĞER NAKİT ÇIKIŞI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "DİĞER NAKİT GİRİŞİ", "rm": "DİĞER NAKİT GİRİŞİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "DİĞER PERSONEL ÖDEMELERİ", "rm": "FAALİYET NAKİT ÇIKIŞI / PERSONEL", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "DÖVİZ ALIŞ/SATIŞ", "rm": "NAKİT DÖNÜŞÜMÜ / RAPOR DIŞI", "yon": "NÖTR", "raporDisi": true}, {"detay": "FAİZ GELİRİ", "rm": "FİNANSMAN NAKİT GİRİŞİ / FAİZ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "FON GELİRİ", "rm": "FİNANSMAN NAKİT GİRİŞİ / FON", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "FAİZ GELİRİ STOPAJ VER.", "rm": "FİNANSMAN NAKİT ÇIKIŞI / FAİZ STOPAJI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "FAİZ ÖDEMESİ", "rm": "FİNANSMAN NAKİT ÇIKIŞI / FAİZ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "GECİKME FAİZİ ÖDEMESİ", "rm": "OPERASYON DIŞI NAKİT ÇIKIŞI / GECİKME FAİZİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "GEÇİCİ VERGİ K. KART. ÖDEME", "rm": "KREDİ KARTI HAREKETİ / VERGİ", "yon": "NÖTR", "raporDisi": true}, {"detay": "GEÇİCİ VERGİ ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / VERGİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "GELEN ÇEK", "rm": "ÇEK HAREKETİ / TAHSİL BEKLEYEN", "yon": "NÖTR", "raporDisi": true}, {"detay": "GELEN ÇEK GRUP İÇİ", "rm": "GRUP İÇİ ÇEK HAREKETİ / TAHSİL BEKLEYEN", "yon": "NÖTR", "raporDisi": true}, {"detay": "GELEN ÖDEME (SINIFLANDIRILMAMIŞ)", "rm": "SINIFLANDIRILMAMIŞ NAKİT GİRİŞİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "GELEN ÖDEME GRUP İÇİ", "rm": "GRUP İÇİ NAKİT GİRİŞİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "GELEN SENET", "rm": "SENET HAREKETİ / TAHSİL BEKLEYEN", "yon": "NÖTR", "raporDisi": true}, {"detay": "GİDEN ÇEK", "rm": "ÇEK HAREKETİ / ÖDEME BEKLEYEN", "yon": "NÖTR", "raporDisi": true}, {"detay": "GİDEN ÇEK GRUP İÇİ", "rm": "GRUP İÇİ ÇEK HAREKETİ / ÖDEME BEKLEYEN", "yon": "NÖTR", "raporDisi": true}, {"detay": "GİDEN ÖDEME (SINIFLANDIRILMAMIŞ)", "rm": "SINIFLANDIRILMAMIŞ NAKİT ÇIKIŞI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "GİDEN ÖDEME GRUP İÇİ", "rm": "GRUP İÇİ NAKİT ÇIKIŞI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "GİDEN ÖDEME KARŞILIKSIZ", "rm": "FAALİYET DIŞI NAKİT ÇIKIŞI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "GİDEN SENET", "rm": "SENET HAREKETİ / ÖDEME BEKLEYEN", "yon": "NÖTR", "raporDisi": true}, {"detay": "GÜNCEL BAKİYE", "rm": "NAKİT DIŞI BİLGİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "DİĞER VERGİ RESİM VE HARÇ ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / DİĞER VERGİ VE HARÇ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "HESAPLAR ARASI VİRMAN", "rm": "NAKİT AKTARIMI / RAPOR DIŞI", "yon": "NÖTR", "raporDisi": true}, {"detay": "HİSSE ALIŞI", "rm": "YATIRIM NAKİT ÇIKIŞI / HİSSE", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "HİSSE SATIŞI", "rm": "YATIRIM NAKİT GİRİŞİ / HİSSE", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "HİSSE ALIŞI GRUP İÇİ", "rm": "GRUP İÇİ YATIRIM NAKİT ÇIKIŞI / HİSSE", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "HİSSE SATIŞI GRUP İÇİ", "rm": "GRUP İÇİ YATIRIM NAKİT GİRİŞİ / HİSSE", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "HUZUR HAKKI ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / HUZUR HAKKI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "İCRA ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / İCRA", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "İDARİ PARA CEZASI", "rm": "OPERASYON DIŞI NAKİT ÇIKIŞI / İDARİ PARA CEZASI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "İHBAR TAZMİNATI ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / PERSONEL", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "İŞ AVANSI", "rm": "FAALİYET NAKİT ÇIKIŞI / İŞ AVANSI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "İŞ AVANSI (KARŞILIKSIZ)", "rm": "FAALİYET NAKİT ÇIKIŞI / İŞ AVANSI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "KAR PAYI GELİRİ", "rm": "FİNANSMAN NAKİT GİRİŞİ / KAR PAYI", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "KAR PAYI ÖDEMESİ", "rm": "FİNANSMAN NAKİT ÇIKIŞI / KAR PAYI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "KAR PAYI GELİRİ GRUP İÇİ", "rm": "GRUP İÇİ FİNANSMAN NAKİT GİRİŞİ / KAR PAYI", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "KAR PAYI ÖDEMESİ GRUP İÇİ", "rm": "GRUP İÇİ FİNANSMAN NAKİT ÇIKIŞI / KAR PAYI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "KASA - BANKA AKTARIMI", "rm": "NAKİT AKTARIMI / RAPOR İÇİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "KDV İADESİ", "rm": "FAALİYET NAKİT GİRİŞİ / VERGİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "KDV KREDİ KARTINDAN ÖDEME", "rm": "KREDİ KARTI HAREKETİ / VERGİ", "yon": "NÖTR", "raporDisi": true}, {"detay": "KDV ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / VERGİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "KIDEM TAZMİNATI ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / PERSONEL", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "KİRA KREDİ KARTINDAN ÖDEME", "rm": "KREDİ KARTI HAREKETİ / KİRA", "yon": "NÖTR", "raporDisi": true}, {"detay": "KİRA ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / KİRA", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "KİRA GELİRİ", "rm": "FAALİYET NAKİT GİRİŞİ / KİRA", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "KREDİ KARTI BORÇ ÖDEMESİ", "rm": "FİNANSMAN NAKİT ÇIKIŞI / KREDİ KARTI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "KREDİ KARTINDAN ÖDEME", "rm": "KREDİ KARTI HAREKETİ / NAKİT DIŞI", "yon": "NÖTR", "raporDisi": true}, {"detay": "KREDİ KULLANIMI", "rm": "FİNANSMAN NAKİT GİRİŞİ / KREDİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "KREDİ ÖDEMESİ", "rm": "FİNANSMAN NAKİT ÇIKIŞI / KREDİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "KUR FARKI", "rm": "NAKİT DIŞI ETKİ / KUR FARKI", "yon": "NÖTR", "raporDisi": true}, {"detay": "KURUMLAR V. K. KART. ÖDEME", "rm": "KREDİ KARTI HAREKETİ / VERGİ", "yon": "NÖTR", "raporDisi": true}, {"detay": "KURUMLAR VERGİSİ ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / VERGİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "LEASİNG KREDİ ÖDEMESİ", "rm": "FİNANSMAN NAKİT ÇIKIŞI / LEASİNG", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "MAAŞ AVANSI", "rm": "FAALİYET NAKİT ÇIKIŞI / PERSONEL AVANSI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "MAAŞ ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / PERSONEL", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "MADEN DEVLET HAKKI ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / MADEN DEVLET HAKKI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "MUHASEBAT ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / MUHASEBAT", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "MUHTASAR ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / VERGİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "MASRAF ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / MASRAF", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "MÜŞTERİ TAHSİLATI", "rm": "FAALİYET NAKİT GİRİŞİ / MÜŞTERİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "ORMAN ÖDEMELERİ", "rm": "FAALİYET NAKİT ÇIKIŞI / ORMAN ÖDEMELERİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "ORTAĞA VERİLEN PARA", "rm": "FİNANSMAN NAKİT ÇIKIŞI / ORTAK", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "ORTAKTAN GELEN PARA", "rm": "FİNANSMAN NAKİT GİRİŞİ / ORTAK", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "ORTAKTAN GİDEN PARA RAPOR DIŞI", "rm": "ORTAK GİDEN PARA / RAPOR DIŞI", "yon": "NÖTR", "raporDisi": true}, {"detay": "ORTAĞA GELEN PARA RAPOR DIŞI", "rm": "ORTAK GELEN PARA / RAPOR DIŞI", "yon": "NÖTR", "raporDisi": true}, {"detay": "PERSONEL İCRA ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / PERSONEL", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "ROYALTY / RUHSAT ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / RUHSAT", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "SABİT KIYMET SATIŞI", "rm": "YATIRIM NAKİT GİRİŞİ / SABİT KIYMET", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "SATICI KREDİ KARTINDAN ÖDEME", "rm": "KREDİ KARTI HAREKETİ / SATICI", "yon": "NÖTR", "raporDisi": true}, {"detay": "SATICI ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / SATICI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "SENET ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / SENET", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "SENET ÖDEMESİ GRUP İÇİ", "rm": "GRUP İÇİ NAKİT ÇIKIŞI / SENET", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "SENET TAHSİLATI", "rm": "FAALİYET NAKİT GİRİŞİ / SENET", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "SENET TAHSİLATI GRUP İÇİ", "rm": "GRUP İÇİ NAKİT GİRİŞİ / SENET", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "SERMAYE ARTIŞI", "rm": "FİNANSMAN NAKİT GİRİŞİ / SERMAYE", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "SERMAYE AVANSI GELİRİ", "rm": "FİNANSMAN NAKİT GİRİŞİ / SERMAYE AVANSI", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "SERMAYE AVANSI ÖDEMESİ", "rm": "FİNANSMAN NAKİT GİRİŞİ / SERMAYE AVANSI", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "SGK KREDİ KARTINDAN ÖDEME", "rm": "KREDİ KARTI HAREKETİ / SGK", "yon": "NÖTR", "raporDisi": true}, {"detay": "SGK ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / SGK", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "SİGORTA POLİÇE ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / POLİÇE", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "SORULACAK", "rm": "SORULACAK", "yon": "NÖTR", "raporDisi": true}, {"detay": "TAŞERON ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / TAŞERON", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "TEMİNAT İADESİ", "rm": "OPERASYON DIŞI NAKİT GİRİŞİ / TEMİNAT İADESİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "TEMİNAT MEKTUBU KOMİSYONU", "rm": "FAALİYET NAKİT ÇIKIŞI / BANKA KOMİSYONU", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "TEMİNAT ÖDEMESİ", "rm": "OPERASYON DIŞI NAKİT ÇIKIŞI / TEMİNAT", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "VERGİ İADESİ", "rm": "FAALİYET NAKİT GİRİŞİ / VERGİ", "yon": "GİRİŞ", "raporDisi": false}, {"detay": "VERGİ KREDİ KARTINDAN ÖDEME", "rm": "KREDİ KARTI HAREKETİ / VERGİ", "yon": "NÖTR", "raporDisi": true}, {"detay": "VERGİ ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / VERGİ", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "YILLIK İZİN (G.Y.İ.) ÖDEMESİ", "rm": "FAALİYET NAKİT ÇIKIŞI / PERSONEL", "yon": "ÇIKIŞ", "raporDisi": false}, {"detay": "ORTAK ARSA/ARAZİ ALIŞI RAPOR DIŞI", "rm": "ORTAK GİDEN PARA ARSA/ARAZİ / RAPOR DIŞI", "yon": "NÖTR", "raporDisi": true}, {"detay": "AÇILIŞ BAKİYESİ", "rm": "DÖNEM BAŞI MEVCUT BAKİYE", "yon": "GİRİŞ", "raporDisi": false}];
+  function norm(v){return String(v==null?'':v).trim().replace(/\s+/g,' ').toLocaleUpperCase('tr-TR');}
+  function cleanRule(r){
+    return {
+      detay:String(r&&r.detay||'').trim(),
+      rm:String(r&&r.rm||'').trim(),
+      yon:String(r&&r.yon||'NÖTR').trim().toLocaleUpperCase('tr-TR'),
+      raporDisi:!!(r&&r.raporDisi)
+    };
+  }
+  function mergeMappingDefaults(){
+    try{
+      if(localStorage.getItem(VERSION_KEY)===VERSION) return;
+      var current=[];
+      try{ current=JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch(e){ current=[]; }
+      if(!Array.isArray(current)) current=[];
+      var map={}, order=[];
+      current.map(cleanRule).forEach(function(r){ if(!r.detay) return; var k=norm(r.detay); if(!map[k]) order.push(k); map[k]=r; });
+      FINAL_RULES.map(cleanRule).forEach(function(r){ if(!r.detay) return; var k=norm(r.detay); if(!map[k]) order.push(k); map[k]=r; });
+      var merged=order.map(function(k){return map[k];}).filter(function(r){return r&&r.detay;});
+      localStorage.setItem(STORE_KEY, JSON.stringify(merged));
+      localStorage.setItem(VERSION_KEY, VERSION);
+    }catch(e){ console.warn('mapping defaults save failed', e); }
+  }
+
+  function setThemeButtonText(){
+    var btn=document.getElementById('themeBtn');
+    if(!btn) return;
+    var isLight=document.documentElement.getAttribute('data-theme')==='light';
+    btn.textContent=isLight ? '☾ Karanlık Tema' : '☀ Aydınlık Tema';
+    btn.setAttribute('title', isLight ? 'Karanlık temaya geç' : 'Aydınlık temaya geç');
+  }
+  function setBrandLogoSafe(){
+    try{
+      var theme=document.documentElement.getAttribute('data-theme')||'dark';
+      var src=(theme==='dark')?'assets/logo-dark.png':'assets/logo-light.png';
+      document.querySelectorAll('.brand-login-logo,#brandSidebarLogo').forEach(function(img){ if(img) img.src=src; });
+      var meta=document.querySelector('meta[name="theme-color"]');
+      if(meta) meta.setAttribute('content', theme==='dark' ? '#07111f' : '#ff2d4f');
+      if(typeof window.updateBrandAssets==='function') window.updateBrandAssets();
+    }catch(e){}
+  }
+  function applyStoredTheme(){
+    var saved=localStorage.getItem('theme');
+    if(saved!=='light' && saved!=='dark') saved='dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    setThemeButtonText();
+    setBrandLogoSafe();
+  }
+  window.toggleTheme=function(){
+    var html=document.documentElement;
+    var cur=html.getAttribute('data-theme');
+    if(cur!=='light' && cur!=='dark') cur=(localStorage.getItem('theme')==='light'?'light':'dark');
+    var next=(cur==='light')?'dark':'light';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    setThemeButtonText();
+    setBrandLogoSafe();
+    return next;
+  };
+
+  mergeMappingDefaults();
+  applyStoredTheme();
+  document.addEventListener('DOMContentLoaded', function(){
+    mergeMappingDefaults();
+    applyStoredTheme();
+    setTimeout(function(){
+      try{ if(window.NAKIT_MAP && typeof window.NAKIT_MAP.apply==='function') window.NAKIT_MAP.apply(); }catch(e){}
+      setThemeButtonText();
+    }, 600);
+  });
+  window.addEventListener('load', function(){ setTimeout(function(){ applyStoredTheme(); setThemeButtonText(); }, 200); });
+})();
+</script>
+
+<script id="v111_canonical_controller">
+(function(){
+  'use strict';
+  if(window.__V111_CANONICAL_CONTROLLER__) return;
+  window.__V111_CANONICAL_CONTROLLER__ = true;
+
+  var TARGET_RM = 'DÖNEM BAŞI MEVCUT BAKİYE';
+  var STATE = { renderBusy:false, pending:false, reportOutRM:'', defaultTipDone:false, charts:{} };
+
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function jsq(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
+  function norm(v){return String(v==null?'':v).trim().toUpperCase().replace(/İ/g,'I').replace(/İ/g,'I').replace(/Ş/g,'S').replace(/Ğ/g,'G').replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C').replace(/ı/g,'I').replace(/ş/g,'S').replace(/ğ/g,'G').replace(/ü/g,'U').replace(/ö/g,'O').replace(/ç/g,'C').replace(/\s+/g,' ');}
+  function val(d,ks,def){for(var i=0;i<ks.length;i++){if(d && d[ks[i]]!=null && d[ks[i]]!=='') return d[ks[i]];} return def==null?'':def;}
+  function num(v){
+    if(typeof v==='number') return isFinite(v)?v:0;
+    var s=String(v==null?'':v).replace(/\s/g,'').replace(/TL/gi,'').replace(/₺/g,'');
+    if(!s) return 0;
+    if(s.indexOf(',')>-1) s=s.replace(/\./g,'').replace(',','.');
+    var n=Number(s); return isFinite(n)?n:0;
+  }
+  function fmtK(v){try{return typeof fK==='function'?fK(v):num(v).toLocaleString('tr-TR');}catch(e){return num(v).toLocaleString('tr-TR');}}
+  function fmtM(v){try{return typeof fM==='function'?fM(v):num(v).toLocaleString('tr-TR');}catch(e){return num(v).toLocaleString('tr-TR');}}
+  function rowDate(d){return String(val(d,['tarih','Tarih','date','TARİH','TARIH'],'')).trim().slice(0,10);}
+  function rowMonth(d){return String(val(d,['ay','Ay','month'],'')).trim();}
+  function extractYear(v){var s=String(v==null?'':v).trim(),m;if(!s)return''; if((m=s.match(/^(20\d{2})(?:[-/. ]|$)/)))return m[1]; if((m=s.match(/^\d{1,2}[.\-/]\d{1,2}[.\-/](20\d{2})/)))return m[1]; if((m=s.match(/\b(20\d{2})\b/)))return m[1]; return'';}
+  function rowYear(d){return extractYear(rowMonth(d)) || extractYear(rowDate(d));}
+  function rowFirma(d){return String(val(d,['firma','Firma','İşlem Yapan Firma','company'],'Bilinmiyor')).trim()||'Bilinmiyor';}
+  function rowBanka(d){return String(val(d,['banka','Banka','İşlem Yapan Banka','bank'],'')).trim();}
+  function rowRM(d){return String(val(d,['rm','Rapor Mapping','rapor_mapping','report_mapping'],'')).trim();}
+  function rowYon(d){return String(val(d,['yon','Yönü','Nakit Yönü','direction'],'')).trim().toUpperCase();}
+  function rowTutar(d){return num(val(d,['tutar','Tutar','amount'],0));}
+  function rowDoviz(d){return String(val(d,['doviz','Döviz Cinsi','currency'],'TL')).trim()||'TL';}
+  function rowDetay(d){return String(val(d,['nakit_det','Nakit İşlem Detayı','İşlem Detayı','detay','islem_detayi'],'')).trim();}
+  function rowAlici(d){return String(val(d,['alici','Alıcı/Karşı Taraf','counterparty'],'—')).trim()||'—';}
+  function rowAciklama(d){return String(val(d,['aciklama','Açıklama','description'],'—')).trim()||'—';}
+  function rowKaynak(d){return String(val(d,['kaynak','Kaynak','source'],'')).trim();}
+
+  function rawRows(){
+    try{
+      var data = window.D || (typeof D!=='undefined'?D:null);
+      if(!data) return [];
+      if(Array.isArray(data)) return data;
+      if(Array.isArray(data.detay)) return data.detay;
+      if(Array.isArray(data.data)) return data.data;
+      if(Array.isArray(data.transactions)) return data.transactions;
+    }catch(e){}
+    return [];
+  }
+  function selected(id){try{var el=document.getElementById(id); if(!el)return[]; return Array.prototype.slice.call(el.selectedOptions||[]).map(function(o){return o.value;}).filter(Boolean);}catch(e){return[];}}
+  function setInitialTicariOnce(){
+    if(STATE.defaultTipDone) return;
+    var el=document.getElementById('fFirmaTip');
+    if(el && !window.__V110_USER_CHANGED_FIRMA_TIP__){ el.value='ticari'; }
+    STATE.defaultTipDone=true;
+  }
+  function bindFirmaTipTouch(){
+    var el=document.getElementById('fFirmaTip');
+    if(el && !el.__v110Bound){ el.__v110Bound=true; el.addEventListener('change',function(){window.__V110_USER_CHANGED_FIRMA_TIP__=true;}); }
+  }
+  function getFilters(){
+    function v(id){var e=document.getElementById(id);return e?(e.value||''):'';}
+    var basRaw=v('fBas'), bitRaw=v('fBit');
+    return {
+      bas:String(basRaw).replace('-','')||'000000', bit:String(bitRaw).replace('-','')||'999999', basRaw:basRaw, bitRaw:bitRaw,
+      firmalar:selected('fFirma'), firmaTip:v('fFirmaTip'), yon:v('fYon'), rmler:selected('fRM'), grupIci:v('fGrupIci'),
+      bankalar:selected('fBanka'), dovizler:selected('fDoviz'), giderler:selected('fGider'), kaynak:v('fKaynak'),
+      minT:num(v('fMin'))*1000, maxT:num(v('fMax'))*1000, bankaBos:v('fBankaBoş')
+    };
+  }
+  function selectedYear(fl){
+    fl=fl||getFilters(); var c=[fl.yil,fl.year,fl.basRaw,fl.bas,fl.bitRaw,fl.bit];
+    for(var i=0;i<c.length;i++){var y=extractYear(c[i]); if(y) return y;}
+    return '2026';
+  }
+  function monthKey(d){var m=rowMonth(d); if(/^20\d{2}-\d{2}$/.test(m))return m.replace('-',''); var dt=rowDate(d); var y=extractYear(dt); var mm=(dt.match(/^(?:20\d{2})[-/.](\d{1,2})/)||dt.match(/^\d{1,2}[.\-/](\d{1,2})[.\-/]20\d{2}/)||[])[1]; return y&&mm?(y+String(mm).padStart(2,'0')):'';}
+  function firmaTypeMap(){
+    var m={}, src={};
+    try{src=window.FIRMA_TYPES || (typeof FIRMA_TYPES!=='undefined'?FIRMA_TYPES:{}) || {};}catch(e){src={};}
+    Object.keys(src).forEach(function(k){m[norm(k)]=src[k];});
+    return m;
+  }
+  function firmaTipOf(f){var m=firmaTypeMap(); return m[norm(f)] || 'ticari';}
+  function isGroupInternalRM(rm){try{return window.GRUP_ICI_HARIC_RM_SET && window.GRUP_ICI_HARIC_RM_SET.has(norm(rm));}catch(e){return /GRUP ICI|GRUP İÇİ/.test(norm(rm));}}
+  function isOpening(d){return norm(rowRM(d))===norm(TARGET_RM);}
+  function isReportOut(d){
+    var rm=norm(rowRM(d)), det=norm(rowDetay(d));
+    if(d && (d.__raporDisi===true || d.raporDisi===true || d.is_report_excluded===true)) return true;
+    if(rm.indexOf('RAPOR DISI')>-1 || rm.indexOf('RAPOR DIŞI')>-1) return true;
+    if(rm.indexOf('NAKIT ETKISI YOK')>-1 || rm.indexOf('NAKİT ETKİSİ YOK')>-1) return true;
+    if(det.indexOf('RAPOR DISI')>-1 || det.indexOf('RAPOR DIŞI')>-1) return true;
+    return false;
+  }
+  window.NA_isReportOut = isReportOut;
+
+  function filteredRows(fl,opt){
+    fl=fl||getFilters(); opt=opt||{}; var rows=rawRows().slice();
+    rows=rows.filter(function(d){
+      var mk=monthKey(d); if(!opt.ignoreDate && mk){ if(mk<fl.bas || mk>fl.bit) return false; }
+      var firma=rowFirma(d), banka=rowBanka(d), rm=rowRM(d), detay=rowDetay(d), doviz=rowDoviz(d), yon=rowYon(d), tut=rowTutar(d), tip=firmaTipOf(firma);
+      if(fl.firmalar && fl.firmalar.length && fl.firmalar.indexOf(firma)<0) return false;
+      if(fl.firmaTip && tip!==fl.firmaTip) return false;
+      if(!fl.firmaTip && !(fl.firmalar&&fl.firmalar.length) && tip==='pasif') return false;
+      if(!opt.ignoreYon && fl.yon && yon!==fl.yon) return false;
+      if(!opt.ignoreRM && fl.rmler && fl.rmler.length && fl.rmler.indexOf(rm)<0) return false;
+      if(fl.grupIci==='haric' && isGroupInternalRM(rm)) return false;
+      if(fl.bankalar && fl.bankalar.length && fl.bankalar.indexOf(banka)<0) return false;
+      if(fl.dovizler && fl.dovizler.length && fl.dovizler.indexOf(doviz)<0) return false;
+      if(!opt.ignoreDetail && fl.giderler && fl.giderler.length && fl.giderler.indexOf(detay)<0) return false;
+      if(fl.kaynak && rowKaynak(d)!==fl.kaynak) return false;
+      if(fl.minT && Math.abs(tut)<fl.minT) return false;
+      if(fl.maxT && Math.abs(tut)>fl.maxT) return false;
+      if(fl.bankaBos==='dolu' && !banka) return false;
+      if(fl.bankaBos==='bos' && banka) return false;
+      return true;
+    });
+    return rows;
+  }
+  function openingRows(fl){fl=fl||getFilters(); var year=selectedYear(fl); return filteredRows(fl,{ignoreRM:true,ignoreYon:true,ignoreDetail:true}).filter(function(d){return rowYear(d)===year && isOpening(d);});}
+  function movementRows(fl){return filteredRows(fl,{ignoreRM:false}).filter(function(d){return !isOpening(d);});}
+  function kpiRows(fl){return movementRows(fl).filter(function(d){return !isReportOut(d);});}
+  function signedAmount(d){var t=rowTutar(d), y=norm(rowYon(d)); if(y==='GIRIS') return Math.abs(t); if(y==='CIKIS') return -Math.abs(t); return t;}
+  function isIn(d){return signedAmount(d)>0;}
+  function isOut(d){return signedAmount(d)<0;}
+  function sum(rows, signed){return rows.reduce(function(s,d){return s+(signed?signedAmount(d):rowTutar(d));},0);}
+  function inRows(rows){return rows.filter(isIn);}
+  function outRows(rows){return rows.filter(isOut);}
+  function groupRows(rows,keyFn, signed){var m={}; rows.forEach(function(d){var k=keyFn(d)||'Tanımsız'; if(!m[k])m[k]={sum:0,n:0,g:0,c:0}; var t=signed?signedAmount(d):rowTutar(d); m[k].sum+=t; m[k].n++; if(t>0)m[k].g+=t; if(t<0)m[k].c+=t;}); return Object.keys(m).map(function(k){return {key:k,val:m[k]};}).sort(function(a,b){return Math.abs(b.val.sum)-Math.abs(a.val.sum);});}
+  function monthLabel(key){return key&&key.length>=6?key.slice(0,4)+'-'+key.slice(4,6):key;}
+
+  var renderTimer=null;
+  function scheduleRender(){
+    if(renderTimer) clearTimeout(renderTimer);
+    renderTimer=setTimeout(function(){
+      renderTimer=null;
+      try{ window.renderAll(); }catch(e){ console.warn('[v111 renderAll]', e); }
+    },80);
+  }
+  window.applyF=function(){
+    bindFirmaTipTouch(); setInitialTicariOnce();
+    var rr=rawRows();
+    if(!rr.length){window.F=[]; try{F=[];}catch(e){} return;}
+    try{ if(typeof window.applyRulesToData==='function') window.applyRulesToData(); }catch(e){}
+    var rows=filteredRows(getFilters(),{}); window.F=rows; try{F=rows;}catch(e){}
+    try{ if(typeof window.renderTags==='function') window.renderTags(getFilters()); }catch(e){}
+    scheduleRender();
+  };
+  try{applyF=window.applyF;}catch(e){}
+
+  function safe(fn){try{ if(typeof fn==='function') fn(); }catch(e){console.warn('[v111]', e);} }
+  function activePage(){var on=document.querySelector('.pg.on'); return on ? on.id.replace('pg-','') : 'exec';}
+  window.renderAll=function(){
+    if(STATE.renderBusy) return;
+    if(!rawRows().length) return;
+    STATE.renderBusy=true;
+    try{
+      var pg=activePage();
+      if(pg==='exec' || pg==='dashboard' || pg==='') window.renderExecEnhanced();
+      if(pg==='exec' || pg==='') window.renderExecSupplementV110();
+      if(pg==='dashboard') window.renderDashboardV110();
+      if(pg==='firma') window.renderFirmaPage();
+      if(pg==='mapping') safe(window.renderMappingPage || (typeof renderMappingPage==='function'?renderMappingPage:null));
+      if(pg==='runway') window.renderRunwayPage();
+      if(pg==='risk') window.renderRiskPageV110();
+      if(pg==='grup') safe(window.renderGrupPage || (typeof renderGrupPage==='function'?renderGrupPage:null));
+      if(pg==='ortak') safe(window.renderOrtakPage || (typeof renderOrtakPage==='function'?renderOrtakPage:null));
+      if(pg==='doviz') safe(window.renderDovizPage || (typeof renderDovizPage==='function'?renderDovizPage:null));
+      if(pg==='anormal') safe(window.renderAnormalPage || (typeof renderAnormalPage==='function'?renderAnormalPage:null));
+      if(pg==='trend') window.renderTrendPageV110();
+      if(pg==='detay') safe(window.updDetay || (typeof updDetay==='function'?updDetay:null));
+      if(pg==='raporDisi') window.renderRaporDisiV110(STATE.reportOutRM||'');
+      safe(window.updLogBadge || (typeof updLogBadge==='function'?updLogBadge:null));
+    } finally { STATE.renderBusy=false; }
+  };
+  try{renderAll=window.renderAll;}catch(e){}
+
+  function kpiSummary(fl){
+    fl=fl||getFilters(); var open=openingRows(fl), mov=kpiRows(fl);
+    var opening=sum(open,false), g=sum(inRows(mov),true), c=sum(outRows(mov),true), net=g+c, closing=opening+net;
+    return {openRows:open,movRows:mov,opening:opening,g:g,c:c,net:net,closing:closing};
+  }
+  window.renderExecEnhanced=function(){
+    var el=document.getElementById('execKpi'); if(!el) return;
+    var s=kpiSummary(getFilters());
+    el.innerHTML=[
+      {type:'donem',l:'Dönem Başı Mevcut Bakiye',v:fmtM(s.opening),sub:s.openRows.length.toLocaleString('tr-TR')+' açılış kaydı',color:'#60a5fa',line:'#60a5fa'},
+      {type:'giris',l:'Toplam Nakit Girişi',v:fmtM(s.g),sub:inRows(s.movRows).length.toLocaleString('tr-TR')+' işlem',color:'var(--sage)',line:'#4ade80'},
+      {type:'cikis',l:'Toplam Nakit Çıkışı',v:fmtM(s.c),sub:outRows(s.movRows).length.toLocaleString('tr-TR')+' işlem',color:'var(--rose)',line:'#fb7185'},
+      {type:'net',l:'Net Pozisyon',v:fmtM(s.net),sub:'Dönem başı hariç',color:s.net>=0?'var(--sage)':'var(--rose)',line:s.net>=0?'#4ade80':'#fb7185'},
+      {type:'kapanis',l:'Kapanış Pozisyonu',v:fmtM(s.closing),sub:'Dönem başı + net pozisyon',color:s.closing>=0?'var(--sage)':'var(--rose)',line:'#c9a84c'}
+    ].map(function(k){return '<div class="exec-k" onclick="showKPIDrill(\''+k.type+'\',{})" title="Detay için tıkla"><div class="exec-k-line" style="background:'+k.line+'"></div><div class="exec-k-lbl">'+esc(k.l)+'</div><div class="exec-k-val" style="color:'+k.color+'">'+esc(k.v)+'</div><div class="exec-k-sub">'+esc(k.sub)+'</div></div>';}).join('');
+  };
+  try{renderExecEnhanced=window.renderExecEnhanced;}catch(e){}
+
+  function destroyChart(id){try{window.CH=window.CH||{}; if(window.CH[id]){window.CH[id].destroy(); delete window.CH[id];}}catch(e){}}
+  function chartColors(){var isLight=document.documentElement.getAttribute('data-theme')==='light'||document.body.classList.contains('light')||document.documentElement.classList.contains('light'); return {text:isLight?'#334155':'#8fa3be', grid:isLight?'rgba(100,116,139,.18)':'rgba(148,163,184,.12)', border:isLight?'#fff':'#12161e'};}
+  function monthlyGroups(fl){
+    var m={}; kpiRows(fl||getFilters()).forEach(function(d){var k=monthKey(d)||rowDate(d).slice(0,7).replace('-',''); if(!k)return; if(!m[k])m[k]={g:0,c:0,net:0,n:0}; var t=signedAmount(d); if(t>0)m[k].g+=t; if(t<0)m[k].c+=t; m[k].net+=t; m[k].n++;});
+    return Object.keys(m).sort().map(function(k){return {key:k,label:monthLabel(k),g:m[k].g,c:m[k].c,net:m[k].net,n:m[k].n};});
+  }
+  function dailyGroups(fl){
+    var m={}; kpiRows(fl||getFilters()).forEach(function(d){var k=rowDate(d); if(!k)return; if(!m[k])m[k]={g:0,c:0,net:0,n:0}; var t=signedAmount(d); if(t>0)m[k].g+=t; if(t<0)m[k].c+=t; m[k].net+=t; m[k].n++;});
+    return Object.keys(m).sort().map(function(k){return {key:k,label:k,g:m[k].g,c:m[k].c,net:m[k].net,n:m[k].n};});
+  }
+  function renderTrendChart(canvasId, rows, title){
+    var canvas=document.getElementById(canvasId); if(!canvas || typeof Chart==='undefined') return;
+    destroyChart(canvasId); var cc=chartColors(); window.CH=window.CH||{};
+    window.CH[canvasId]=new Chart(canvas.getContext('2d'),{type:'line',data:{labels:rows.map(function(x){return x.label;}),datasets:[
+      {label:'Giriş',data:rows.map(function(x){return x.g;}),borderColor:'#4ade80',backgroundColor:'rgba(74,222,128,.12)',tension:.28,pointRadius:2},
+      {label:'Çıkış',data:rows.map(function(x){return Math.abs(x.c);}),borderColor:'#fb7185',backgroundColor:'rgba(251,113,133,.10)',tension:.28,pointRadius:2},
+      {label:'Net Pozisyon',data:rows.map(function(x){return x.net;}),borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,.10)',tension:.28,pointRadius:2}
+    ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{color:cc.text,font:{size:10},boxWidth:9}},tooltip:{callbacks:{title:function(ctx){var i=ctx[0].dataIndex, r=rows[i]; return (title?title+' — ':'')+r.label;},label:function(c){return c.dataset.label+': '+fmtK(c.raw);},afterBody:function(ctx){var r=rows[ctx[0].dataIndex]; return ['İşlem: '+r.n.toLocaleString('tr-TR'),'Net: '+fmtK(r.net)];}}}},scales:{x:{ticks:{color:cc.text,maxRotation:0,autoSkip:true},grid:{color:cc.grid}},y:{ticks:{color:cc.text,callback:function(v){return fmtK(v);}},grid:{color:cc.grid}}}}});
+  }
+  function renderCompanyChart(canvasId){
+    var canvas=document.getElementById(canvasId); if(!canvas || typeof Chart==='undefined') return;
+    destroyChart(canvasId); var cc=chartColors(); window.CH=window.CH||{}; var _cs=companyStats(getFilters()); var arr=Object.keys(_cs).map(function(k){return _cs[k];}).sort(function(a,b){return Math.abs(b.net)-Math.abs(a.net);}).slice(0,15);
+    window.CH[canvasId]=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:arr.map(function(x){return x.firma;}),datasets:[{label:'Net Pozisyon',data:arr.map(function(x){return x.net;}),backgroundColor:arr.map(function(x){return x.net>=0?'rgba(74,222,128,.72)':'rgba(251,113,133,.72)';}),borderWidth:0}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){var f=arr[c.dataIndex];return ['Net Pozisyon: '+fmtK(f.net),'Dönem Başı: '+fmtK(f.opening),'Kapanış: '+fmtK(f.closing),'Giriş: '+fmtK(f.g),'Çıkış: '+fmtK(f.c)];}}}},scales:{x:{ticks:{color:cc.text,callback:function(v){return fmtK(v);}},grid:{color:cc.grid}},y:{ticks:{color:cc.text,font:{size:9}},grid:{display:false}}}}});
+  }
+
+  function renderExecSupplement(){
+    renderTrendChart('cExecTrend', monthlyGroups(getFilters()), 'Aylık Trend');
+    renderCompanyChart('cExecFirma');
+    var s=kpiSummary(getFilters()), insights=document.getElementById('execInsights');
+    var firms=Object.keys(companyStats(getFilters())).map(function(k){return companyStats(getFilters())[k];}).sort(function(a,b){return a.net-b.net;});
+    var worst=firms[0], best=firms[firms.length-1];
+    if(insights){
+      var html='';
+      html+='<div class="insight-item"><span class="insight-dot" style="background:#60a5fa"></span><div class="insight-txt"><b>Dönem başı</b> ayrı tutuldu: '+fmtM(s.opening)+'. Net pozisyon dönem içi giriş/çıkıştan oluşur.</div></div>';
+      html+='<div class="insight-item"><span class="insight-dot" style="background:'+(s.net>=0?'#4ade80':'#fb7185')+'"></span><div class="insight-txt"><b>Net pozisyon</b>: '+fmtM(s.net)+'; kapanış pozisyonu '+fmtM(s.closing)+'.</div></div>';
+      if(worst) html+='<div class="insight-item"><span class="insight-dot" style="background:#fb7185"></span><div class="insight-txt"><b>En açık firma</b>: '+esc(worst.firma)+' '+fmtM(worst.net)+'.</div></div>';
+      if(best) html+='<div class="insight-item"><span class="insight-dot" style="background:#4ade80"></span><div class="insight-txt"><b>En pozitif firma</b>: '+esc(best.firma)+' '+fmtM(best.net)+'.</div></div>';
+      insights.innerHTML=html;
+    }
+    renderList('execGider', groupRows(outRows(kpiRows(getFilters())),rowRM,true).slice(0,10));
+  }
+  window.renderExecSupplementV110=renderExecSupplement;
+
+  function renderList(id, rows){var el=document.getElementById(id); if(!el) return; el.innerHTML=rows.map(function(x){return '<div class="arow" onclick="showKPIDrill(\'net\',{rm:\''+jsq(x.key)+'\'})"><div class="albl">'+esc(x.key)+'<div class="v98-muted">'+x.val.n.toLocaleString('tr-TR')+' işlem</div></div><div class="aval '+(x.val.sum>=0?'pos':'neg')+'">'+fmtK(x.val.sum)+'</div></div>';}).join('') || '<div class="empty">Veri yok</div>';}
+
+  window.renderDashboardV110=function(){
+    var kr=document.getElementById('krow'), s=kpiSummary(getFilters());
+    if(kr) kr.innerHTML=[
+      ['Dönem Başı',s.opening,'#60a5fa'],['Giriş',s.g,'#4ade80'],['Çıkış',s.c,'#fb7185'],['Net Pozisyon',s.net,s.net>=0?'#4ade80':'#fb7185'],['Kapanış',s.closing,'#c9a84c']
+    ].map(function(k){return '<div class="kcard"><div class="kcard-line" style="background:'+k[2]+'"></div><div class="kcard-lbl">'+k[0]+'</div><div class="kcard-val '+(k[1]>=0?'pos':'neg')+'">'+fmtM(k[1])+'</div></div>';}).join('');
+    var meta=document.getElementById('trendMeta'); if(meta) meta.textContent='Dönem başı hariç; gerçek dönem içi giriş/çıkış';
+    renderTrendChart('cTrend', monthlyGroups(getFilters()), 'Aylık Trend');
+    renderCompanyChart('cFirma');
+    renderRMChartV110();
+    renderList('topC', groupRows(outRows(kpiRows(getFilters())),rowRM,true).slice(0,10));
+    renderList('topG', groupRows(inRows(kpiRows(getFilters())),rowRM,true).slice(0,10));
+  };
+
+  function drillRows(type, local){
+    var fl=getFilters(); local=local||{}; var rows;
+    if(type==='donem') rows=openingRows(fl);
+    else if(type==='kapanis') rows=openingRows(fl).concat(kpiRows(fl));
+    else rows=kpiRows(fl);
+    if(type==='giris') rows=inRows(rows);
+    if(type==='cikis') rows=outRows(rows);
+    if(type==='net') rows=kpiRows(fl);
+    if(local.firma) rows=rows.filter(function(d){return rowFirma(d)===local.firma;});
+    if(local.rm) rows=rows.filter(function(d){return rowRM(d)===local.rm;});
+    return rows.sort(function(a,b){return Math.abs(signedAmount(b))-Math.abs(signedAmount(a));});
+  }
+  window.showKPIDrill=function(type, local){
+    local=local||{}; var rows=drillRows(type, local);
+    var modal=document.getElementById('drillModal'), title=document.getElementById('drillTitle'), body=document.getElementById('drillBody'); if(!modal||!title||!body) return;
+    var label=type==='donem'?'🔵 Dönem Başı Mevcut Bakiye Detayı':type==='giris'?'🟢 Toplam Nakit Girişi Detayı':type==='cikis'?'🔴 Toplam Nakit Çıkışı Detayı':type==='kapanis'?'🏁 Kapanış Pozisyon Detayı':'📊 Net Pozisyon Detayı';
+    title.innerHTML=label; var total= type==='donem'?sum(rows,false):sum(rows,true); var byFirma=groupRows(rows,rowFirma,type!=='donem').slice(0,15), byRM=groupRows(rows,rowRM,type!=='donem').slice(0,15);
+    function chip(){return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px 0">'+(type==='donem'?'<span class="badge bx">Kural: Seçili yıl + Rapor Mapping = '+esc(TARGET_RM)+'</span>':'')+(local.firma?'<span class="badge bo">Firma: '+esc(local.firma)+' <button class="mini-x" onclick="showKPIDrill(\''+type+'\',{rm:\''+jsq(local.rm||'')+'\'})">×</button></span>':'')+(local.rm?'<span class="badge bo">Mapping: '+esc(local.rm)+' <button class="mini-x" onclick="showKPIDrill(\''+type+'\',{firma:\''+jsq(local.firma||'')+'\'})">×</button></span>':'')+((local.firma||local.rm)?'<button class="btn btn-ghost btn-sm" onclick="showKPIDrill(\''+type+'\',{})">Kart filtresini temizle</button>':'')+'</div>';}
+    function arow(x,kind){var obj={firma:local.firma||'',rm:local.rm||''}; obj[kind]=(obj[kind]===x.key)?'':x.key; return '<div class="arow" onclick="showKPIDrill(\''+type+'\',{firma:\''+jsq(obj.firma)+'\',rm:\''+jsq(obj.rm)+'\'})"><div class="albl fw6">'+esc(x.key)+'<div class="v98-muted">'+x.val.n.toLocaleString('tr-TR')+' kayıt</div></div><div class="aval '+(x.val.sum>=0?'pos':'neg')+'">'+fmtK(x.val.sum)+'</div></div>';}
+    body.innerHTML=chip()+'<div class="krow" style="margin-bottom:14px"><div class="kcard"><div class="kcard-line" style="background:#c9a84c"></div><div class="kcard-lbl">Toplam</div><div class="kcard-val '+(total>=0?'pos':'neg')+'">'+fmtM(total)+'</div></div><div class="kcard"><div class="kcard-line" style="background:#60a5fa"></div><div class="kcard-lbl">İşlem</div><div class="kcard-val">'+rows.length.toLocaleString('tr-TR')+'</div></div></div>'+ 
+      '<div class="g2" style="margin-bottom:12px"><div class="card"><div class="card-h"><div class="card-ht">Firma Kırılımı</div></div><div class="alist">'+byFirma.map(function(x){return arow(x,'firma');}).join('')+'</div></div><div class="card"><div class="card-h"><div class="card-ht">Rapor Mapping</div></div><div class="alist">'+byRM.map(function(x){return arow(x,'rm');}).join('')+'</div></div></div>'+ 
+      '<div class="card-h" style="margin-bottom:8px"><div class="card-ht">İşlem Listesi</div></div><div class="twrap" style="max-height:280px"><table><thead><tr><th>Tarih</th><th>Firma</th><th>Alıcı / Karşı Taraf</th><th>İşlem Türü</th><th>Tutar</th><th>Döviz</th><th>Rapor Mapping</th><th>Açıklama</th></tr></thead><tbody>'+rows.slice(0,150).map(function(d){var t=type==='donem'?rowTutar(d):signedAmount(d);return '<tr><td style="font-family:var(--ffm);font-size:11px;white-space:nowrap">'+esc(rowDate(d))+'</td><td class="fw6 clip" style="cursor:pointer;color:var(--sky)" onclick="closeDrill();drillFirma(\''+jsq(rowFirma(d))+'\')">'+esc(rowFirma(d))+'</td><td class="clip col-alici">'+esc(rowAlici(d))+'</td><td class="clip" style="font-size:11px">'+esc(rowDetay(d))+'</td><td class="num '+(t>=0?'pos':'neg')+' fw6">'+fmtK(t)+'</td><td><span class="badge bx">'+esc(rowDoviz(d))+'</span></td><td class="clip col-rm" style="font-size:11px;color:var(--txt3)">'+esc(rowRM(d))+'</td><td class="clip col-aciklama" style="font-size:11px;color:var(--txt3)">'+esc(rowAciklama(d))+'</td></tr>';}).join('')+'</tbody></table></div>';
+    modal.classList.add('on');
+  };
+  try{showKPIDrill=window.showKPIDrill;}catch(e){}
+
+  window.sortFC=function(k){window.fcSort=k; try{fcSort=k;}catch(e){} window.renderFirmaPage();}; try{sortFC=window.sortFC;}catch(e){}
+  function companyStats(fl){
+    var openings=openingRows(fl), moves=kpiRows(fl), m={};
+    function ensure(f){ if(!m[f]) m[f]={firma:f,opening:0,g:0,c:0,net:0,closing:0,n:0,months:{}}; return m[f]; }
+    openings.forEach(function(d){var o=ensure(rowFirma(d)); o.opening+=rowTutar(d);});
+    moves.forEach(function(d){var o=ensure(rowFirma(d)), t=signedAmount(d), mk=monthKey(d); if(t>0)o.g+=t; if(t<0)o.c+=t; o.net+=t; o.n++; if(mk){ if(!o.months[mk])o.months[mk]=0; o.months[mk]+=t; }});
+    Object.keys(m).forEach(function(k){m[k].closing=m[k].opening+m[k].net;});
+    return m;
+  }
+  window.renderFirmaPage=function(){
+    var grid=document.getElementById('fcgrid'), tbody=document.getElementById('tFB'); if(!grid&&!tbody) return;
+    var fl=getFilters(), m=companyStats(fl); var arr=Object.keys(m).map(function(k){return m[k];});
+    var sk=window.fcSort|| (typeof fcSort!=='undefined'?fcSort:'net');
+    arr.sort(function(a,b){ if(sk==='giris')return b.g-a.g; if(sk==='burn')return Math.abs(b.c)-Math.abs(a.c); return b.net-a.net; });
+    if(grid) grid.innerHTML=arr.map(function(f){return '<div class="fc v111-fc '+(f.net>=0?'pos':'neg')+'" onclick="drillFirma(\''+jsq(f.firma)+'\')"><div class="fc-name">'+esc(f.firma)+'</div><div class="fc-sub"><span>Dönem Başı</span><span class="'+(f.opening>=0?'pos':'neg')+' fw6">'+fmtK(f.opening)+'</span></div><div class="fc-net '+(f.net>=0?'pos':'neg')+'" title="Dönem içi giriş/çıkış; dönem başı hariç">'+fmtM(f.net)+'</div><div class="fc-sub"><span>Net Pozisyon</span><span class="'+(f.net>=0?'pos':'neg')+' fw6">Dönem içi</span></div><div class="fc-sub"><span>Giriş '+fmtK(f.g)+'</span><span>Çıkış '+fmtK(f.c)+'</span></div><div class="fc-sub"><span>Kapanış</span><span class="'+(f.closing>=0?'pos':'neg')+' fw6">'+fmtK(f.closing)+'</span></div><div class="fc-sub"><span>'+f.n.toLocaleString('tr-TR')+' hareket</span><span></span></div></div>';}).join('') || '<div class="empty">Firma verisi yok</div>';
+    var cnt=document.getElementById('fcCount'); if(cnt)cnt.textContent=arr.length+' firma';
+    if(tbody) tbody.innerHTML=arr.map(function(f){return '<tr style="cursor:pointer" onclick="drillFirma(\''+jsq(f.firma)+'\')"><td class="fw6" style="color:var(--sky)">'+esc(f.firma)+'</td><td class="num">'+f.n.toLocaleString('tr-TR')+'</td><td class="num '+(f.opening>=0?'pos':'neg')+'">'+fmtK(f.opening)+'</td><td class="num pos">'+fmtK(f.g)+'</td><td class="num neg">'+fmtK(f.c)+'</td><td class="num '+(f.net>=0?'pos':'neg')+' fw7">'+fmtK(f.net)+'</td><td class="num '+(f.closing>=0?'pos':'neg')+' fw7">'+fmtK(f.closing)+'</td><td><span class="badge '+(f.net>=0?'bg':'br')+'">'+(f.net>=0?'▲ Pozitif':'▼ Açık')+'</span></td></tr>';}).join('') || '<tr><td colspan="8" class="empty">Firma verisi yok</td></tr>';
+  };
+  try{renderFirmaPage=window.renderFirmaPage;}catch(e){}
+
+  window.drillFirma=function(firma){
+    var modal=document.getElementById('drillModal'),
+        title=document.getElementById('drillTitle'),
+        body=document.getElementById('drillBody');
+
+    if(!modal || !body){
+      console.warn('[v112] Firma detayı açılamadı: drillModal/drillBody bulunamadı.');
+      return;
+    }
+
+    var fl=getFilters();
+    var open=openingRows(fl).filter(function(d){return rowFirma(d)===firma;});
+    var moves=kpiRows(fl).filter(function(d){return rowFirma(d)===firma;});
+
+    var opening=sum(open,false),
+        g=sum(inRows(moves),true),
+        c=sum(outRows(moves),true),
+        net=g+c,
+        closing=opening+net;
+
+    if(title){
+      title.innerHTML='🏢 '+esc(firma)+' <span class="v98-muted">— filtrelenmiş dönem</span>';
+    }
+
+    var cats=groupRows(moves,rowRM,true).slice(0,20);
+
+    function kcard(lbl,val,col,cls){
+      return '<div class="kcard">'+
+        '<div class="kcard-line" style="background:'+col+'"></div>'+
+        '<div class="kcard-lbl">'+lbl+'</div>'+
+        '<div class="kcard-val '+(cls||'')+'">'+fmtM(val)+'</div>'+
+      '</div>';
+    }
+
+    body.innerHTML=
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'+
+        '<button class="btn btn-ghost btn-sm" onclick="closeDrill()">← Geri / Kapat</button>'+
+        '<button class="btn btn-sm" onclick="closeDrill();nav(\'firma\')">Firma Analizi ekranına dön</button>'+
+        '<button class="btn btn-ghost btn-sm" onclick="showKPIDrill(\'net\',{firma:\''+jsq(firma)+'\'})">≡ Detay İşlemler</button>'+
+      '</div>'+
+      '<div class="krow" style="margin-bottom:14px">'+
+        kcard('Dönem Başı',opening,'#60a5fa',opening>=0?'pos':'neg')+
+        kcard('Giriş',g,'#4ade80','pos')+
+        kcard('Çıkış',c,'#fb7185','neg')+
+        kcard('Net Pozisyon',net,net>=0?'#4ade80':'#fb7185',net>=0?'pos':'neg')+
+        kcard('Kapanış',closing,'#c9a84c',closing>=0?'pos':'neg')+
+      '</div>'+
+      '<div class="card" style="margin-bottom:12px">'+
+        '<div class="card-h"><div class="card-ht">Kategori Dağılımı — dönem başı hariç</div></div>'+
+        '<div class="alist">'+
+          (cats.map(function(x){
+            return '<div class="arow" onclick="showKPIDrill(\'net\',{firma:\''+jsq(firma)+'\',rm:\''+jsq(x.key)+'\'})">'+
+              '<div class="albl">'+esc(x.key)+'<div class="v98-muted">'+x.val.n.toLocaleString('tr-TR')+' işlem</div></div>'+
+              '<div class="aval '+(x.val.sum>=0?'pos':'neg')+'">'+fmtK(x.val.sum)+'</div>'+
+            '</div>';
+          }).join('') || '<div class="empty">Kategori hareketi yok</div>')+
+        '</div>'+
+      '</div>'+
+      '<div class="g2">'+
+        '<div class="card">'+
+          '<div class="card-h"><div class="card-ht">Dönem Başı Kayıtları</div></div>'+
+          '<div class="twrap" style="max-height:170px"><table>'+
+            '<thead><tr><th>Tarih</th><th>Banka</th><th>Tutar</th><th>Açıklama</th></tr></thead>'+
+            '<tbody>'+
+              (open.map(function(d){
+                var t=rowTutar(d);
+                return '<tr>'+
+                  '<td>'+esc(rowDate(d))+'</td>'+
+                  '<td>'+esc(rowBanka(d))+'</td>'+
+                  '<td class="num '+(t>=0?'pos':'neg')+'">'+fmtK(t)+'</td>'+
+                  '<td class="clip">'+esc(rowAciklama(d))+'</td>'+
+                '</tr>';
+              }).join('') || '<tr><td colspan="4" class="empty">Dönem başı kaydı yok</td></tr>')+
+            '</tbody>'+
+          '</table></div>'+
+        '</div>'+
+        '<div class="card">'+
+          '<div class="card-h"><div class="card-ht">Hareket İşlemleri</div></div>'+
+          '<div class="twrap" style="max-height:170px"><table>'+
+            '<thead><tr><th>Tarih</th><th>Detay</th><th>Mapping</th><th>Tutar</th></tr></thead>'+
+            '<tbody>'+
+              (moves.slice(0,120).map(function(d){
+                var t=signedAmount(d);
+                return '<tr>'+
+                  '<td>'+esc(rowDate(d))+'</td>'+
+                  '<td class="clip">'+esc(rowDetay(d))+'</td>'+
+                  '<td class="clip">'+esc(rowRM(d))+'</td>'+
+                  '<td class="num '+(t>=0?'pos':'neg')+'">'+fmtK(t)+'</td>'+
+                '</tr>';
+              }).join('') || '<tr><td colspan="4" class="empty">Hareket yok</td></tr>')+
+            '</tbody>'+
+          '</table></div>'+
+        '</div>'+
+      '</div>';
+
+    modal.classList.add('on');
+  };
+  try{drillFirma=window.drillFirma;}catch(e){}
+
+  function renderRMChartV110(){
+    var canvas=document.getElementById('cRM'); if(!canvas || typeof Chart==='undefined') return;
+    destroyChart('cRM');
+    var grouped=groupRows(kpiRows(getFilters()),rowRM,true).filter(function(x){return Math.abs(x.val.sum)>0 || x.val.n>0;}).slice(0,10);
+    var pal=['#c9a84c','#4ade80','#fb7185','#60a5fa','#a78bfa','#f97316','#2dd4bf','#e879f9','#facc15','#34d399'];
+    var cc=chartColors(); window.CH=window.CH||{};
+    window.CH.cRM=new Chart(canvas.getContext('2d'),{type:'doughnut',data:{labels:grouped.map(function(x){return x.key;}),datasets:[{data:grouped.map(function(x){return Math.abs(x.val.sum);}),backgroundColor:pal,borderColor:cc.border,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'right',labels:{color:cc.text,font:{size:9},boxWidth:9,padding:6}},tooltip:{callbacks:{label:function(c){var x=grouped[c.dataIndex];return x.key+': '+fmtK(x.val.sum)+' ('+x.val.n+' işlem)';}}}}}});
+  }
+  window.renderRMChart=renderRMChartV110; try{renderRMChart=window.renderRMChart;}catch(e){}
+
+  window.renderRunwayPage=function(){
+    var wrap=document.getElementById('rwB'), kpi=document.getElementById('rwKpi'), cnt=document.getElementById('rwCnt'); if(!wrap) return;
+    var fl=getFilters(), m=companyStats(fl); var arr=Object.keys(m).map(function(k){var f=m[k]; var months=Object.keys(f.months).sort(); var negMonths=months.map(function(mm){return f.months[mm];}).filter(function(v){return v<0;}); var burn=negMonths.length?Math.abs(negMonths.reduce(function(a,b){return a+b;},0)/negMonths.length):0; var last3=months.slice(-3).reduce(function(s,mm){return s+f.months[mm];},0); var runway=(f.net>0 && burn>0)?(f.net/burn):0; f.burn=burn; f.last3=last3; f.runway=runway; return f;}).sort(function(a,b){return a.net-b.net;});
+    var neg=arr.filter(function(f){return f.net<0;}).length, pos=arr.length-neg;
+    if(kpi) kpi.innerHTML='<div class="kcard"><div class="kcard-line" style="background:#fb7185"></div><div class="kcard-lbl">Net Pozisyon Negatif</div><div class="kcard-val" style="color:var(--rose)">'+neg+'</div><div class="kcard-meta"><span class="kcard-sub">Dönem başı hariç net pozisyon</span></div></div><div class="kcard"><div class="kcard-line" style="background:#4ade80"></div><div class="kcard-lbl">Net Pozisyon Pozitif</div><div class="kcard-val" style="color:var(--sage)">'+pos+'</div></div><div class="kcard"><div class="kcard-line" style="background:#60a5fa"></div><div class="kcard-lbl">Firma</div><div class="kcard-val">'+arr.length+'</div></div>';
+    if(cnt) cnt.textContent=arr.length+' firma';
+    wrap.innerHTML=arr.map(function(f){var risk=f.net<0?'br':'bg'; return '<tr onclick="drillFirma(\''+jsq(f.firma)+'\')" style="cursor:pointer"><td class="fw6">'+esc(f.firma)+'</td><td class="num '+(f.net>=0?'pos':'neg')+' fw7">'+fmtK(f.net)+'</td><td class="num neg">'+fmtK(-Math.abs(f.burn))+'</td><td class="num '+(f.last3>=0?'pos':'neg')+'">'+fmtK(f.last3)+'</td><td class="num">'+(f.runway?f.runway.toLocaleString('tr-TR',{maximumFractionDigits:1}):'—')+'</td><td class="num">—</td><td><span class="badge '+risk+'">'+(f.net<0?'⚠ Açık':'✓ Normal')+'</span></td></tr>';}).join('') || '<tr><td colspan="7" class="empty">Veri yok</td></tr>';
+  };
+  try{renderRunwayPage=window.renderRunwayPage;}catch(e){}
+
+  window.renderRiskPageV110=function(){
+    var kpi=document.getElementById('rkKpi'), list=document.getElementById('rkList'); var _cs=companyStats(getFilters()); var arr=Object.keys(_cs).map(function(k){return _cs[k];}).sort(function(a,b){return a.net-b.net;});
+    var crit=arr.filter(function(f){return f.net<0;}), ok=arr.length-crit.length;
+    if(kpi) kpi.innerHTML='<div class="kcard"><div class="kcard-line" style="background:#fb7185"></div><div class="kcard-lbl">Açık Net Pozisyon</div><div class="kcard-val neg">'+crit.length+'</div></div><div class="kcard"><div class="kcard-line" style="background:#4ade80"></div><div class="kcard-lbl">Pozitif Net Pozisyon</div><div class="kcard-val pos">'+ok+'</div></div><div class="kcard"><div class="kcard-line" style="background:#c9a84c"></div><div class="kcard-lbl">Toplam Net Pozisyon</div><div class="kcard-val '+(arr.reduce(function(s,f){return s+f.net;},0)>=0?'pos':'neg')+'">'+fmtM(arr.reduce(function(s,f){return s+f.net;},0))+'</div></div>';
+    if(list) list.innerHTML=crit.slice(0,12).map(function(f){return '<div class="arow" onclick="drillFirma(\''+jsq(f.firma)+'\')"><div class="albl">'+esc(f.firma)+'<div class="v98-muted">Risk net pozisyona göre; dönem başı ayrı</div></div><div class="aval neg">'+fmtK(f.net)+'</div></div>';}).join('') || '<div class="empty">Kritik firma yok</div>';
+    renderRiskCharts(arr);
+  };
+  function renderRiskCharts(arr){
+    if(typeof Chart==='undefined') return; var cc=chartColors();
+    var c1=document.getElementById('cRisk'); if(c1){destroyChart('cRisk'); var neg=arr.filter(function(f){return f.net<0;}).length, pos=arr.length-neg; window.CH.cRisk=new Chart(c1.getContext('2d'),{type:'doughnut',data:{labels:['Açık','Pozitif'],datasets:[{data:[neg,pos],backgroundColor:['#fb7185','#4ade80'],borderColor:cc.border,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:cc.text}}}}});}
+    var c2=document.getElementById('cRiskBar'); if(c2){destroyChart('cRiskBar'); var top=arr.slice(0,15); window.CH.cRiskBar=new Chart(c2.getContext('2d'),{type:'bar',data:{labels:top.map(function(f){return f.firma;}),datasets:[{label:'Net Pozisyon',data:top.map(function(f){return f.net;}),backgroundColor:top.map(function(f){return f.net>=0?'rgba(74,222,128,.72)':'rgba(251,113,133,.72)';})}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return 'Net Pozisyon: '+fmtK(c.raw);}}}},scales:{x:{ticks:{color:cc.text,callback:function(v){return fmtK(v);}},grid:{color:cc.grid}},y:{ticks:{color:cc.text,font:{size:9}},grid:{display:false}}}}});}
+  }
+
+  window.renderTrendPageV110=function(){
+    safe(window.renderTrendPage || (typeof renderTrendPage==='function'?renderTrendPage:null));
+    renderTrendChart('cDailyTrend', dailyGroups(getFilters()), 'Günlük Trend');
+  };
+
+  window.renderRaporDisiV110=function(selectedRM){
+    var el=document.getElementById('v98RaporDisi')||document.getElementById('v97RaporDisi'); if(!el) return;
+    STATE.reportOutRM=selectedRM||''; var rows=filteredRows(getFilters(),{}).filter(isReportOut); var by=groupRows(rows,rowRM,true).slice(0,50); var list=selectedRM?rows.filter(function(d){return rowRM(d)===selectedRM;}):rows; var total=sum(list,true);
+    el.innerHTML='<div class="v97-note"><b>Amaç:</b> Ayarlar &gt; Nakit Mapping tablosunda <b>Rapor Dışı</b> olan hareketleri gösterir. Kategoriye tıklayınca sağdaki liste süzülür.</div><div class="v97-grid"><div class="kcard"><div class="kcard-line" style="background:#c9a84c"></div><div class="kcard-lbl">Rapor Dışı Net</div><div class="kcard-val '+(total>=0?'pos':'neg')+'">'+fmtM(total)+'</div></div><div class="kcard"><div class="kcard-line" style="background:#60a5fa"></div><div class="kcard-lbl">İşlem Sayısı</div><div class="kcard-val">'+list.length.toLocaleString('tr-TR')+'</div></div></div><div class="v97-grid3"><div class="card"><div class="card-h"><div class="card-ht">Kategori Dağılımı</div></div><div style="padding:8px 10px">'+(selectedRM?'<button class="btn btn-ghost btn-sm" onclick="renderRaporDisiV110(\'\')">Tüm kategorileri göster</button>':'')+'</div><div class="alist">'+by.map(function(x){var ac=selectedRM===x.key;return '<div class="arow '+(ac?'on':'')+'" style="cursor:pointer;'+(ac?'background:rgba(201,168,76,.12);':'')+'" onclick="renderRaporDisiV110(\''+jsq(ac?'':x.key)+'\')"><div class="albl">'+esc(x.key)+'<div class="v98-muted">'+x.val.n.toLocaleString('tr-TR')+' işlem</div></div><div class="aval '+(x.val.sum>=0?'pos':'neg')+'">'+fmtK(x.val.sum)+'</div></div>';}).join('')+'</div></div><div class="card" style="grid-column:span 2"><div class="card-h"><div class="card-ht">Rapor Dışı İşlem Listesi'+(selectedRM?' — '+esc(selectedRM):'')+'</div></div><div class="v97-table-wrap"><table class="v97-table"><thead><tr><th>Tarih</th><th>Firma</th><th>Banka</th><th>Rapor Mapping</th><th>Detay</th><th class="num">Tutar</th></tr></thead><tbody>'+list.slice(0,700).map(function(d){var t=signedAmount(d);return '<tr><td>'+esc(rowDate(d))+'</td><td>'+esc(rowFirma(d))+'</td><td>'+esc(rowBanka(d))+'</td><td>'+esc(rowRM(d))+'</td><td>'+esc(rowDetay(d))+'</td><td class="num '+(t>=0?'pos':'neg')+'">'+fmtK(t)+'</td></tr>';}).join('')+'</tbody></table></div></div></div>';
+  };
+
+  var oldNav=window.nav;
+  window.nav=function(id){
+    if(id==='raporDisi'){
+      document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');});
+      var p=document.getElementById('pg-raporDisi');
+      if(!p){var c=document.querySelector('.content'); if(c)c.insertAdjacentHTML('beforeend','<div class="pg" id="pg-raporDisi"><div class="exec-hero"><div class="exec-title">Rapor Dışı Hareketler</div><div class="exec-sub">Mapping ayarlarına göre rapor dışı tutulan hareketler</div></div><div id="v98RaporDisi"></div></div>'); p=document.getElementById('pg-raporDisi');}
+      if(p)p.classList.add('on'); var t=document.getElementById('pgTitle'); if(t)t.textContent='Rapor Dışı Hareketler'; setTimeout(function(){window.renderRaporDisiV110(STATE.reportOutRM||'');},20); return;
+    }
+    var r=typeof oldNav==='function'?oldNav.apply(this,arguments):undefined; setTimeout(function(){window.renderAll();},30); return r;
+  };
+
+  window.toggleTheme=function(){
+    var root=document.documentElement, body=document.body;
+    var isLight=body.classList.contains('light') || root.classList.contains('light') || localStorage.getItem('theme')==='light';
+    var next=isLight?'dark':'light'; body.classList.toggle('light', next==='light'); root.classList.toggle('light', next==='light'); localStorage.setItem('theme',next);
+    try{window.renderAll();}catch(e){}
+  };
+
+  var css=document.createElement('style'); css.id='v111_canonical_style'; css.textContent='\n.fc.v111-fc{background:var(--card,#fff);border:1px solid var(--line,#e5e7eb);box-shadow:none;border-radius:14px;padding:10px;min-height:auto}\nbody:not(.light) .fc.v111-fc, html:not(.light) body:not(.light) .fc.v111-fc{background:rgba(15,23,42,.76);border-color:rgba(148,163,184,.22);}\n.fc.v111-fc:hover{transform:none;border-color:var(--gold,#c9a84c)}\n.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:900px){.g2{grid-template-columns:1fr}}\n#rwB tr{cursor:pointer}\n'; document.head.appendChild(css);
+
+  window.NAKIT_FIX = window.NAKIT_FIX || {};
+  window.NAKIT_FIX.getOpeningRows=function(fl){return openingRows(fl||getFilters());};
+  window.NAKIT_FIX.getFilteredRows=function(fl){return filteredRows(fl||getFilters(),{});};
+  window.NAKIT_FIX.isReportOut=isReportOut;
+  window.NAKIT_FIX.getCompanyStats=function(fl){return companyStats(fl||getFilters());};
+  window.NAKIT_FIX.signedAmount=signedAmount;
+
+  document.addEventListener('DOMContentLoaded',function(){bindFirmaTipTouch(); setInitialTicariOnce();});
+  console.info('[v111] Tek motor aktif. Açılışta zorunlu render yok; veri yüklendikten sonra tek kez render edilir.');
+})();
+</script>
+
+
 
 </body>
 </html>
