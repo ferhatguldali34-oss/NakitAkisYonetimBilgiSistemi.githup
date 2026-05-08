@@ -8036,7 +8036,7 @@ document.addEventListener('DOMContentLoaded',function(){
   window.__V111_CANONICAL_CONTROLLER__ = true;
 
   var TARGET_RM = 'DÖNEM BAŞI MEVCUT BAKİYE';
-  var STATE = { renderBusy:false, pending:false, reportOutRM:'', defaultTipDone:false, charts:{} };
+  var STATE = { renderBusy:false, pending:false, reportOutRM:'', defaultTipDone:false, charts:{}, lazyTimers:{}, initialExecHeavyDone:false };
 
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function jsq(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
@@ -8179,26 +8179,51 @@ document.addEventListener('DOMContentLoaded',function(){
 
   function safe(fn){try{ if(typeof fn==='function') fn(); }catch(e){console.warn('[v111]', e);} }
   function activePage(){var on=document.querySelector('.pg.on'); return on ? on.id.replace('pg-','') : 'exec';}
+  function deferHeavy(key, fn, delay){
+    if(STATE.lazyTimers[key]) clearTimeout(STATE.lazyTimers[key]);
+    STATE.lazyTimers[key]=setTimeout(function(){
+      STATE.lazyTimers[key]=null;
+      try{ fn(); }catch(e){ console.warn('[v114 lazy '+key+']', e); }
+    }, delay||120);
+  }
+
   window.renderAll=function(){
     if(STATE.renderBusy) return;
     if(!rawRows().length) return;
     STATE.renderBusy=true;
     try{
       var pg=activePage();
-      if(pg==='exec' || pg==='dashboard' || pg==='') window.renderExecEnhanced();
-      if(pg==='exec' || pg==='') window.renderExecSupplementV110();
-      if(pg==='dashboard') window.renderDashboardV110();
-      if(pg==='firma') window.renderFirmaPage();
+
+      // Açılış / Yönetici Özeti: önce yalnızca KPI kartları çizilir.
+      // Ağır grafikler ve firma kırılımları kısa gecikmeyle lazy çalışır.
+      if(pg==='exec' || pg===''){
+        window.renderExecEnhanced();
+        deferHeavy('execSupplement', function(){
+          if(activePage()==='exec' || activePage()==='') window.renderExecSupplementV110();
+        }, STATE.initialExecHeavyDone ? 180 : 650);
+        STATE.initialExecHeavyDone=true;
+      }
+
+      // Kontrol paneli sadece bu sekme açıkken çizilir.
+      if(pg==='dashboard'){
+        deferHeavy('dashboard', function(){ if(activePage()==='dashboard') window.renderDashboardV110(); }, 80);
+      }
+
+      // Firma analizi ilk açılışta hesaplanmaz; sadece sekme açılınca çalışır.
+      if(pg==='firma'){
+        deferHeavy('firma', function(){ if(activePage()==='firma') window.renderFirmaPage(); }, 80);
+      }
+
       if(pg==='mapping') safe(window.renderMappingPage || (typeof renderMappingPage==='function'?renderMappingPage:null));
-      if(pg==='runway') window.renderRunwayPage();
-      if(pg==='risk') window.renderRiskPageV110();
+      if(pg==='runway') deferHeavy('runway', function(){ if(activePage()==='runway') window.renderRunwayPage(); }, 80);
+      if(pg==='risk') deferHeavy('risk', function(){ if(activePage()==='risk') window.renderRiskPageV110(); }, 80);
       if(pg==='grup') safe(window.renderGrupPage || (typeof renderGrupPage==='function'?renderGrupPage:null));
       if(pg==='ortak') safe(window.renderOrtakPage || (typeof renderOrtakPage==='function'?renderOrtakPage:null));
       if(pg==='doviz') safe(window.renderDovizPage || (typeof renderDovizPage==='function'?renderDovizPage:null));
       if(pg==='anormal') safe(window.renderAnormalPage || (typeof renderAnormalPage==='function'?renderAnormalPage:null));
-      if(pg==='trend') window.renderTrendPageV110();
+      if(pg==='trend') deferHeavy('trend', function(){ if(activePage()==='trend') window.renderTrendPageV110(); }, 80);
       if(pg==='detay') safe(window.updDetay || (typeof updDetay==='function'?updDetay:null));
-      if(pg==='raporDisi') window.renderRaporDisiV110(STATE.reportOutRM||'');
+      if(pg==='raporDisi') deferHeavy('raporDisi', function(){ if(activePage()==='raporDisi') window.renderRaporDisiV110(STATE.reportOutRM||''); }, 80);
       safe(window.updLogBadge || (typeof updLogBadge==='function'?updLogBadge:null));
     } finally { STATE.renderBusy=false; }
   };
