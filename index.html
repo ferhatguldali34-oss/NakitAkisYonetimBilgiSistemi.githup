@@ -1210,6 +1210,15 @@ body:has(.dark-mode-active){
 }
 </style>
 
+
+<style id="v119_theme_light_fix">
+body[data-theme="light"], html[data-theme="light"] body, body:not(.dark):not(.theme-dark):not(.dark-theme){
+  --v116-firma-bg:#ffffff !important;--v116-firma-bg-soft:#f8fafc !important;--v116-firma-border:#d8e0ec !important;--v116-firma-text:#0f172a !important;--v116-firma-muted:#64748b !important;
+}
+body[data-theme="dark"], html[data-theme="dark"] body, body.dark, body.theme-dark, body.dark-theme{
+  --v116-firma-bg:#151a23 !important;--v116-firma-bg-soft:#111827 !important;--v116-firma-border:#2b3443 !important;--v116-firma-text:#e5e7eb !important;--v116-firma-muted:#94a3b8 !important;
+}
+</style>
 </head>
 <body>
 
@@ -1432,6 +1441,9 @@ body:has(.dark-mode-active){
     </div>
     <div class="fg"><div class="flbl">Grup İçi</div>
      <select id="fGrupIci" class="fi" style="width:92px"><option value="dahil" selected>Dahil</option><option value="haric">Hariç</option></select>
+    </div>
+    <div class="fg"><div class="flbl">Ortak</div>
+     <select id="fOrtakIci" class="fi" style="width:92px"><option value="dahil" selected>Dahil</option><option value="haric">Hariç</option></select>
     </div>
     <div class="fg ms-wrap"><div class="flbl">Banka</div>
      <div class="ms-btn" id="fBankaBtn" onclick="msToggle('fBanka')">Tüm Bankalar</div>
@@ -2290,6 +2302,7 @@ function resetF(){
   });
   ['fMin','fMax'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   if(document.getElementById('fGrupIci'))document.getElementById('fGrupIci').value='dahil';
+  if(document.getElementById('fOrtakIci'))document.getElementById('fOrtakIci').value='dahil';
   applyF();
 }
 function renderTags(fl){
@@ -5385,6 +5398,7 @@ exportKalite = function(){
     if(fl.yon) tags.push({l:'Yön: '+fl.yon,k:'yon'});
     if(fl.rmler.length) tags.push({l:fl.rmler.length===1?(fl.rmler[0].length>22?fl.rmler[0].slice(0,22)+'…':fl.rmler[0]):fl.rmler.length+' kategori',k:'fRM'});
     if(fl.grupIci==='haric') tags.push({l:'Grup İçi: Hariç',k:'grupIci'});
+  if(fl.ortakIci==='haric') tags.push({l:'Ortak: Hariç',k:'ortakIci'});
     if(fl.bankalar.length) tags.push({l:fl.bankalar.length===1?'Banka: '+fl.bankalar[0]:fl.bankalar.length+' banka',k:'fBanka'});
     if(fl.dovizler.length) tags.push({l:fl.dovizler.join(', '),k:'fDoviz'});
     if(fl.giderler.length) tags.push({l:fl.giderler.length===1?fl.giderler[0]:fl.giderler.length+' işlem tipi',k:'fGider'});
@@ -6064,85 +6078,6 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
-
-<script>
-/* safe ortak filter patch */
-(function(){
-  const ORTAK_RM_LIST = [
-    "FİNANSMAN NAKİT ÇIKIŞI / ORTAK",
-    "FİNANSMAN NAKİT GİRİŞİ / ORTAK"
-  ];
-  function norm(v){ return String(v||'').replace(/\s+/g,' ').trim().toUpperCase(); }
-  function addOrtakSelect(){
-    if(document.getElementById('fOrtakIci')) return;
-    const grup = document.getElementById('fGrupIci');
-    if(!grup) return;
-    const box = document.createElement('div');
-    box.className = 'fg safe-ortak-filter';
-    box.innerHTML = '<div class="flbl">Ortak</div><select id="fOrtakIci" class="fi"><option value="dahil" selected>Dahil</option><option value="haric">Hariç</option></select>';
-    const wrap = grup.closest('.fg') || grup.parentElement;
-    if(wrap && wrap.parentElement) wrap.parentElement.insertBefore(box, wrap.nextSibling);
-    const sel = document.getElementById('fOrtakIci');
-    if(sel){
-      sel.addEventListener('change', function(){
-        if(typeof applyF === 'function') applyF();
-      });
-    }
-  }
-  function removeOrtakFromGrupSet(){
-    try{
-      if(typeof GRUP_ICI_HARIC_RM_SET !== 'undefined' && GRUP_ICI_HARIC_RM_SET && typeof GRUP_ICI_HARIC_RM_SET.delete === 'function'){
-        ORTAK_RM_LIST.forEach(x => GRUP_ICI_HARIC_RM_SET.delete(x));
-      }
-    }catch(e){ console.warn('Grup içi set düzeltme uyarısı:', e); }
-  }
-  function applyOrtakFilterAfterMain(){
-    try{
-      const sel = document.getElementById('fOrtakIci');
-      if(!sel || sel.value !== 'haric') return;
-      if(Array.isArray(F)){
-        F = F.filter(d => !ORTAK_RM_LIST.includes(norm(d && d.rm)));
-      }
-    }catch(e){ console.warn('Ortak filtre uyarısı:', e); }
-  }
-  function patchApplyF(){
-    if(typeof applyF !== 'function' || applyF.__safeOrtakPatched) return;
-    const oldApplyF = applyF;
-    applyF = function(){
-      const res = oldApplyF.apply(this, arguments);
-      applyOrtakFilterAfterMain();
-      try{
-        if(typeof getF === 'function' && typeof renderTags === 'function') renderTags(getF());
-        if(typeof renderAll === 'function') renderAll();
-      }catch(e){ console.warn('Ortak filtre render uyarısı:', e); }
-      return res;
-    };
-    applyF.__safeOrtakPatched = true;
-  }
-  function patchReset(){
-    if(typeof resetF !== 'function' || resetF.__safeOrtakPatched) return;
-    const oldReset = resetF;
-    resetF = function(){
-      const res = oldReset.apply(this, arguments);
-      const sel = document.getElementById('fOrtakIci');
-      if(sel) sel.value = 'dahil';
-      return res;
-    };
-    resetF.__safeOrtakPatched = true;
-  }
-  function boot(){
-    addOrtakSelect();
-    removeOrtakFromGrupSet();
-    patchApplyF();
-    patchReset();
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    boot();
-    setTimeout(boot, 300);
-    setTimeout(boot, 1200);
-  });
-})();
-</script>
 
 <script>
 /* === FERHAT FIX v9: Dönem Başı Mevcut Bakiye + performans güvenlik yaması === */
@@ -8168,7 +8103,17 @@ document.addEventListener('DOMContentLoaded',function(){
     }catch(e){}
     return [];
   }
-  function selected(id){try{var el=document.getElementById(id); if(!el)return[]; return Array.prototype.slice.call(el.selectedOptions||[]).map(function(o){return o.value;}).filter(Boolean);}catch(e){return[];}}
+  function selected(id){
+    try{
+      if(typeof window.msGetSelected==='function') return window.msGetSelected(id)||[];
+      if(typeof msGetSelected==='function') return msGetSelected(id)||[];
+      if(window.MS && window.MS[id] && window.MS[id].selected) return Array.from(window.MS[id].selected);
+      if(typeof MS!=='undefined' && MS[id] && MS[id].selected) return Array.from(MS[id].selected);
+      var el=document.getElementById(id);
+      if(!el)return[];
+      return Array.prototype.slice.call(el.selectedOptions||[]).map(function(o){return o.value;}).filter(Boolean);
+    }catch(e){return[];}
+  }
   function setInitialTicariOnce(){
     if(STATE.defaultTipDone) return;
     var el=document.getElementById('fFirmaTip');
@@ -8184,7 +8129,7 @@ document.addEventListener('DOMContentLoaded',function(){
     var basRaw=v('fBas'), bitRaw=v('fBit');
     return {
       bas:String(basRaw).replace('-','')||'000000', bit:String(bitRaw).replace('-','')||'999999', basRaw:basRaw, bitRaw:bitRaw,
-      firmalar:selected('fFirma'), firmaTip:v('fFirmaTip'), yon:v('fYon'), rmler:selected('fRM'), grupIci:v('fGrupIci'),
+      firmalar:selected('fFirma'), firmaTip:v('fFirmaTip'), yon:v('fYon'), rmler:selected('fRM'), grupIci:v('fGrupIci'), ortakIci:v('fOrtakIci'),
       bankalar:selected('fBanka'), dovizler:selected('fDoviz'), giderler:selected('fGider'), kaynak:v('fKaynak'),
       minT:num(v('fMin'))*1000, maxT:num(v('fMax'))*1000, bankaBos:v('fBankaBoş')
     };
@@ -8202,7 +8147,9 @@ document.addEventListener('DOMContentLoaded',function(){
     return m;
   }
   function firmaTipOf(f){var m=firmaTypeMap(); return m[norm(f)] || 'ticari';}
-  function isGroupInternalRM(rm){try{return window.GRUP_ICI_HARIC_RM_SET && window.GRUP_ICI_HARIC_RM_SET.has(norm(rm));}catch(e){return /GRUP ICI|GRUP İÇİ/.test(norm(rm));}}
+  function isGroupInternalRM(rm){return /GRUP ICI|GRUP İÇİ/.test(norm(rm));}
+  function isGroupInternalRow(d){return /GRUP ICI|GRUP İÇİ/.test(norm([rowRM(d),rowDetay(d),rowAciklama(d)].join(' ')));}
+  function isPartnerRow(d){return /ORTAK|ORTAG|ORTAĞ/.test(norm([rowRM(d),rowDetay(d),rowAlici(d)].join(' ')));}
   function isOpening(d){return norm(rowRM(d))===norm(TARGET_RM);}
   function isReportOut(d){
     var rm=norm(rowRM(d)), det=norm(rowDetay(d));
@@ -8226,7 +8173,10 @@ document.addEventListener('DOMContentLoaded',function(){
       if(!fl.firmaTip && !(fl.firmalar&&fl.firmalar.length) && tip==='pasif') return false;
       if(!opt.ignoreYon && fl.yon && yon!==fl.yon) return false;
       if(!opt.ignoreRM && fl.rmler && fl.rmler.length && fl.rmler.indexOf(rm)<0) return false;
-      if(fl.grupIci==='haric' && isGroupInternalRM(rm)) return false;
+      if(fl.grupIci==='haric' && isGroupInternalRow(d)) return false;
+      if(fl.grupIci==='sadece' && !isGroupInternalRow(d)) return false;
+      if(fl.ortakIci==='haric' && isPartnerRow(d)) return false;
+      if(fl.ortakIci==='sadece' && !isPartnerRow(d)) return false;
       if(fl.bankalar && fl.bankalar.length && fl.bankalar.indexOf(banka)<0) return false;
       if(fl.dovizler && fl.dovizler.length && fl.dovizler.indexOf(doviz)<0) return false;
       if(!opt.ignoreDetail && fl.giderler && fl.giderler.length && fl.giderler.indexOf(detay)<0) return false;
