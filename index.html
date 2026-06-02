@@ -8833,5 +8833,396 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
+
+
+<script id="v112_firma_tarih_siralama_fix">
+/* === v112 FIX: Firma filtresi + Türkiye tarih sistemi + tarih/tutar sıralama ===
+   Tek noktadan ek düzeltme katmanı. Mevcut controller/hotfix bloklarını silmez. */
+(function(){
+  'use strict';
+  if(window.__V112_FIRMA_TARIH_SIRALAMA_FIX__) return;
+  window.__V112_FIRMA_TARIH_SIRALAMA_FIX__ = true;
+
+  var DETAIL_SORT = { key:'tarih', dir:'desc' };
+  var TR_LOCALE = 'tr-TR';
+
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function jsq(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,' ');}
+  function norm(v){return String(v==null?'':v).trim().toLocaleUpperCase(TR_LOCALE).replace(/İ/g,'I').replace(/İ/g,'I').replace(/ı/g,'I').replace(/Ş/g,'S').replace(/Ğ/g,'G').replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C').replace(/ş/g,'S').replace(/ğ/g,'G').replace(/ü/g,'U').replace(/ö/g,'O').replace(/ç/g,'C').replace(/\s+/g,' ');}
+  function val(d,ks,def){for(var i=0;i<ks.length;i++){if(d && d[ks[i]]!=null && String(d[ks[i]]).trim()!=='') return d[ks[i]];} return def==null?'':def;}
+  function num(v){
+    if(typeof v==='number') return isFinite(v)?v:0;
+    var s=String(v==null?'':v).replace(/\s/g,'').replace(/₺|TL/gi,'');
+    if(!s) return 0;
+    if(s.indexOf(',')>-1) s=s.replace(/\./g,'').replace(',','.');
+    var n=Number(s); return isFinite(n)?n:0;
+  }
+  function rawRows(){try{var d=window.D||(typeof D!=='undefined'?D:null); return Array.isArray(d)?d:(d&&Array.isArray(d.detay)?d.detay:[]);}catch(e){return[];}}
+  function rowFirma(d){return String(val(d,['firma','Firma','İşlem Yapan Firma','company'],'')).trim();}
+  function rowBanka(d){return String(val(d,['banka','Banka','İşlem Yapan Banka','bank'],'')).trim();}
+  function rowRM(d){return String(val(d,['rm','Rapor Mapping','rapor_mapping','report_mapping'],'')).trim();}
+  function rowYon(d){return String(val(d,['yon','Yönü','Nakit Yönü','direction'],'')).trim().toLocaleUpperCase(TR_LOCALE);}
+  function rowTutar(d){return num(val(d,['tutar','Tutar','amount'],0));}
+  function rowDoviz(d){return String(val(d,['doviz','Döviz Cinsi','currency'],'TL')).trim()||'TL';}
+  function rowDetay(d){return String(val(d,['nakit_det','Nakit İşlem Detayı','İşlem Detayı','detay','islem_detayi'],'')).trim();}
+  function rowAlici(d){return String(val(d,['alici','Alıcı/Karşı Taraf','counterparty'],'')).trim();}
+  function rowAciklama(d){return String(val(d,['aciklama','Açıklama','description'],'')).trim();}
+  function rowKaynak(d){return String(val(d,['kaynak','Kaynak','source'],'')).trim();}
+
+  function parseDateValue(v){
+    if(v instanceof Date && !isNaN(v)) return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+    if(typeof v==='number' && isFinite(v) && v>20000 && v<80000){
+      // Excel serial date: 1899-12-30 base
+      return new Date(Math.round((v-25569)*86400*1000));
+    }
+    var s=String(v==null?'':v).trim(); if(!s) return null;
+    var m;
+    if((m=s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/))) return new Date(+m[1],+m[2]-1,+m[3]);
+    if((m=s.match(/^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})/))) return new Date(+m[3],+m[2]-1,+m[1]);
+    var d=new Date(s); return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  }
+  function isoDate(v){var d=parseDateValue(v); if(!d) return String(v||'').slice(0,10); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function dateKey(v){var d=parseDateValue(v); return d?d.getTime():0;}
+  function fmtDateTR(v){var d=parseDateValue(v); return d?d.toLocaleDateString(TR_LOCALE,{day:'2-digit',month:'2-digit',year:'numeric'}):(v?String(v):'—');}
+  function monthKey(d){
+    var ay=String(val(d,['ay','Ay','month'],'')).trim();
+    if(/^20\d{2}-\d{2}$/.test(ay)) return ay.replace('-','');
+    if(/^20\d{4}$/.test(ay)) return ay;
+    var iso=isoDate(val(d,['tarih','Tarih','date','TARİH','TARIH'],''));
+    return /^20\d{2}-\d{2}/.test(iso) ? iso.slice(0,7).replace('-','') : '';
+  }
+  function fmtK(v){try{return typeof window.fK==='function'?window.fK(v):(num(v)).toLocaleString(TR_LOCALE);}catch(e){return num(v).toLocaleString(TR_LOCALE);}}
+
+  function selected(id){
+    try{
+      if(typeof window.msGetSelected==='function') return window.msGetSelected(id)||[];
+      if(window.MS && window.MS[id] && window.MS[id].selected) return Array.from(window.MS[id].selected);
+      if(typeof MS!=='undefined' && MS[id] && MS[id].selected) return Array.from(MS[id].selected);
+    }catch(e){}
+    return [];
+  }
+  function firmaTypeOf(f){
+    var src={}; try{src=window.FIRMA_TYPES || (typeof FIRMA_TYPES!=='undefined'?FIRMA_TYPES:{}) || {};}catch(e){}
+    return src[f] || src[Object.keys(src).find(function(k){return norm(k)===norm(f);})] || 'ticari';
+  }
+  function getFiltersFixed(){
+    function v(id){var e=document.getElementById(id);return e?(e.value||''):'';}
+    return {
+      bas:String(v('fBas')||'0000-00').replace('-',''), bit:String(v('fBit')||'9999-99').replace('-',''),
+      firmalar:selected('fFirma'), firmaTip:v('fFirmaTip'), yon:v('fYon'), rmler:selected('fRM'), bankalar:selected('fBanka'),
+      dovizler:selected('fDoviz'), giderler:selected('fGider'), kaynak:v('fKaynak'), minT:num(v('fMin'))*1000, maxT:num(v('fMax'))*1000,
+      bankaBos:v('fBankaBoş'), grupIci:v('fGrupIci'), ortakIci:v('fOrtakIci')
+    };
+  }
+  function includesNormalized(list,value){if(!list||!list.length) return true; var nv=norm(value); return list.some(function(x){return norm(x)===nv;});}
+  function isGroupRow(d){return /GRUP ICI|GRUP İÇİ/.test(norm([rowRM(d),rowDetay(d),rowAciklama(d)].join(' ')));}
+  function isPartnerRow(d){return /ORTAK|ORTAG|ORTAĞ/.test(norm([rowRM(d),rowDetay(d),rowAlici(d)].join(' ')));}
+
+  function normalizeDatesInData(){
+    var rows=rawRows();
+    rows.forEach(function(r){
+      var t=val(r,['tarih','Tarih','date','TARİH','TARIH'],'');
+      var iso=isoDate(t);
+      if(iso) r.tarih=iso;
+      if(!r.ay && /^20\d{2}-\d{2}/.test(iso)) r.ay=iso.slice(0,7);
+    });
+  }
+
+  function filteredRowsFixed(fl){
+    fl=fl||getFiltersFixed(); normalizeDatesInData();
+    return rawRows().filter(function(d){
+      var mk=monthKey(d); if(mk && (mk<fl.bas || mk>fl.bit)) return false;
+      var firma=rowFirma(d), banka=rowBanka(d), rm=rowRM(d), detay=rowDetay(d), doviz=rowDoviz(d), yon=rowYon(d), tut=rowTutar(d), tip=firmaTypeOf(firma);
+      if(fl.firmalar.length && !includesNormalized(fl.firmalar,firma)) return false;
+      if(fl.firmaTip && tip!==fl.firmaTip) return false;
+      if(!fl.firmaTip && !fl.firmalar.length && tip==='pasif') return false;
+      if(fl.yon && norm(yon)!==norm(fl.yon)) return false;
+      if(fl.rmler.length && !includesNormalized(fl.rmler,rm)) return false;
+      if(fl.grupIci==='haric' && isGroupRow(d)) return false;
+      if(fl.grupIci==='sadece' && !isGroupRow(d)) return false;
+      if(fl.ortakIci==='haric' && isPartnerRow(d)) return false;
+      if(fl.ortakIci==='sadece' && !isPartnerRow(d)) return false;
+      if(fl.bankalar.length && !includesNormalized(fl.bankalar,banka)) return false;
+      if(fl.dovizler.length && !includesNormalized(fl.dovizler,doviz)) return false;
+      if(fl.giderler.length && !includesNormalized(fl.giderler,detay)) return false;
+      if(fl.kaynak && rowKaynak(d)!==fl.kaynak) return false;
+      if(fl.minT && Math.abs(tut)<fl.minT) return false;
+      if(fl.maxT && Math.abs(tut)>fl.maxT) return false;
+      if(fl.bankaBos==='dolu' && !banka) return false;
+      if(fl.bankaBos==='bos' && banka) return false;
+      return true;
+    });
+  }
+
+  function setMultiSelectOne(id,value){
+    try{
+      var store = (window.MS&&window.MS[id]) || (typeof MS!=='undefined'&&MS[id]);
+      if(store && store.selected){
+        store.selected.clear();
+        var exact=(store.items||[]).map(function(x){return x.val;}).find(function(x){return norm(x)===norm(value);}) || value;
+        store.selected.add(exact);
+        if(typeof window.msRenderList==='function') window.msRenderList(id);
+        else if(typeof msRenderList==='function') msRenderList(id);
+        if(typeof window.msUpdateBtn==='function') window.msUpdateBtn(id);
+        else if(typeof msUpdateBtn==='function') msUpdateBtn(id);
+      }
+    }catch(e){console.warn('[v112 setMultiSelectOne]',e);}
+  }
+  function resetMultiSelect(id){
+    try{ if(typeof window.msReset==='function') window.msReset(id); else if(typeof msReset==='function') msReset(id); }catch(e){}
+  }
+
+  var oldApplyF = window.applyF || (typeof applyF==='function'?applyF:null);
+  window.applyF=function(){
+    try{ normalizeDatesInData(); }catch(e){}
+    var fl=getFiltersFixed();
+    var rows=filteredRowsFixed(fl);
+    window.F=rows; try{F=rows;}catch(e){}
+    try{ if(typeof window.renderTags==='function') window.renderTags(fl); else if(typeof renderTags==='function') renderTags(fl); }catch(e){}
+    try{ if(typeof window.updBadges==='function') window.updBadges(); }catch(e){}
+    try{ if(typeof window.renderAll==='function') window.renderAll(); else if(typeof renderAll==='function') renderAll(); }catch(e){console.warn('[v112 renderAll]',e);}
+    return rows;
+  };
+  try{applyF=window.applyF;}catch(e){}
+
+  window.navToFirma=function(firma){
+    try{ if(typeof window.closeDrill==='function') window.closeDrill(); }catch(e){}
+    setMultiSelectOne('fFirma',firma);
+    var tip=document.getElementById('fFirmaTip'); if(tip) tip.value='';
+    window.__V110_USER_CHANGED_FIRMA_TIP__=true;
+    window.applyF();
+    if(typeof window.nav==='function') window.nav('firma'); else if(typeof nav==='function') nav('firma');
+  };
+  window.navToDetay=function(firma){
+    try{ if(typeof window.closeDrill==='function') window.closeDrill(); }catch(e){}
+    var df=document.getElementById('dFirma'); if(df) df.value=firma;
+    window.dPage=1; try{dPage=1;}catch(e){}
+    if(typeof window.nav==='function') window.nav('detay'); else if(typeof nav==='function') nav('detay');
+    window.updDetay();
+  };
+  window.navDetay=function(firma,yon,rm){
+    if(firma){ var df=document.getElementById('dFirma'); if(df) df.value=firma; setMultiSelectOne('fFirma',firma); }
+    if(yon){ var dy=document.getElementById('dYon'); if(dy) dy.value=yon; }
+    if(rm){ var dr=document.getElementById('dRM'); if(dr) dr.value=rm; }
+    window.dPage=1; try{dPage=1;}catch(e){}
+    window.applyF();
+    if(typeof window.nav==='function') window.nav('detay'); else if(typeof nav==='function') nav('detay');
+    window.updDetay();
+  };
+
+  function getDetailFilteredRows(){
+    var rows=(window.F || (typeof F!=='undefined'?F:[]) || []).slice();
+    var srch=(document.getElementById('dSrch')&&document.getElementById('dSrch').value||'').toLocaleLowerCase(TR_LOCALE).trim();
+    var firma=document.getElementById('dFirma')&&document.getElementById('dFirma').value||'';
+    var yon=document.getElementById('dYon')&&document.getElementById('dYon').value||'';
+    var rm=document.getElementById('dRM')&&document.getElementById('dRM').value||'';
+    if(srch) rows=rows.filter(function(d){return [rowFirma(d),rowDetay(d),rowAciklama(d),rowRM(d),rowAlici(d),rowBanka(d),String(d.kontrol_notu||'')].join(' ').toLocaleLowerCase(TR_LOCALE).indexOf(srch)>-1;});
+    if(firma) rows=rows.filter(function(d){return norm(rowFirma(d))===norm(firma);});
+    if(yon) rows=rows.filter(function(d){return norm(rowYon(d))===norm(yon);});
+    if(rm) rows=rows.filter(function(d){return norm(rowRM(d))===norm(rm);});
+    rows.sort(detailCompare);
+    return rows;
+  }
+  function detailCompare(a,b){
+    var k=DETAIL_SORT.key, dir=DETAIL_SORT.dir==='asc'?1:-1, av,bv;
+    if(k==='tarih'){av=dateKey(val(a,['tarih','Tarih','date'],'')); bv=dateKey(val(b,['tarih','Tarih','date'],''));}
+    else if(k==='tutar'){av=Math.abs(rowTutar(a)); bv=Math.abs(rowTutar(b));}
+    else {av=String({firma:rowFirma(a),banka:rowBanka(a),yon:rowYon(a),rm:rowRM(a),detay:rowDetay(a),alici:rowAlici(a)}[k]||''); bv=String({firma:rowFirma(b),banka:rowBanka(b),yon:rowYon(b),rm:rowRM(b),detay:rowDetay(b),alici:rowAlici(b)}[k]||''); return dir*av.localeCompare(bv,TR_LOCALE);}
+    return dir*((av||0)-(bv||0));
+  }
+  window.sortDetay=function(key){
+    if(DETAIL_SORT.key===key) DETAIL_SORT.dir=DETAIL_SORT.dir==='asc'?'desc':'asc';
+    else { DETAIL_SORT.key=key; DETAIL_SORT.dir=(key==='tarih'||key==='tutar')?'desc':'asc'; }
+    window.dPage=1; try{dPage=1;}catch(e){}
+    window.updDetay();
+  };
+  function sortIcon(key){return DETAIL_SORT.key===key ? (DETAIL_SORT.dir==='asc'?' ▲':' ▼') : ' ↕';}
+  function headerHtml(){return '<tr>'+[
+    ['tarih','Tarih'],['firma','Firma'],['banka','Banka'],['yon','Yön'],['tutar','Tutar'],['doviz','Döviz'],['rm','Rapor Mapping'],['detay','İşlem Türü'],['aciklama','Açıklama'],['alici','Alıcı / Ünvan'],['not','Kontrol Notu'],['durum','Durum'],['islem','İşlemler']
+  ].map(function(x){var sortable=['tarih','firma','banka','yon','tutar','rm','detay','alici'].indexOf(x[0])>-1; return '<th '+(sortable?'onclick="sortDetay(\''+x[0]+'\')" style="cursor:pointer" title="Sırala"':'')+'>'+x[1]+(sortable?sortIcon(x[0]):'')+'</th>';}).join('')+'</tr>';}
+
+  window.openEditReal=function(realIdx){ if(typeof window.showManuelFull==='function') window.showManuelFull(realIdx); else if(typeof showManuelFull==='function') showManuelFull(realIdx); };
+  window.addCtrlNoteReal=function(realIdx){
+    var row=(window.F||[])[realIdx]; if(!row){return;}
+    var note=prompt('Kontrol Notu (CFO):',row.kontrol_notu||''); if(note===null) return;
+    var all=rawRows(), di=all.indexOf(row); if(di>=0) all[di].kontrol_notu=note; row.kontrol_notu=note;
+    try{ if(typeof window.addLog==='function') window.addLog({ts:new Date().toLocaleString(TR_LOCALE),tip:'NOT',firma:rowFirma(row),tutar_yeni:rowTutar(row),rm_yeni:rowRM(row),aciklama:rowAciklama(row),kontrol_notu:note,ozet:'Not eklendi: '+rowFirma(row)}); }catch(e){}
+    window.applyF();
+  };
+  window.togglePasifReal=function(realIdx){
+    var row=(window.F||[])[realIdx]; if(!row){return;}
+    var all=rawRows(), di=all.indexOf(row), np=!row.pasif; if(di>=0) all[di].pasif=np; row.pasif=np;
+    try{ if(typeof window.addLog==='function') window.addLog({ts:new Date().toLocaleString(TR_LOCALE),tip:np?'PASİF':'AKTİF',firma:rowFirma(row),tutar_yeni:rowTutar(row),rm_yeni:rowRM(row),aciklama:rowAciklama(row),ozet:(np?'Pasife alındı: ':'Aktife alındı: ')+rowFirma(row)}); }catch(e){}
+    window.applyF();
+  };
+
+  window.updDetay=function(){
+    var head=document.querySelector('#detTbl thead'); if(head) head.innerHTML=headerHtml();
+    var rows=getDetailFilteredRows();
+    var pageSize=(typeof window.PS==='number'?window.PS:(typeof PS==='number'?PS:50));
+    var page=window.dPage || (typeof dPage!=='undefined'?dPage:1);
+    var tot=rows.length, tp=Math.ceil(tot/pageSize)||1; if(page>tp) page=1; if(page<1) page=1; window.dPage=page; try{dPage=page;}catch(e){}
+    var sl=rows.slice((page-1)*pageSize,page*pageSize);
+    var cnt=document.getElementById('detayCount'); if(cnt) cnt.textContent=tot.toLocaleString(TR_LOCALE)+' kayıt';
+    var body=document.getElementById('detB'); if(!body) return;
+    body.innerHTML=sl.map(function(d){
+      var realIdx=(window.F||[]).indexOf(d), t=rowTutar(d), y=rowYon(d), uyari=(norm(y)==='CIKIS'&&t>0)||(norm(y)==='GIRIS'&&t<0);
+      return '<tr style="'+(d.pasif?'opacity:.45;':'')+(uyari?'outline:1px solid rgba(244,63,94,.35);background:rgba(244,63,94,.04)!important;':'')+'">'+
+        '<td style="font-family:var(--ffm);font-size:11px;white-space:nowrap" data-sort="'+dateKey(d.tarih)+'">'+esc(fmtDateTR(d.tarih))+'</td>'+
+        '<td class="fw6 clip" style="cursor:pointer;color:var(--sky)" onclick="drillFirma(\''+jsq(rowFirma(d))+'\')">'+esc(rowFirma(d)||'—')+'</td>'+
+        '<td style="font-size:11px;color:var(--txt3)">'+esc(rowBanka(d)||'—')+'</td>'+
+        '<td><span class="tg '+(norm(y)==='GIRIS'?'tg-g':norm(y)==='CIKIS'?'tg-r':'tg-n')+'">'+esc(y||'—')+'</span></td>'+
+        '<td class="num '+(t>=0?'pos':'neg')+' fw6" data-sort="'+Math.abs(t)+'">'+esc(fmtK(t))+(uyari?' <span title="Yön/tutar uyuşmuyor" style="color:var(--rose)">⚠</span>':'')+'</td>'+
+        '<td><span class="badge bx">'+esc(rowDoviz(d))+'</span></td>'+
+        '<td class="clip col-rm" style="font-size:11px;color:var(--txt3)" title="'+esc(rowRM(d))+'">'+esc(rowRM(d)||'—')+'</td>'+
+        '<td class="clip" style="font-size:11.5px" title="'+esc(rowDetay(d))+'">'+esc(rowDetay(d)||'—')+'</td>'+
+        '<td class="clip col-aciklama" style="font-size:11.5px" title="'+esc(rowAciklama(d))+'">'+esc(rowAciklama(d)||'—')+'</td>'+
+        '<td class="clip col-alici" title="'+esc(rowAlici(d))+'">'+esc(rowAlici(d)||'—')+'</td>'+
+        '<td class="clip" style="font-size:11px;color:var(--txt3);max-width:140px" title="'+esc(d.kontrol_notu||'')+'">'+(d.kontrol_notu?'<span style="color:var(--gold)">📝</span> '+esc(String(d.kontrol_notu).slice(0,30))+(String(d.kontrol_notu).length>30?'…':''):'—')+'</td>'+
+        '<td style="font-size:10px;white-space:nowrap">'+(d.kaynak==='manuel'?'<span class="badge bo" style="font-size:9px;margin-right:2px">M</span>':'')+(d.is_duzeltme?'<span class="badge bb" style="font-size:9px;margin-right:2px">D</span>':'')+(d.pasif?'<span class="badge bx" style="font-size:9px;margin-right:2px">P</span>':'')+'</td>'+
+        '<td style="white-space:nowrap"><span class="ctrl-btn" onclick="adminAction(\'Kayıt Düzelt\',function(){openEditReal('+realIdx+');})" title="Düzelt">✏</span> <span class="ctrl-btn" onclick="adminAction(\'Not Ekle\',function(){addCtrlNoteReal('+realIdx+');})" title="Not Ekle">📝</span> <span class="ctrl-btn '+(d.pasif?'ok':'danger')+'" onclick="adminAction(\'Pasife/Aktife Al\',function(){togglePasifReal('+realIdx+');})" title="'+(d.pasif?'Aktife Al':'Pasife Al')+'">'+(d.pasif?'▶':'⏸')+'</span></td>'+
+      '</tr>';
+    }).join('') || '<tr><td colspan="13" class="empty">Sonuç yok</td></tr>';
+    var pages=[]; if(page>1) pages.push({l:'‹',p:page-1}); for(var i=Math.max(1,page-2);i<=Math.min(tp,page+2);i++) pages.push({l:i,p:i,a:i===page}); if(page<tp) pages.push({l:'›',p:page+1});
+    var pager=document.getElementById('detPager'); if(pager) pager.innerHTML=pages.map(function(p){return '<div class="pbtn '+(p.a?'on':'')+'" onclick="dPage='+p.p+';window.dPage='+p.p+';updDetay()">'+p.l+'</div>';}).join('')+'<div class="pinfo">'+(tot?((page-1)*pageSize+1):0)+'–'+Math.min(page*pageSize,tot)+' / '+tot.toLocaleString(TR_LOCALE)+'</div>';
+  };
+  try{updDetay=window.updDetay;}catch(e){}
+
+  // Var olan genel tablo sıralamasını tarih ve Türkiye tutar formatını anlayacak hale getir.
+  window.sT=function(id,ci){
+    var b=document.getElementById(id); if(!b) return; var rows=Array.from(b.rows||[]), asc=b.dataset.asc!=='1'; b.dataset.asc=asc?'1':'0';
+    rows.sort(function(a,b){
+      var ax=(a.cells[ci]&&a.cells[ci].dataset.sort)||((a.cells[ci]&&a.cells[ci].textContent)||'');
+      var bx=(b.cells[ci]&&b.cells[ci].dataset.sort)||((b.cells[ci]&&b.cells[ci].textContent)||'');
+      var ad=parseDateValue(ax), bd=parseDateValue(bx); if(ad&&bd) return asc?ad-bd:bd-ad;
+      var an=num(ax), bn=num(bx); if((String(ax).match(/\d/)&&String(bx).match(/\d/)) && !isNaN(an)&&!isNaN(bn)) return asc?an-bn:bn-an;
+      return asc?String(ax).localeCompare(String(bx),TR_LOCALE):String(bx).localeCompare(String(ax),TR_LOCALE);
+    }); rows.forEach(function(r){b.appendChild(r);});
+  };
+
+  document.addEventListener('DOMContentLoaded',function(){
+    normalizeDatesInData();
+    var ds=document.getElementById('dSrch'); if(ds && !ds.__v112){ds.__v112=true; ds.addEventListener('input',function(){window.dPage=1; try{dPage=1;}catch(e){}; window.updDetay();});}
+    ['dFirma','dYon','dRM'].forEach(function(id){var el=document.getElementById(id); if(el && !el.__v112){el.__v112=true; el.addEventListener('change',function(){window.dPage=1; try{dPage=1;}catch(e){}; window.updDetay();});}});
+  });
+
+  setTimeout(function(){try{normalizeDatesInData(); if(rawRows().length) window.applyF();}catch(e){console.warn('[v112 boot]',e);}},250);
+})();
+</script>
+<style id="v112_sort_cursor_fix">
+#detTbl th[onclick], table th[onclick]{cursor:pointer;user-select:none}
+</style>
+
+
+
+<!-- V113: görünür sıralama okları + TR tarih gösterimi + modal tablolar için canlı sıralama -->
+<script id="v113_visible_sort_and_tr_date_fix">
+(function(){
+  'use strict';
+  var TR='tr-TR';
+  function normText(s){return String(s==null?'':s).trim();}
+  function parseDate(s){
+    s=normText(s); if(!s) return null;
+    var m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s|$)/); if(m) return {iso:m[1]+'-'+m[2]+'-'+m[3], key:Number(m[1]+m[2]+m[3]), tr:m[3]+'.'+m[2]+'.'+m[1]};
+    m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s|$)/); if(m) return {iso:m[3]+'-'+m[2]+'-'+m[1], key:Number(m[3]+m[2]+m[1]), tr:m[1]+'.'+m[2]+'.'+m[3]};
+    m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s|$)/); if(m) return {iso:m[3]+'-'+m[2]+'-'+m[1], key:Number(m[3]+m[2]+m[1]), tr:m[1]+'.'+m[2]+'.'+m[3]};
+    return null;
+  }
+  function parseMoney(s){
+    s=normText(s).replace(/\s+/g,''); if(!s) return NaN;
+    var sign=s.indexOf('-')>-1?-1:1;
+    s=s.replace(/[+₺TLtlMnmn]/g,'').replace(/[^0-9,\.\-]/g,'');
+    if(!s) return NaN;
+    if(s.indexOf(',')>-1){ s=s.replace(/\./g,'').replace(',', '.'); }
+    else { var parts=s.split('.'); if(parts.length>2){ var last=parts.pop(); s=parts.join('')+'.'+last; } }
+    var n=parseFloat(s.replace('-',''));
+    return isNaN(n)?NaN:sign*n;
+  }
+  function cellSortValue(td, idx){
+    if(!td) return '';
+    var raw=td.getAttribute('data-sort') || td.textContent || '';
+    var d=parseDate(raw); if(d) return d.key;
+    var n=parseMoney(raw); if(!isNaN(n) && /\d/.test(raw)) return n;
+    return normText(raw).toLocaleLowerCase(TR);
+  }
+  function setIcon(th, state){
+    var sp=th.querySelector('.v113-sort-icon');
+    if(!sp){sp=document.createElement('span'); sp.className='v113-sort-icon'; th.appendChild(sp);}
+    sp.textContent=state==='asc'?' ▲':(state==='desc'?' ▼':' ↕');
+  }
+  function formatDates(root){
+    root=(root||document);
+    root.querySelectorAll('td,span,div').forEach(function(el){
+      if(el.children && el.children.length) return;
+      var txt=normText(el.textContent);
+      var d=parseDate(txt);
+      if(d && /^\d{4}-\d{2}-\d{2}$/.test(txt)){
+        el.textContent=d.tr;
+        if(el.tagName==='TD') el.setAttribute('data-sort', d.key);
+      }
+    });
+  }
+  function enhanceTable(table){
+    if(!table || table.id==='detTbl') return;
+    var thead=table.tHead || table.querySelector('thead');
+    var tbody=table.tBodies && table.tBodies[0] || table.querySelector('tbody');
+    if(!thead || !tbody) return;
+    var ths=Array.from(thead.querySelectorAll('th'));
+    if(!ths.length) return;
+    ths.forEach(function(th,idx){
+      if(th.__v113SortReady) return;
+      th.__v113SortReady=true;
+      th.removeAttribute('onclick'); th.onclick=null;
+      th.classList.add('v113-sortable-th'); th.title='Sırala';
+      setIcon(th,'none');
+      th.addEventListener('click',function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        var oldKey=table.getAttribute('data-v113-sort-col');
+        var oldDir=table.getAttribute('data-v113-sort-dir')||'desc';
+        var dir=(String(oldKey)===String(idx) && oldDir==='desc')?'asc':'desc';
+        table.setAttribute('data-v113-sort-col',idx); table.setAttribute('data-v113-sort-dir',dir);
+        ths.forEach(function(h){setIcon(h,'none');}); setIcon(th,dir);
+        var rows=Array.from(tbody.querySelectorAll('tr'));
+        rows.sort(function(a,b){
+          var av=cellSortValue(a.children[idx],idx), bv=cellSortValue(b.children[idx],idx), r=0;
+          if(typeof av==='number' && typeof bv==='number') r=av-bv;
+          else r=String(av).localeCompare(String(bv),TR,{numeric:true,sensitivity:'base'});
+          return dir==='asc'?r:-r;
+        });
+        rows.forEach(function(r){tbody.appendChild(r);});
+        formatDates(tbody);
+      },true);
+    });
+  }
+  function enhanceAll(root){
+    root=root||document;
+    formatDates(root);
+    root.querySelectorAll('table').forEach(enhanceTable);
+  }
+  var oldST=window.sT;
+  window.sT=function(id,ci){
+    var r=oldST?oldST.apply(this,arguments):undefined;
+    setTimeout(function(){enhanceAll(document.getElementById(id)||document);},0);
+    return r;
+  };
+  document.addEventListener('DOMContentLoaded',function(){enhanceAll(document);});
+  setTimeout(function(){enhanceAll(document);},300);
+  setTimeout(function(){enhanceAll(document);},1000);
+  var obs=new MutationObserver(function(ms){
+    ms.forEach(function(m){
+      Array.from(m.addedNodes||[]).forEach(function(n){
+        if(n && n.nodeType===1) enhanceAll(n);
+      });
+    });
+  });
+  try{obs.observe(document.body,{childList:true,subtree:true});}catch(e){}
+})();
+</script>
+<style id="v113_visible_sort_style">
+.v113-sortable-th{cursor:pointer!important;user-select:none;white-space:nowrap}
+.v113-sort-icon{font-size:10px;opacity:.75;margin-left:4px;color:var(--txt3,#64748b)}
+.v113-sortable-th:hover .v113-sort-icon{opacity:1;color:var(--sky,#3b82f6)}
+</style>
+
 </body>
 </html>
