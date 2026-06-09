@@ -7251,7 +7251,8 @@ document.addEventListener('DOMContentLoaded',function(){
       '<div class="sb-item v98-keep" onclick="nav(\'runway\')"><span class="sb-ico">▲</span>Nakit Ömrü <span class="sb-badge warn" id="bRW">—</span></div>'+ 
       '<div class="sb-item v98-keep" onclick="nav(\'risk\')"><span class="sb-ico">⚑</span>Risk & Açık <span class="sb-badge" id="bRK">—</span></div>'+ 
       '<div class="sb-item v98-keep" onclick="nav(\'grup\')"><span class="sb-ico">⇄</span>Grup / Ortak</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'ortak\')"><span class="sb-ico">★</span>Ortak Analizi</div>'+ 
+      '<div class="sb-item v98-keep" onclick="nav(\'ortak\')"><span class="sb-ico">★</span>Ortak Analizi</div>'+
+      '<div class="sb-item v98-keep" onclick="nav(\'senaryolab\')" title="What-if analizi: tahsilat gecikmesi, kur şoku, gider artışı senaryoları"><span class="sb-ico">⚗</span>Senaryo Lab.</div>'+ 
       '<div class="sb-sec v98-group">Nakit / Veri</div>'+
       '<div class="sb-item v98-keep" onclick="nav(\'detay\')"><span class="sb-ico">≡</span>Nakit Hareketleri</div>'+ 
       '<div class="sb-item v98-keep" onclick="nav(\'raporDisi\')"><span class="sb-ico">⊘</span>Rapor Dışı Hareketler</div>'+ 
@@ -8689,7 +8690,7 @@ document.addEventListener('DOMContentLoaded',function(){
   window.NAKIT_FIX.signedAmount=signedAmount;
 
   document.addEventListener('DOMContentLoaded',function(){bindFirmaTipTouch(); setInitialTicariOnce();});
-  console.info('[v111] Tek motor aktif. Açılışta zorunlu render yok; veri yüklendikten sonra tek kez render edilir.');
+  console.log('[v111] Tek motor aktif. Açılışta zorunlu render yok; veri yüklendikten sonra tek kez render edilir.');
 })();
 </script>
 
@@ -9309,7 +9310,7 @@ document.addEventListener('DOMContentLoaded',function(){
     var modal=document.getElementById('drillModal'),title=document.getElementById('drillTitle'),body=document.getElementById('drillBody');
     if(!modal||!title||!body)return;
     title.innerHTML=(dir==='out'?'🔴 ':'🟢 ')+E(key)+' Detayı';
-    body.innerHTML='<div class="v121-chip">Mapping: '+E(key)+'</div>'+(firm?'<div class="v121-chip">Firma: '+E(firm)+'</div><button class="btn btn-ghost btn-sm" onclick="v121OpenRM(''+dir+'',''+J(key)+'')" style="margin-left:6px">Firma filtresini temizle</button>':'')+'<div class="krow" style="margin-bottom:14px"><div class="kcard"><div class="kcard-line" style="background:'+(dir==='out'?'#fb7185':'#4ade80')+'"></div><div class="kcard-lbl">Toplam</div><div class="kcard-val '+(tot>=0?'pos':'neg')+'">'+fmtM(tot)+'</div></div><div class="kcard"><div class="kcard-line" style="background:#60a5fa"></div><div class="kcard-lbl">İşlem</div><div class="kcard-val">'+list.length.toLocaleString('tr-TR')+'</div></div><div class="kcard"><div class="kcard-line" style="background:#a78bfa"></div><div class="kcard-lbl">Firma</div><div class="kcard-val">'+fm.length.toLocaleString('tr-TR')+'</div></div></div><div class="v121-two"><div class="card"><div class="card-h"><div class="card-ht">Firma Kırılımı — tıklayınca alttaki işlem listesi filtrelenir</div></div><div class="alist">'+fm.map(function(x){return '<div class="arow" onclick="v121OpenRM(''+dir+'',''+J(key)+'',''+J(x.key)+'')"><div class="albl fw6">'+E(x.key)+'<div class="v98-muted">'+N(x.n).toLocaleString('tr-TR')+' kayıt</div></div><div class="aval '+(x.sum>=0?'pos':'neg')+'">'+fmtK(x.sum)+'</div></div>';}).join('')+'</div></div><div class="card"><div class="card-h"><div class="card-ht">Rapor Mapping</div></div><div class="alist"><div class="arow"><div class="albl fw6">'+E(key)+'<div class="v98-muted">'+list.length.toLocaleString('tr-TR')+' kayıt</div></div><div class="aval '+(tot>=0?'pos':'neg')+'">'+fmtK(tot)+'</div></div></div></div></div>'+trxRowsHtml(list);
+    body.innerHTML='<div class="v121-chip">Mapping: '+E(key)+'</div>'+(firm?'<div class="v121-chip">Firma: '+E(firm)+'</div><button class="btn btn-ghost btn-sm" onclick="v121OpenRM('+dir+','+J(key)+')" style="margin-left:6px">Firma filtresini temizle</button>':'')+'<div class="krow" style="margin-bottom:14px"><div class="kcard"><div class="kcard-line" style="background:'+(dir==='out'?'#fb7185':'#4ade80')+'"></div><div class="kcard-lbl">Toplam</div><div class="kcard-val '+(tot>=0?'pos':'neg')+'">'+fmtM(tot)+'</div></div><div class="kcard"><div class="kcard-line" style="background:#60a5fa"></div><div class="kcard-lbl">İşlem</div><div class="kcard-val">'+list.length.toLocaleString('tr-TR')+'</div></div><div class="kcard"><div class="kcard-line" style="background:#a78bfa"></div><div class="kcard-lbl">Firma</div><div class="kcard-val">'+fm.length.toLocaleString('tr-TR')+'</div></div></div><div class="v121-two"><div class="card"><div class="card-h"><div class="card-ht">Firma Kırılımı — tıklayınca alttaki işlem listesi filtrelenir</div></div><div class="alist">'+fm.map(function(x){return '<div class="arow" onclick="v121OpenRM('+dir+','+J(key)+','+J(x.key)+')"><div class="albl fw6">'+E(x.key)+'<div class="v98-muted">'+N(x.n).toLocaleString('tr-TR')+' kayıt</div></div><div class="aval '+(x.sum>=0?'pos':'neg')+'">'+fmtK(x.sum)+'</div></div>';}).join('')+'</div></div><div class="card"><div class="card-h"><div class="card-ht">Rapor Mapping</div></div><div class="alist"><div class="arow"><div class="albl fw6">'+E(key)+'<div class="v98-muted">'+list.length.toLocaleString('tr-TR')+' kayıt</div></div><div class="aval '+(tot>=0?'pos':'neg')+'">'+fmtK(tot)+'</div></div></div></div></div>'+trxRowsHtml(list);
     modal.classList.add('on');
   };
   function ensureBlock(){var topG=document.getElementById('topG');if(!topG)return;if(!document.getElementById('allMappingBlock')){var div=document.createElement('div');div.className='g2';div.id='allMappingBlock';div.style.marginTop='12px';div.innerHTML='<div class="card"><div class="card-h"><div class="card-ht">📋 Tüm Gider Mappingleri</div><div class="card-hsub" id="allCMeta">Tümü</div></div><div id="allC"></div></div><div class="card"><div class="card-h"><div class="card-ht">📋 Tüm Gelir Mappingleri</div><div class="card-hsub" id="allGMeta">Tümü</div></div><div id="allG"></div></div>';topG.closest('.g2').after(div);}}
@@ -9321,6 +9322,929 @@ document.addEventListener('DOMContentLoaded',function(){
   var rmPage=window.renderMappingPage;if(rmPage&&!rmPage.__v121){window.renderMappingPage=function(){var r=rmPage.apply(this,arguments);setTimeout(run,80);return r;};window.renderMappingPage.__v121=true;}
   document.addEventListener('DOMContentLoaded',function(){setTimeout(run,500);});
   setTimeout(run,800);
+})();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SENARYO LABORATUVARI — v1.0
+     CFO Analiz > What-if simülasyon motoru
+     Mevcut window.F filtrelenmiş veriyi kullanır.
+     Yeni kütüphane eklenmez; mevcut Chart.js (CH) yapısına uyar.
+═══════════════════════════════════════════════════════════ -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SENARYO LABORATUVARI v2.0 — Nakit Akış Bütçe & Tahmin Motoru
+     - Kalem bazlı (Rapor Mapping) büyüme/azalış oranı ayarı
+     - Firma bazlı projeksiyon
+     - 1-3 yıl ileri tahmin (aylık granülarite)
+     - Baz / İyimser / Kötümser 3 senaryo
+     - Kümülatif bakiye grafiği + aylık çubuk
+     - KPI kartları + tablo analizi
+═══════════════════════════════════════════════════════════ -->
+<style id="senaryolab-css">
+/* ── LAYOUT ─────────────────────────────────────── */
+#pg-senaryolab{min-height:100%}
+.sl2-wrap{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start;margin-top:12px}
+@media(max-width:960px){.sl2-wrap{grid-template-columns:1fr}}
+
+/* ── SOL PANEL ──────────────────────────────────── */
+.sl2-panel{background:var(--ink2);border:1px solid var(--rim);border-radius:var(--r2);overflow:hidden}
+.sl2-ph{padding:10px 14px;border-bottom:1px solid var(--rim);display:flex;align-items:center;justify-content:space-between}
+.sl2-pt{font-family:var(--ffd);font-size:12px;font-weight:700;color:var(--txt2);display:flex;align-items:center;gap:6px}
+.sl2-pb{padding:12px 14px}
+.sl2-tabs-left{display:flex;gap:4px;flex-wrap:wrap;padding:8px 14px 0}
+.sl2-tab{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--rim);background:var(--ink3);color:var(--txt2);transition:.12s;white-space:nowrap}
+.sl2-tab:hover{background:var(--ink4);color:var(--txt)}
+.sl2-tab.on{background:rgba(201,168,76,.14);border-color:rgba(201,168,76,.3);color:var(--gold)}
+.sl2-section{display:none;padding:10px 14px 14px}.sl2-section.on{display:block}
+
+/* Slider field */
+.sl2-field{margin-bottom:11px}
+.sl2-lbl{font-size:10.5px;font-weight:700;color:var(--txt3);display:flex;justify-content:space-between;margin-bottom:4px}
+.sl2-lbl span{font-family:var(--ffm);color:var(--gold);font-weight:700;font-size:11px}
+.sl2-slider{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--ink4);outline:none;cursor:pointer}
+.sl2-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--ink)}
+.sl2-inp{background:var(--ink3);border:1px solid var(--rim);color:var(--txt);border-radius:6px;padding:5px 9px;font-size:12px;font-family:var(--ffm);width:100%;box-sizing:border-box;outline:none}
+.sl2-inp:focus{border-color:var(--gold)}
+.sl2-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sl2-mini-lbl{font-size:9.5px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+
+/* Dönem butonları */
+.sl2-dur{display:flex;gap:4px;flex-wrap:wrap}
+.sl2-dur-btn{padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--rim);background:var(--ink3);color:var(--txt2);transition:.12s}
+.sl2-dur-btn.on{background:rgba(201,168,76,.14);border-color:rgba(201,168,76,.3);color:var(--gold)}
+
+/* Kalem tablo */
+.sl2-kalem-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.sl2-kalem-tbl th{font-size:9.5px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;padding:5px 6px;border-bottom:1px solid var(--rim);text-align:left}
+.sl2-kalem-tbl td{padding:4px 6px;border-bottom:1px solid rgba(30,45,69,.3)}
+.sl2-kalem-tbl tr:hover td{background:rgba(30,45,69,.3)}
+.sl2-kalem-inp{background:var(--ink3);border:1px solid var(--rim);color:var(--txt);border-radius:5px;padding:2px 6px;font-size:11px;font-family:var(--ffm);width:68px;text-align:right;outline:none}
+.sl2-kalem-inp:focus{border-color:var(--gold)}
+.sl2-kat-pill{display:inline-flex;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;white-space:nowrap}
+
+/* Firma tablo */
+.sl2-firma-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.sl2-firma-tbl th{font-size:9.5px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;padding:5px 6px;border-bottom:1px solid var(--rim)}
+.sl2-firma-tbl td{padding:4px 6px;border-bottom:1px solid rgba(30,45,69,.3)}
+.sl2-firma-inp{background:var(--ink3);border:1px solid var(--rim);color:var(--txt);border-radius:5px;padding:2px 6px;font-size:11px;font-family:var(--ffm);width:60px;text-align:right;outline:none}
+.sl2-firma-inp:focus{border-color:var(--gold)}
+
+/* Reset btn */
+.sl2-reset{width:100%;padding:7px;border-radius:8px;background:var(--ink3);border:1px solid var(--rim);color:var(--txt2);font-size:11.5px;font-weight:600;cursor:pointer;transition:.12s;margin-top:4px}
+.sl2-reset:hover{background:var(--ink4);color:var(--txt)}
+
+/* ── SAĞ TARAF ──────────────────────────────────── */
+.sl2-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;margin-bottom:14px}
+.sl2-kcard{background:var(--ink2);border:1px solid var(--rim);border-radius:var(--r2);padding:11px 13px;position:relative;overflow:hidden}
+.sl2-kcard-line{position:absolute;top:0;left:0;right:0;height:2px}
+.sl2-kcard-lbl{font-size:9.5px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.sl2-kcard-val{font-family:var(--ffm);font-size:16px;font-weight:500;letter-spacing:-.5px;word-break:break-word;line-height:1.2}
+.sl2-kcard-sub{font-size:10px;color:var(--txt3);margin-top:3px}
+
+/* Sekme */
+.sl2-right-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.sl2-rtab{padding:5px 12px;border-radius:8px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--rim);background:var(--ink3);color:var(--txt2);transition:.12s}
+.sl2-rtab:hover{background:var(--ink4);color:var(--txt)}
+.sl2-rtab.on{background:rgba(201,168,76,.14);border-color:rgba(201,168,76,.3);color:var(--gold)}
+.sl2-rsec{display:none}.sl2-rsec.on{display:block}
+
+/* Tablolar */
+.sl2-twrap{overflow-x:auto;max-height:380px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--rim2) transparent}
+.sl2-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.sl2-tbl thead{position:sticky;top:0;z-index:4}
+.sl2-tbl th{background:var(--ink3);padding:7px 10px;text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);border-bottom:1px solid var(--rim);white-space:nowrap;cursor:pointer;user-select:none}
+.sl2-tbl th:hover{color:var(--txt2)}
+.sl2-tbl td{padding:7px 10px;border-bottom:1px solid rgba(30,45,69,.4);color:var(--txt2);vertical-align:middle}
+.sl2-tbl tr:hover td{background:rgba(30,45,69,.35);color:var(--txt)}
+.sl2-tbl .num{font-family:var(--ffm);text-align:right;white-space:nowrap}
+.sl2-tbl .pos{color:var(--sage)}.sl2-tbl .neg{color:var(--rose)}
+.sl2-tbl tr.total-row td{font-weight:700;background:var(--ink3);border-top:2px solid var(--rim2)}
+.sl2-tbl tr.year-row td{background:rgba(201,168,76,.07);font-weight:700;font-size:11px;color:var(--gold)}
+
+/* Uyarı/bilgi */
+.sl2-warn{background:rgba(251,113,133,.08);border:1px solid rgba(251,113,133,.25);border-radius:8px;padding:8px 12px;font-size:11.5px;color:var(--rose);margin-bottom:10px}
+.sl2-info{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.2);border-radius:8px;padding:8px 12px;font-size:11.5px;color:var(--sky);margin-bottom:10px}
+.sl2-note{font-size:10.5px;color:var(--txt3);padding:6px 0;line-height:1.5}
+
+/* Senaryo badge */
+.sl2-sbadge{display:inline-flex;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700}
+.sl2-sbadge.baz{background:rgba(96,165,250,.12);color:#60a5fa}
+.sl2-sbadge.iyi{background:rgba(74,222,128,.12);color:#4ade80}
+.sl2-sbadge.kotu{background:rgba(251,113,133,.12);color:#fb7185}
+
+/* Bar chart mini */
+.sl2-bar{height:4px;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:4px;flex-shrink:0}
+
+/* Light tema */
+[data-theme="light"] .sl2-panel{background:var(--s1);border-color:var(--b1)}
+[data-theme="light"] .sl2-ph{border-color:var(--b1)}
+[data-theme="light"] .sl2-tab,.sl2-dur-btn,[data-theme="light"] .sl2-rtab{background:var(--s3);border-color:var(--b1);color:var(--txt2)}
+[data-theme="light"] .sl2-kcard{background:var(--s1);border-color:var(--b1)}
+[data-theme="light"] .sl2-kalem-inp,[data-theme="light"] .sl2-firma-inp,[data-theme="light"] .sl2-inp{background:var(--s2);border-color:var(--b1);color:var(--txt)}
+[data-theme="light"] .sl2-kalem-tbl th,[data-theme="light"] .sl2-firma-tbl th,[data-theme="light"] .sl2-tbl th{background:var(--s3);color:var(--txt3);border-color:var(--b1)}
+[data-theme="light"] .sl2-tbl td{color:var(--txt2);border-color:rgba(203,213,225,.4)}
+[data-theme="light"] .sl2-tbl tr.total-row td{background:var(--s3)}
+[data-theme="light"] .sl2-tbl tr.year-row td{background:rgba(184,134,11,.06)}
+[data-theme="light"] .sl2-reset{background:var(--s2);border-color:var(--b1)}
+[data-theme="light"] .sl2-slider{background:var(--s4)}
+</style>
+
+<!-- ── SENARYO LAB v2 SCRIPT ── -->
+<script>
+(function(){
+'use strict';
+
+/* ════════════════════════════════════════════════
+   YARDIMCI FONKSİYONLAR
+════════════════════════════════════════════════ */
+function N(v){if(typeof v==='number')return isFinite(v)?v:0;var s=String(v==null?'':v).replace(/\s/g,'').replace(/TL|₺/gi,'');if(!s)return 0;if(s.indexOf(',')>-1)s=s.replace(/\./g,'').replace(',','.');var n=Number(s);return isFinite(n)?n:0;}
+function E(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function fmt(v){try{if(typeof window.fK==='function')return window.fK(v);}catch(e){}var n=N(v),a=Math.abs(n),sg=n<0?'-':'+';function d(x,p){return x.toLocaleString('tr-TR',{minimumFractionDigits:p,maximumFractionDigits:p});}if(a>=1e9)return sg+d(a/1e9,2)+' Mr';if(a>=1e6)return sg+d(a/1e6,2)+' Mn';if(a>=1e3)return sg+d(a/1e3,1)+' B';return(n>=0?'+':'')+d(a,0);}
+function fmtM(v){try{if(typeof window.fM==='function')return window.fM(v);}catch(e){}return fmt(v);}
+function toISO(s){if(!s)return '';s=String(s);if(/^\d{2}\.\d{2}\.\d{4}/.test(s)){var p=s.split('.');return p[2]+'-'+p[1]+'-'+p[0];}return s;}
+function addMonths(isoStr,m){var d=new Date(isoStr);d.setMonth(d.getMonth()+m);return d.toISOString().slice(0,7)+'-01';}
+function monthKey(isoStr){return String(isoStr||'').slice(0,7);}
+function isGiris(d){var y=String(d.yon||'').toLocaleUpperCase('tr-TR');if(y==='GİRİŞ'||y==='GIRIS')return true;if(y==='ÇIKIŞ'||y==='CIKIS'||y==='NÖTR'||y==='NOTR')return false;var r=String(d.rm||'').toLocaleUpperCase('tr-TR');if(r.indexOf('GİRİŞ')>-1||r.indexOf('GIRIS')>-1)return true;return N(d.tutar)>0;}
+function isCikis(d){var y=String(d.yon||'').toLocaleUpperCase('tr-TR');if(y==='ÇIKIŞ'||y==='CIKIS')return true;if(y==='GİRİŞ'||y==='GIRIS'||y==='NÖTR'||y==='NOTR')return false;var r=String(d.rm||'').toLocaleUpperCase('tr-TR');if(r.indexOf('ÇIKIŞ')>-1||r.indexOf('CIKIS')>-1)return true;return N(d.tutar)<0;}
+function isFX(d){var dv=String(d.doviz||'TL').trim().toLocaleUpperCase('tr-TR');return dv!=='TL'&&dv!==''&&dv!=='TRY';}
+function rmKat(rm){var u=String(rm||'').toLocaleUpperCase('tr-TR');if(u.indexOf('FAALİYET')>-1||u.indexOf('FAALIYET')>-1)return{k:'F',lbl:'Faaliyet',c:'#60a5fa',bg:'rgba(96,165,250,.12)'};if(u.indexOf('YATIRIM')>-1)return{k:'Y',lbl:'Yatırım',c:'#a78bfa',bg:'rgba(167,139,250,.12)'};if(u.indexOf('FİNANSMAN')>-1||u.indexOf('FINANSMAN')>-1)return{k:'Fi',lbl:'Finansman',c:'#f97316',bg:'rgba(249,115,22,.12)'};if(u.indexOf('GRUP')>-1)return{k:'G',lbl:'Grup İçi',c:'#94a3b8',bg:'rgba(148,163,184,.12)'};return{k:'D',lbl:'Diğer',c:'#c9a84c',bg:'rgba(201,168,76,.12)'};}
+
+/* ════════════════════════════════════════════════
+   GLOBAL STATE
+════════════════════════════════════════════════ */
+var S={
+  // Global oranlar
+  gecikme:15,       // gün
+  kayip:5,          // %
+  kaydirma:0,       // gün
+  kurSoku:0,        // %
+  giderArtis:5,     // %
+  gelirBuyume:8,    // % yıllık
+  giderBuyume:6,    // % yıllık
+  enflasyon:30,     // % - gider bazına eklenir
+  // Projeksiyon
+  ay:24,            // ay (1-36)
+  baslangicBakiye:null,
+  // Kalem bazlı overrides: {rm: {buyume:%, aktif:bool}}
+  kalemOverride:{},
+  // Firma bazlı overrides: {firma: {buyume:%, aktif:bool}}
+  firmaOverride:{},
+  // UI
+  leftTab:'global',
+  rightTab:'grafik',
+  sortProje:{col:'ay',dir:1},
+  sortRM2:{col:'senFark',dir:-1},
+  sortFirma2:{col:'senFark',dir:-1},
+  rmShowAll:false
+};
+var CACHE={sig:'',base:null,proj:null,timer:null};
+var CHARTS={};
+
+/* ════════════════════════════════════════════════
+   VERİ HAZIRLAMA — Tarihsel aylık özet
+════════════════════════════════════════════════ */
+function buildBase(){
+  var rows=Array.isArray(window.F)?window.F:[];
+  if(!rows.length)return null;
+  // Aylık toplamlar: {ay: {giris, cikis, rmGiris:{rm:amt}, rmCikis:{rm:amt}, firmaGiris:{f:amt}, firmaCikis:{f:amt}}}
+  var monthly={};
+  var rms={}; // tüm rm'ler
+  var firms={}; // tüm firmalar
+  for(var i=0;i<rows.length;i++){
+    var d=rows[i];
+    var iso=toISO(d.tarih||'');
+    var mk=monthKey(iso); if(!mk)continue;
+    var t=N(d.tutar);
+    var g=isGiris(d), c=isCikis(d);
+    if(!g&&!c)continue;
+    var rm=String(d.rm||'Tanımsız').trim();
+    var f=String(d.firma||'Tanımsız').trim();
+    rms[rm]=1; firms[f]=1;
+    if(!monthly[mk])monthly[mk]={giris:0,cikis:0,rmG:{},rmC:{},fG:{},fC:{}};
+    var m=monthly[mk];
+    if(g){m.giris+=t;m.rmG[rm]=(m.rmG[rm]||0)+t;m.fG[f]=(m.fG[f]||0)+t;}
+    else{m.cikis+=t;m.rmC[rm]=(m.rmC[rm]||0)+t;m.fC[f]=(m.fC[f]||0)+t;}
+  }
+  // Ortalamalar (son 12 ay)
+  var months=Object.keys(monthly).sort();
+  var last12=months.slice(-12);
+  var avgG=0,avgC=0; last12.forEach(function(m){avgG+=monthly[m].giris;avgC+=monthly[m].cikis;});
+  var n12=last12.length||1;
+  avgG/=n12; avgC/=n12;
+  // RM ortalamaları
+  var rmAvgG={},rmAvgC={};
+  last12.forEach(function(mk){var m=monthly[mk];Object.keys(m.rmG).forEach(function(r){rmAvgG[r]=(rmAvgG[r]||0)+m.rmG[r];});Object.keys(m.rmC).forEach(function(r){rmAvgC[r]=(rmAvgC[r]||0)+m.rmC[r];});});
+  Object.keys(rmAvgG).forEach(function(r){rmAvgG[r]/=n12;});
+  Object.keys(rmAvgC).forEach(function(r){rmAvgC[r]/=n12;});
+  // Firma ortalamaları
+  var fAvgG={},fAvgC={};
+  last12.forEach(function(mk){var m=monthly[mk];Object.keys(m.fG).forEach(function(f){fAvgG[f]=(fAvgG[f]||0)+m.fG[f];});Object.keys(m.fC).forEach(function(f){fAvgC[f]=(fAvgC[f]||0)+m.fC[f];});});
+  Object.keys(fAvgG).forEach(function(f){fAvgG[f]/=n12;});
+  Object.keys(fAvgC).forEach(function(f){fAvgC[f]/=n12;});
+  // Başlangıç bakiyesi
+  var opening=0;
+  try{if(window.NAKIT_FIX&&typeof window.NAKIT_FIX.opening==='function')opening=N(window.NAKIT_FIX.opening());}catch(e){}
+  return{
+    monthly:monthly, months:months, rms:Object.keys(rms).sort(), firms:Object.keys(firms).sort(),
+    avgG:avgG, avgC:avgC, rmAvgG:rmAvgG, rmAvgC:rmAvgC, fAvgG:fAvgG, fAvgC:fAvgC,
+    opening:opening, last12:last12, n12:n12
+  };
+}
+
+/* ════════════════════════════════════════════════
+   PROJEKSIYON MOTORU
+   Her ay için 3 senaryo hesapla
+════════════════════════════════════════════════ */
+function runProjection(base, params){
+  if(!base)return[];
+  var months=base.last12;
+  var startISO=months.length?addMonths(months[months.length-1],1):(new Date().toISOString().slice(0,7)+'-01');
+  var opening=params.baslangicBakiye!==null?params.baslangicBakiye:base.opening;
+  // Baz aylık ortalama
+  var baseG=base.avgG, baseC=base.avgC;
+  var result=[];
+  var kumBaz=opening, kumIyi=opening, kumKotu=opening;
+  for(var i=0;i<params.ay;i++){
+    var ayISO=addMonths(startISO,i);
+    var yil=i/12; // kaçıncı yılda
+    // ── Baz ──
+    var bazG=baseG, bazC=baseC;
+    // ── Kalemlere override uygula ──
+    var rmG={}; Object.keys(base.rmAvgG).forEach(function(r){
+      var ov=params.kalemOverride[r];
+      var buyume=(ov&&ov.aktif!==false)?((ov.buyume||0)/100):((params.gelirBuyume||0)/100);
+      rmG[r]=base.rmAvgG[r]*Math.pow(1+buyume/12,i+1);
+    });
+    var rmC={}; Object.keys(base.rmAvgC).forEach(function(r){
+      var ov=params.kalemOverride[r];
+      var buyume=(ov&&ov.aktif!==false)?((ov.buyume||0)/100):((params.giderBuyume||0)/100);
+      var enfFaktor=1+(params.enflasyon||0)/100/12*(i+1)*0.3; // enflasyon etkisi (30% ağırlık)
+      rmC[r]=base.rmAvgC[r]*Math.pow(1+buyume/12,i+1)*enfFaktor;
+    });
+    // Toplam hesapla (rm override'lardan)
+    var rmGtot=Object.values(rmG).reduce(function(s,v){return s+v;},0);
+    var rmCtot=Object.values(rmC).reduce(function(s,v){return s+v;},0);
+    // rm'ler yoksa base kullan
+    if(!rmGtot)rmGtot=bazG*Math.pow(1+(params.gelirBuyume||0)/100/12,i+1);
+    if(!rmCtot)rmCtot=bazC*Math.pow(1+(params.giderBuyume||0)/100/12,i+1);
+    // Firma override
+    var fG=0; Object.keys(base.fAvgG).forEach(function(f){
+      var ov=params.firmaOverride[f];
+      var buyume=(ov&&ov.aktif!==false)?((ov.buyume||0)/100):((params.gelirBuyume||0)/100);
+      if(ov&&ov.aktif===false)return; // devre dışı
+      fG+=base.fAvgG[f]*Math.pow(1+buyume/12,i+1);
+    });
+    var fC=0; Object.keys(base.fAvgC).forEach(function(f){
+      var ov=params.firmaOverride[f];
+      var buyume=(ov&&ov.aktif!==false)?((ov.buyume||0)/100):((params.giderBuyume||0)/100);
+      if(ov&&ov.aktif===false)return;
+      fC+=base.fAvgC[f]*Math.pow(1+(buyume+(params.enflasyon||0)*0.3)/100/12,i+1);
+    });
+    // Firma override varsa kullan, yoksa rm toplamı
+    var finalG = (Object.keys(params.firmaOverride).length>0 && (fG||fC)) ? fG : rmGtot;
+    var finalC = (Object.keys(params.firmaOverride).length>0 && (fG||fC)) ? fC : rmCtot;
+    // Kur şoku FX kısmını etkiler (%40 varsayılan FX oran)
+    if(params.kurSoku){var kur=1+params.kurSoku/100;finalG*=(1+(kur-1)*0.4);finalC*=(1+(kur-1)*0.4);}
+    // Tahsilat gecikmesi (giriş tutarını azaltır bu ayda, bir sonraya taşır)
+    var gecikmeFak=1-Math.min(0.9,(params.gecikme||0)/90*0.5);
+    finalG*=gecikmeFak;
+    // Tahsilat kaybı
+    finalG*=(1-(params.kayip||0)/100);
+    // Ödeme kaydırma (çıkış bu ayda azalır/artar)
+    var kaydirmaFak=1+((params.kaydirma||0)/30*0.1);
+    finalC*=kaydirmaFak;
+    // ── Baz net ──
+    var bazNet=finalG+finalC;
+    kumBaz+=bazNet;
+    // ── İyimser: %20 daha iyi giriş, %10 daha az çıkış ──
+    var iyiG=finalG*1.2, iyiC=finalC*0.9;
+    var iyiNet=iyiG+iyiC; kumIyi+=iyiNet;
+    // ── Kötümser: %20 daha az giriş, %15 daha fazla çıkış ──
+    var kotuG=finalG*0.8, kotuC=finalC*1.15;
+    var kotuNet=kotuG+kotuC; kumKotu+=kotuNet;
+    result.push({
+      ay:ayISO,ayNo:i+1,yilNo:Math.floor(i/12)+1,
+      bazG:finalG,bazC:finalC,bazNet:bazNet,kumBaz:kumBaz,
+      iyiG:iyiG,iyiC:iyiC,iyiNet:iyiNet,kumIyi:kumIyi,
+      kotuG:kotuG,kotuC:kotuC,kotuNet:kotuNet,kumKotu:kumKotu,
+      rmG:rmG,rmC:rmC
+    });
+  }
+  return result;
+}
+
+/* Senaryo özeti */
+function kpiFromProj(proj,opening){
+  if(!proj||!proj.length)return{};
+  var last=proj[proj.length-1];
+  var minBaz=Infinity,minKotu=Infinity,negBaz=0,negKotu=0,firstNeg=null;
+  proj.forEach(function(p){if(p.kumBaz<minBaz)minBaz=p.kumBaz;if(p.kumKotu<minKotu)minKotu=p.kumKotu;if(p.kumBaz<0)negBaz++;if(p.kumKotu<0){negKotu++;if(!firstNeg)firstNeg=p.ay;}});
+  return{
+    bazFinal:last.kumBaz,iyiFinal:last.kumIyi,kotuFinal:last.kumKotu,
+    minBaz:minBaz===Infinity?0:minBaz,minKotu:minKotu===Infinity?0:minKotu,
+    negBaz:negBaz,negKotu:negKotu,firstNeg:firstNeg,
+    topGiris:proj.reduce(function(s,p){return s+p.bazG;},0),
+    topCikis:proj.reduce(function(s,p){return s+p.bazC;},0),
+    yillar:Math.ceil(proj.length/12)
+  };
+}
+
+/* ════════════════════════════════════════════════
+   SAYFA HTML
+════════════════════════════════════════════════ */
+function ensurePage(){
+  if(document.getElementById('pg-senaryolab'))return;
+  var content=document.querySelector('.content');
+  if(!content)return;
+  content.insertAdjacentHTML('beforeend',
+  '<div class="pg" id="pg-senaryolab">'+
+    '<div class="exec-hero" style="margin-bottom:12px">'+
+      '<div class="exec-title">⚗ Senaryo Laboratuvarı</div>'+
+      '<div class="exec-sub">Kalem & firma bazlı 1-3 yıl nakit akış tahmini — baz / iyimser / kötümser senaryolar</div>'+
+      '<div class="exec-period" id="sl2Meta">—</div>'+
+    '</div>'+
+    '<div id="sl2Warn" class="sl2-warn" style="display:none">⚠ Filtrelenmiş veri yok. Ana filtreden dönem seçin, ⚡ Uygula\'ya basın.</div>'+
+    '<div class="sl2-wrap">'+
+      /* Sol panel */
+      '<div id="sl2Left">'+
+        '<div class="sl2-panel">'+
+          '<div class="sl2-ph">'+
+            '<div class="sl2-pt">⚙ Varsayımlar</div>'+
+            '<button class="sl2-reset" style="width:auto;padding:3px 9px;margin:0;font-size:11px" onclick="SL2_resetAll()">↺ Sıfırla</button>'+
+          '</div>'+
+          '<div class="sl2-tabs-left">'+
+            '<div class="sl2-tab on" onclick="SL2_leftTab(\'global\',this)">🌐 Genel</div>'+
+            '<div class="sl2-tab" onclick="SL2_leftTab(\'kalem\',this)">📋 Kalem Bazlı</div>'+
+            '<div class="sl2-tab" onclick="SL2_leftTab(\'firma\',this)">🏢 Firma Bazlı</div>'+
+          '</div>'+
+          /* Genel tab */
+          '<div class="sl2-section on" id="sl2SecGlobal">'+
+            '<div class="sl2-field"><div class="sl2-lbl">Projeksiyon süresi<span id="sl2AyVal">24 ay (2 yıl)</span></div><div class="sl2-dur">'+
+              '<div class="sl2-dur-btn" onclick="SL2_setAy(12,this)">1 Yıl</div>'+
+              '<div class="sl2-dur-btn on" onclick="SL2_setAy(24,this)">2 Yıl</div>'+
+              '<div class="sl2-dur-btn" onclick="SL2_setAy(36,this)">3 Yıl</div>'+
+            '</div></div>'+
+            '<div class="sl2-field"><div class="sl2-lbl">Yıllık gelir büyümesi <span id="sl2GelirVal">%8</span></div><input type="range" class="sl2-slider" id="sl2GelirBuyume" min="-30" max="50" step="1" value="8"></div>'+
+            '<div class="sl2-field"><div class="sl2-lbl">Yıllık gider büyümesi <span id="sl2GiderVal">%6</span></div><input type="range" class="sl2-slider" id="sl2GiderBuyume" min="-20" max="60" step="1" value="6"></div>'+
+            '<div class="sl2-field"><div class="sl2-lbl">Enflasyon etkisi (gider) <span id="sl2EnfVal">%30</span></div><input type="range" class="sl2-slider" id="sl2Enflasyon" min="0" max="80" step="1" value="30"></div>'+
+            '<div class="sl2-field"><div class="sl2-lbl">Kur şoku (FX hareketler) <span id="sl2KurVal">%0</span></div><input type="range" class="sl2-slider" id="sl2KurSoku" min="-20" max="100" step="1" value="0"></div>'+
+            '<div class="sl2-field"><div class="sl2-lbl">Tahsilat gecikmesi <span id="sl2GecVal">15 gün</span></div><input type="range" class="sl2-slider" id="sl2Gecikme" min="0" max="90" step="1" value="15"></div>'+
+            '<div class="sl2-field"><div class="sl2-lbl">Tahsilat kaybı <span id="sl2KayVal">%5</span></div><input type="range" class="sl2-slider" id="sl2Kayip" min="0" max="50" step="1" value="5"></div>'+
+            '<div class="sl2-field"><div class="sl2-lbl">Ödeme kaydırma <span id="sl2KaydVal">0 gün</span></div><input type="range" class="sl2-slider" id="sl2Kaydirma" min="-30" max="60" step="1" value="0"></div>'+
+            '<div class="sl2-field"><div class="sl2-lbl">Başlangıç bakiyesi</div><input class="sl2-inp" id="sl2BasBakiye" placeholder="Otomatik (dönem başı)" oninput="SL2_onBakiye()"></div>'+
+          '</div>'+
+          /* Kalem tab */
+          '<div class="sl2-section" id="sl2SecKalem">'+
+            '<div class="sl2-note">Her Rapor Mapping kalemi için yıllık büyüme/azalış oranı girin. Boş = genel oran geçerli.</div>'+
+            '<div style="overflow-x:auto;max-height:420px;overflow-y:auto;scrollbar-width:thin">'+
+              '<table class="sl2-kalem-tbl"><thead><tr><th>Mapping Kalemi</th><th style="text-align:center">Aktif</th><th style="text-align:right">Yıllık %</th></tr></thead><tbody id="sl2KalemBody"></tbody></table>'+
+            '</div>'+
+          '</div>'+
+          /* Firma tab */
+          '<div class="sl2-section" id="sl2SecFirma">'+
+            '<div class="sl2-note">Firma bazlı yıllık büyüme oranı. "Pasif" = bu firmayı projeksiyondan çıkar.</div>'+
+            '<div style="overflow-x:auto;max-height:420px;overflow-y:auto;scrollbar-width:thin">'+
+              '<table class="sl2-firma-tbl"><thead><tr><th>Firma</th><th style="text-align:center">Aktif</th><th style="text-align:right">Yıllık %</th></tr></thead><tbody id="sl2FirmaBody"></tbody></table>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      /* Sağ taraf */
+      '<div>'+
+        '<div id="sl2KpiGrid" class="sl2-kpi-grid"></div>'+
+        '<div class="sl2-right-tabs">'+
+          '<div class="sl2-rtab on" onclick="SL2_rightTab(\'grafik\',this)">📈 Nakit Akış Grafiği</div>'+
+          '<div class="sl2-rtab" onclick="SL2_rightTab(\'aylik\',this)">📅 Aylık Projeksiyon</div>'+
+          '<div class="sl2-rtab" onclick="SL2_rightTab(\'kalemrm\',this)">📋 Kalem Analizi</div>'+
+          '<div class="sl2-rtab" onclick="SL2_rightTab(\'firmasen\',this)">🏢 Firma Analizi</div>'+
+        '</div>'+
+        '<div class="sl2-rsec on" id="sl2RGrafik">'+
+          '<div class="card" style="margin-bottom:12px">'+
+            '<div class="card-h"><div class="card-ht">Kümülatif Nakit Projeksiyonu</div><div class="card-hsub">3 senaryo — baz / iyimser / kötümser</div></div>'+
+            '<div class="card-b"><div class="cwrap" style="height:300px"><canvas id="sl2ChartKum"></canvas></div></div>'+
+          '</div>'+
+          '<div class="card">'+
+            '<div class="card-h"><div class="card-ht">Aylık Nakit Girişi / Çıkışı</div><div class="card-hsub">Baz senaryo</div></div>'+
+            '<div class="card-b"><div class="cwrap" style="height:220px"><canvas id="sl2ChartAylik"></canvas></div></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="sl2-rsec" id="sl2RAylik">'+
+          '<div class="card"><div class="card-h"><div class="card-ht">Aylık Projeksiyon Tablosu</div><div class="card-hsub" id="sl2AylikMeta">—</div></div>'+
+          '<div class="sl2-twrap"><table class="sl2-tbl"><thead><tr>'+
+            '<th onclick="SL2_sortProje(\'ay\')">Dönem ▲</th>'+
+            '<th class="num" onclick="SL2_sortProje(\'bazG\')">Baz Giriş</th>'+
+            '<th class="num" onclick="SL2_sortProje(\'bazC\')">Baz Çıkış</th>'+
+            '<th class="num" onclick="SL2_sortProje(\'bazNet\')">Baz Net</th>'+
+            '<th class="num" onclick="SL2_sortProje(\'kumBaz\')">Baz Kümülatif</th>'+
+            '<th class="num" onclick="SL2_sortProje(\'kumIyi\')">İyimser Kümül.</th>'+
+            '<th class="num" onclick="SL2_sortProje(\'kumKotu\')">Kötümser Kümül.</th>'+
+          '</tr></thead><tbody id="sl2AylikBody"></tbody></table></div></div>'+
+        '</div>'+
+        '<div class="sl2-rsec" id="sl2RKalemRM">'+
+          '<div class="card"><div class="card-h"><div class="card-ht">Kalem (Rapor Mapping) Projeksiyon Analizi</div><div class="card-hsub" id="sl2KalemMeta">—</div></div>'+
+          '<div class="sl2-twrap"><table class="sl2-tbl"><thead><tr>'+
+            '<th onclick="SL2_sortRM2(\'rm\')">Mapping Kalemi</th>'+
+            '<th style="min-width:60px">Kat.</th>'+
+            '<th class="num" onclick="SL2_sortRM2(\'tarihselAylik\')">Aylık Ortalama</th>'+
+            '<th class="num" onclick="SL2_sortRM2(\'senAylik\')">Senaryo Aylık</th>'+
+            '<th class="num" onclick="SL2_sortRM2(\'senFark\')">Aylık Δ</th>'+
+            '<th class="num" onclick="SL2_sortRM2(\'senTopTahmin\')">Toplam Tahmin</th>'+
+            '<th class="num" onclick="SL2_sortRM2(\'buyume\')">Büyüme %</th>'+
+          '</tr></thead><tbody id="sl2KalemRMBody"></tbody></table></div></div>'+
+        '</div>'+
+        '<div class="sl2-rsec" id="sl2RFirmaSen">'+
+          '<div class="card"><div class="card-h"><div class="card-ht">Firma Bazlı Projeksiyon Analizi</div><div class="card-hsub" id="sl2FirmaMeta">—</div></div>'+
+          '<div class="sl2-twrap"><table class="sl2-tbl"><thead><tr>'+
+            '<th onclick="SL2_sortFirma2(\'firma\')">Firma</th>'+
+            '<th class="num" onclick="SL2_sortFirma2(\'tarihselG\')">Tarihsel Aylık G</th>'+
+            '<th class="num" onclick="SL2_sortFirma2(\'tarihselC\')">Tarihsel Aylık Ç</th>'+
+            '<th class="num" onclick="SL2_sortFirma2(\'senGiris\')">Senaryo Aylık G</th>'+
+            '<th class="num" onclick="SL2_sortFirma2(\'senCikis\')">Senaryo Aylık Ç</th>'+
+            '<th class="num" onclick="SL2_sortFirma2(\'senFark\')">Net Δ</th>'+
+            '<th class="num" onclick="SL2_sortFirma2(\'senTopTahmin\')">Toplam Tahmin</th>'+
+          '</tr></thead><tbody id="sl2FirmaSenBody"></tbody></table></div></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>');
+}
+
+/* ════════════════════════════════════════════════
+   KALEM & FİRMA TABLOLARINI DOLDUR
+════════════════════════════════════════════════ */
+function fillKalemTable(base){
+  var tbody=document.getElementById('sl2KalemBody');if(!tbody)return;
+  if(!base){tbody.innerHTML='<tr><td colspan="3" class="empty">Veri yok</td></tr>';return;}
+  // Tüm rm'leri topla (giriş + çıkış)
+  var rms={}; base.rms.forEach(function(r){rms[r]=1;});
+  var html='';
+  base.rms.forEach(function(r){
+    var ov=S.kalemOverride[r]||{};
+    var aktif=ov.aktif!==false;
+    var buyume=ov.buyume!=null?ov.buyume:(isGirisRM(r)?S.gelirBuyume:S.giderBuyume);
+    var kat=rmKat(r);
+    var tarAylik=(base.rmAvgG[r]||0)+(base.rmAvgC[r]||0);
+    html+='<tr>'+
+      '<td title="'+E(r)+'"><span class="sl2-kat-pill" style="background:'+kat.bg+';color:'+kat.c+'">'+E(kat.lbl)+'</span> '+
+        '<span style="font-size:10.5px;overflow:hidden;text-overflow:ellipsis;max-width:130px;display:inline-block;vertical-align:middle" title="'+E(r)+'">'+E(r.length>28?r.slice(0,28)+'…':r)+'</span>'+
+        '<div style="font-size:9.5px;color:var(--txt3)">Ort: '+fmt(tarAylik)+'/ay</div>'+
+      '</td>'+
+      '<td style="text-align:center"><input type="checkbox" '+(aktif?'checked':'')+' onchange="SL2_kalemAktif(\''+E(r).replace(/'/g,'&#39;')+'\',this.checked)" style="accent-color:var(--gold)"></td>'+
+      '<td style="text-align:right"><input class="sl2-kalem-inp" type="number" step="0.5" value="'+buyume+'" oninput="SL2_kalemBuyume(\''+E(r).replace(/'/g,'&#39;')+'\',this.value)" placeholder="'+(isGirisRM(r)?S.gelirBuyume:S.giderBuyume)+'"></td>'+
+    '</tr>';
+  });
+  tbody.innerHTML=html||'<tr><td colspan="3" class="empty">Veri yok</td></tr>';
+}
+
+function fillFirmaTable(base){
+  var tbody=document.getElementById('sl2FirmaBody');if(!tbody)return;
+  if(!base){tbody.innerHTML='<tr><td colspan="3" class="empty">Veri yok</td></tr>';return;}
+  var html='';
+  base.firms.slice(0,80).forEach(function(f){
+    var ov=S.firmaOverride[f]||{};
+    var aktif=ov.aktif!==false;
+    var buyume=ov.buyume!=null?ov.buyume:S.gelirBuyume;
+    var aylik=(base.fAvgG[f]||0)+(base.fAvgC[f]||0);
+    html+='<tr>'+
+      '<td style="font-size:11px" title="'+E(f)+'">'+E(f.length>20?f.slice(0,20)+'…':f)+
+        '<div style="font-size:9.5px;color:var(--txt3)">'+fmt(aylik)+'/ay</div>'+
+      '</td>'+
+      '<td style="text-align:center"><input type="checkbox" '+(aktif?'checked':'')+' onchange="SL2_firmaAktif(\''+E(f).replace(/'/g,'&#39;')+'\',this.checked)" style="accent-color:var(--gold)"></td>'+
+      '<td style="text-align:right"><input class="sl2-firma-inp" type="number" step="0.5" value="'+buyume+'" oninput="SL2_firmaBuyume(\''+E(f).replace(/'/g,'&#39;')+'\',this.value)" placeholder="'+S.gelirBuyume+'"></td>'+
+    '</tr>';
+  });
+  tbody.innerHTML=html||'<tr><td colspan="3" class="empty">Veri yok</td></tr>';
+}
+
+function isGirisRM(r){var u=String(r||'').toLocaleUpperCase('tr-TR');return u.indexOf('GİRİŞ')>-1||u.indexOf('GIRIS')>-1;}
+
+/* ════════════════════════════════════════════════
+   KPI KARTLARI
+════════════════════════════════════════════════ */
+function renderKPI(proj, base){
+  var el=document.getElementById('sl2KpiGrid');if(!el)return;
+  var kpi=kpiFromProj(proj, base?base.opening:0);
+  if(!kpi.bazFinal&&kpi.bazFinal!==0){el.innerHTML='';return;}
+  var cards=[
+    {l:'Baz Senaryo Sonu',v:fmtM(kpi.bazFinal),sub:S.ay+' ay sonunda',color:kpi.bazFinal>=0?'var(--sage)':'var(--rose)',line:'#60a5fa'},
+    {l:'İyimser Senaryo',v:fmtM(kpi.iyiFinal),sub:'%20 iyi giriş, %10 az çıkış',color:'var(--sage)',line:'#4ade80'},
+    {l:'Kötümser Senaryo',v:fmtM(kpi.kotuFinal),sub:'%20 az giriş, %15 fazla çıkış',color:kpi.kotuFinal>=0?'var(--txt2)':'var(--rose)',line:'#fb7185'},
+    {l:'Min. Baz Bakiye',v:fmtM(kpi.minBaz),sub:'en düşük nokta',color:kpi.minBaz>=0?'var(--sage)':'var(--rose)',line:kpi.minBaz>=0?'#4ade80':'#fb7185'},
+    {l:'Negatif Ay (Kötümser)',v:kpi.negKotu,sub:kpi.firstNeg?('İlk: '+kpi.firstNeg.slice(0,7)):'Tamamı pozitif',color:kpi.negKotu>0?'var(--rose)':'var(--sage)',line:'#f97316'},
+    {l:'Toplam Tahmin Giriş',v:fmtM(kpi.topGiris),sub:S.ay+' aylık toplam',color:'var(--sage)',line:'#4ade80'},
+    {l:'Toplam Tahmin Çıkış',v:fmtM(kpi.topCikis),sub:S.ay+' aylık toplam',color:'var(--rose)',line:'#fb7185'},
+    {l:'Projeksiyon',v:S.ay+' ay',sub:kpi.yillar+' yıl — '+S.ay+' dönem',color:'var(--gold)',line:'#c9a84c'},
+  ];
+  el.innerHTML=cards.map(function(k){
+    return '<div class="sl2-kcard">'+
+      '<div class="sl2-kcard-line" style="background:'+k.line+'"></div>'+
+      '<div class="sl2-kcard-lbl">'+k.l+'</div>'+
+      '<div class="sl2-kcard-val" style="color:'+k.color+'">'+k.v+'</div>'+
+      '<div class="sl2-kcard-sub">'+k.sub+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════
+   GRAFİKLER
+════════════════════════════════════════════════ */
+function renderCharts(proj){
+  _drawKumChart(proj);
+  _drawAylikChart(proj);
+}
+
+function _makeChart(id,cfg){
+  var canvas=document.getElementById(id);if(!canvas)return;
+  var key='_sl2_'+id;
+  if(window[key]){try{window[key].destroy();}catch(e){}}
+  var wrap=canvas.parentElement;
+  var w=wrap?wrap.offsetWidth:0;if(w<50)w=800;
+  canvas.style.width=w+'px';canvas.width=w;
+  var h=parseInt(canvas.parentElement.style.height||'280');
+  canvas.style.height=h+'px';canvas.height=h;
+  var ctx=canvas.getContext('2d');if(!ctx)return;
+  window[key]=new Chart(ctx,cfg);
+  setTimeout(function(){
+    var c2=document.getElementById(id);if(!c2||!window[key])return;
+    var wp=c2.parentElement;if(!wp)return;
+    var rw=wp.offsetWidth;if(rw>50&&rw!==w){c2.style.width=rw+'px';c2.width=rw;try{window[key].resize();}catch(e){}}
+  },250);
+}
+
+function _drawKumChart(proj){
+  if(!proj||!proj.length)return;
+  var labels=proj.map(function(p){return p.ay.slice(0,7);});
+  setTimeout(function(){
+    _makeChart('sl2ChartKum',{type:'line',data:{labels:labels,datasets:[
+      {label:'İyimser',data:proj.map(function(p){return p.kumIyi;}),borderColor:'#4ade80',backgroundColor:'rgba(74,222,128,.05)',borderWidth:1.5,pointRadius:0,tension:.3,fill:false,borderDash:[4,3]},
+      {label:'Baz Senaryo',data:proj.map(function(p){return p.kumBaz;}),borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,.08)',borderWidth:2.5,pointRadius:0,tension:.3,fill:true},
+      {label:'Kötümser',data:proj.map(function(p){return p.kumKotu;}),borderColor:'#fb7185',backgroundColor:'rgba(251,113,133,.05)',borderWidth:1.5,pointRadius:0,tension:.3,fill:false,borderDash:[4,3]}
+    ]},options:{
+      responsive:false,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:true,position:'top',labels:{color:'#94a3b8',font:{size:11},boxWidth:14,padding:8}},
+        tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+fmt(ctx.parsed.y);}}}},
+      scales:{y:{ticks:{color:'#94a3b8',font:{size:10},maxTicksLimit:7,callback:function(v){return fmtM(v);}},grid:{color:'rgba(148,163,184,.07)'},border:{display:false}},
+              x:{ticks:{color:'#94a3b8',font:{size:9},maxTicksLimit:13,maxRotation:0},grid:{display:false},border:{display:false}}}
+    }});
+  },40);
+}
+
+function _drawAylikChart(proj){
+  if(!proj||!proj.length)return;
+  var labels=proj.map(function(p){return p.ay.slice(0,7);});
+  setTimeout(function(){
+    _makeChart('sl2ChartAylik',{type:'bar',data:{labels:labels,datasets:[
+      {label:'Giriş',data:proj.map(function(p){return p.bazG;}),backgroundColor:'rgba(74,222,128,.5)',borderColor:'#4ade80',borderWidth:1,borderRadius:2,stack:'s'},
+      {label:'Çıkış',data:proj.map(function(p){return p.bazC;}),backgroundColor:'rgba(251,113,133,.5)',borderColor:'#fb7185',borderWidth:1,borderRadius:2,stack:'s'}
+    ]},options:{
+      responsive:false,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:true,position:'top',labels:{color:'#94a3b8',font:{size:11},boxWidth:14,padding:8}},
+        tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+fmt(ctx.parsed.y);}}}},
+      scales:{y:{stacked:true,ticks:{color:'#94a3b8',font:{size:10},maxTicksLimit:6,callback:function(v){return fmtM(v);}},grid:{color:'rgba(148,163,184,.07)'},border:{display:false}},
+              x:{stacked:true,ticks:{color:'#94a3b8',font:{size:9},maxTicksLimit:13,maxRotation:0},grid:{display:false},border:{display:false}}}
+    }});
+  },60);
+}
+
+/* ════════════════════════════════════════════════
+   TABLO RENDER
+════════════════════════════════════════════════ */
+function renderAylik(proj){
+  var el=document.getElementById('sl2AylikBody');if(!el)return;
+  var meta=document.getElementById('sl2AylikMeta');
+  var sorted=proj.slice().sort(function(a,b){
+    var v=S.sortProje.col,dir=S.sortProje.dir;
+    return dir*(N(a[v]||0)-N(b[v]||0));
+  });
+  if(S.sortProje.col==='ay')sorted=proj.slice().sort(function(a,b){return S.sortProje.dir*(a.ay<b.ay?-1:1);});
+  var html=''; var lastYil=0;
+  sorted.forEach(function(p){
+    // Yıl grup satırı
+    if(p.yilNo!==lastYil&&S.sortProje.col==='ay'){
+      html+='<tr class="year-row"><td colspan="7" style="padding:5px 10px">📅 '+p.yilNo+'. Yıl</td></tr>';
+      lastYil=p.yilNo;
+    }
+    var isNeg=p.kumBaz<0;
+    html+='<tr style="'+(isNeg?'outline:1px solid rgba(251,113,133,.3);':'')+'">'+
+      '<td style="font-family:var(--ffm);font-size:11px;white-space:nowrap">'+p.ay.slice(0,7)+
+        ' <span class="sl2-sbadge baz" style="font-size:9px">Y'+p.yilNo+'</span></td>'+
+      '<td class="num pos">'+fmt(p.bazG)+'</td>'+
+      '<td class="num neg">'+fmt(p.bazC)+'</td>'+
+      '<td class="num '+(p.bazNet>=0?'pos':'neg')+'">'+fmt(p.bazNet)+'</td>'+
+      '<td class="num '+(p.kumBaz>=0?'pos':'neg')+' fw6">'+fmt(p.kumBaz)+'</td>'+
+      '<td class="num pos" style="opacity:.8">'+fmt(p.kumIyi)+'</td>'+
+      '<td class="num '+(p.kumKotu>=0?'pos':'neg')+'" style="opacity:.8">'+fmt(p.kumKotu)+'</td>'+
+    '</tr>';
+  });
+  // Toplam
+  var totG=proj.reduce(function(s,p){return s+p.bazG;},0);
+  var totC=proj.reduce(function(s,p){return s+p.bazC;},0);
+  html+='<tr class="total-row">'+
+    '<td>TOPLAM ('+proj.length+' ay)</td>'+
+    '<td class="num pos fw6">'+fmt(totG)+'</td>'+
+    '<td class="num neg fw6">'+fmt(totC)+'</td>'+
+    '<td class="num '+(totG+totC>=0?'pos':'neg')+' fw6">'+fmt(totG+totC)+'</td>'+
+    '<td class="num">—</td><td class="num">—</td><td class="num">—</td>'+
+  '</tr>';
+  el.innerHTML=html;
+  if(meta)meta.textContent=proj.length+' aylık projeksiyon · '+Math.ceil(proj.length/12)+' yıl';
+}
+
+function renderKalemRM(proj, base){
+  var el=document.getElementById('sl2KalemRMBody');if(!el)return;
+  var meta=document.getElementById('sl2KalemMeta');if(!base)return;
+  // Tüm rm'ler için tarihsel vs senaryo hesapla
+  var rows=[];
+  var allRM=base.rms.slice();
+  allRM.forEach(function(r){
+    var tarG=base.rmAvgG[r]||0, tarC=base.rmAvgC[r]||0;
+    var tarAylik=tarG+tarC;
+    // Senaryo aylık = proj'dan ortalama
+    var senG=0,senC=0;
+    if(proj.length){proj.forEach(function(p){senG+=p.rmG[r]||0;senC+=p.rmC[r]||0;});senG/=proj.length;senC/=proj.length;}
+    var senAylik=senG+senC;
+    var senFark=senAylik-tarAylik;
+    var buyume=tarAylik!==0?((senAylik/tarAylik-1)*100):0;
+    var senTopTahmin=(senG+senC)*proj.length;
+    var ov=S.kalemOverride[r]||{};
+    rows.push({rm:r,tarihselAylik:tarAylik,senAylik:senAylik,senFark:senFark,buyume:buyume,senTopTahmin:senTopTahmin,aktif:ov.aktif!==false});
+  });
+  // Sırala
+  rows.sort(function(a,b){
+    var v=S.sortRM2.col,dir=S.sortRM2.dir;
+    if(v==='rm')return dir*a.rm.localeCompare(b.rm,'tr');
+    return dir*(N(a[v]||0)-N(b[v]||0));
+  });
+  var maxFark=Math.max.apply(null,rows.map(function(r){return Math.abs(r.senFark)||0;}));if(!maxFark)maxFark=1;
+  var totTar=rows.reduce(function(s,r){return s+r.tarihselAylik;},0);
+  var totSen=rows.reduce(function(s,r){return s+r.senAylik;},0);
+  var html=rows.map(function(r){
+    var kat=rmKat(r.rm);
+    var barW=Math.round(Math.abs(r.senFark)/maxFark*50);
+    var barCol=r.senFark<0?'var(--rose)':'var(--sage)';
+    var buyStr=(r.buyume>0?'+':'')+r.buyume.toFixed(1)+'%';
+    return '<tr style="opacity:'+(r.aktif?'1':'.4')+'">'+
+      '<td title="'+E(r.rm)+'">'+
+        '<span class="sl2-kat-pill" style="background:'+kat.bg+';color:'+kat.c+'">'+E(kat.lbl)+'</span> '+
+        E(r.rm.length>30?r.rm.slice(0,30)+'…':r.rm)+
+      '</td>'+
+      '<td><span class="sl2-kat-pill" style="background:'+kat.bg+';color:'+kat.c+'">'+E(kat.k)+'</span></td>'+
+      '<td class="num '+(r.tarihselAylik>=0?'pos':'neg')+'">'+fmt(r.tarihselAylik)+'</td>'+
+      '<td class="num '+(r.senAylik>=0?'pos':'neg')+'">'+fmt(r.senAylik)+'</td>'+
+      '<td class="num '+(r.senFark>=0?'pos':'neg')+'">'+
+        '<div style="display:flex;align-items:center;gap:4px;justify-content:flex-end">'+
+          '<div style="width:'+barW+'px;height:3px;border-radius:2px;background:'+barCol+'"></div>'+
+          fmt(r.senFark)+
+        '</div>'+
+      '</td>'+
+      '<td class="num '+(r.senTopTahmin>=0?'pos':'neg')+' fw6">'+fmt(r.senTopTahmin)+'</td>'+
+      '<td class="num" style="color:'+(Math.abs(r.buyume)>15?'var(--rose)':Math.abs(r.buyume)>8?'var(--gold)':'var(--txt3)')+'">'+buyStr+'</td>'+
+    '</tr>';
+  }).join('');
+  // Toplam satırı
+  html+='<tr class="total-row">'+
+    '<td colspan="2">TOPLAM ('+rows.length+' kalem)</td>'+
+    '<td class="num '+(totTar>=0?'pos':'neg')+' fw6">'+fmt(totTar)+'</td>'+
+    '<td class="num '+(totSen>=0?'pos':'neg')+' fw6">'+fmt(totSen)+'</td>'+
+    '<td class="num '+(totSen-totTar>=0?'pos':'neg')+' fw6">'+fmt(totSen-totTar)+'</td>'+
+    '<td class="num fw6">'+fmt(totSen*proj.length)+'</td>'+
+    '<td></td>'+
+  '</tr>';
+  el.innerHTML=html||'<tr><td colspan="7" class="empty">Veri yok</td></tr>';
+  if(meta)meta.textContent=rows.length+' mapping kalemi';
+}
+
+function renderFirmaSen(proj, base){
+  var el=document.getElementById('sl2FirmaSenBody');if(!el)return;
+  var meta=document.getElementById('sl2FirmaMeta');if(!base)return;
+  var rows=[];
+  base.firms.slice(0,80).forEach(function(f){
+    var tarG=base.fAvgG[f]||0, tarC=base.fAvgC[f]||0;
+    var ov=S.firmaOverride[f]||{};
+    var aktif=ov.aktif!==false;
+    var buyG=ov.buyume!=null?ov.buyume:S.gelirBuyume;
+    var buyC=buyG+(S.enflasyon*0.3)/1;
+    // Senaryo aylık ortalama (ay 12 değeri - 1 yıl sonrası)
+    var ayRef=Math.min(11,proj.length-1);
+    var senG=aktif?tarG*Math.pow(1+(buyG/100)/12,ayRef+1):0;
+    var senC=aktif?tarC*Math.pow(1+(buyC/100)/12,ayRef+1):0;
+    var senFark=(senG+senC)-(tarG+tarC);
+    var senTopTahmin=(senG+senC)*proj.length;
+    rows.push({firma:f,tarihselG:tarG,tarihselC:tarC,senGiris:senG,senCikis:senC,senFark:senFark,senTopTahmin:senTopTahmin,aktif:aktif});
+  });
+  rows.sort(function(a,b){
+    var v=S.sortFirma2.col,dir=S.sortFirma2.dir;
+    if(v==='firma')return dir*a.firma.localeCompare(b.firma,'tr');
+    return dir*(N(a[v]||0)-N(b[v]||0));
+  });
+  var html=rows.map(function(r){
+    return '<tr style="opacity:'+(r.aktif?'1':'.4')+'">'+
+      '<td class="fw6" title="'+E(r.firma)+'">'+E(r.firma.length>18?r.firma.slice(0,18)+'…':r.firma)+'</td>'+
+      '<td class="num pos">'+fmt(r.tarihselG)+'</td>'+
+      '<td class="num neg">'+fmt(r.tarihselC)+'</td>'+
+      '<td class="num '+(r.senGiris>=0?'pos':'neg')+'">'+fmt(r.senGiris)+'</td>'+
+      '<td class="num '+(r.senCikis>=0?'pos':'neg')+'">'+fmt(r.senCikis)+'</td>'+
+      '<td class="num '+(r.senFark>=0?'pos':'neg')+' fw6">'+fmt(r.senFark)+'</td>'+
+      '<td class="num '+(r.senTopTahmin>=0?'pos':'neg')+' fw6">'+fmt(r.senTopTahmin)+'</td>'+
+    '</tr>';
+  }).join('');
+  el.innerHTML=html||'<tr><td colspan="7" class="empty">Veri yok</td></tr>';
+  if(meta)meta.textContent=rows.length+' firma';
+}
+
+/* ════════════════════════════════════════════════
+   ANA RENDER
+════════════════════════════════════════════════ */
+function SL2_render(){
+  ensurePage();
+  var rows=Array.isArray(window.F)?window.F:[];
+  var warn=document.getElementById('sl2Warn');
+  if(!rows.length){if(warn)warn.style.display='';return;}
+  if(warn)warn.style.display='none';
+  // Cache sig
+  var sig=JSON.stringify({
+    n:rows.length,ay:S.ay,gelir:S.gelirBuyume,gider:S.giderBuyume,enf:S.enflasyon,
+    kur:S.kurSoku,gec:S.gecikme,kay:S.kayip,kayd:S.kaydirma,bas:S.baslangicBakiye,
+    ko:JSON.stringify(S.kalemOverride),fo:JSON.stringify(S.firmaOverride)
+  });
+  if(sig!==CACHE.sig){
+    CACHE.sig=sig;
+    CACHE.base=buildBase();
+    CACHE.proj=runProjection(CACHE.base,S);
+  }
+  var base=CACHE.base, proj=CACHE.proj;
+  if(!base||!proj)return;
+  // Meta
+  var meta=document.getElementById('sl2Meta');
+  if(meta)meta.textContent=rows.length.toLocaleString('tr-TR')+' işlem · Başlangıç: '+fmt(S.baslangicBakiye!==null?S.baslangicBakiye:base.opening)+' · '+S.ay+' ay projeksiyon';
+  // KPI
+  renderKPI(proj,base);
+  // Aktif sağ sekme
+  var rt=S.rightTab;
+  if(rt==='grafik')renderCharts(proj);
+  else if(rt==='aylik')renderAylik(proj);
+  else if(rt==='kalemrm')renderKalemRM(proj,base);
+  else if(rt==='firmasen')renderFirmaSen(proj,base);
+  // Kalem/firma tablolarını sol panelde doldur
+  if(S.leftTab==='kalem')fillKalemTable(base);
+  else if(S.leftTab==='firma')fillFirmaTable(base);
+}
+
+function SL2_scheduleRender(){clearTimeout(CACHE.timer);CACHE.timer=setTimeout(SL2_render,200);}
+
+/* ════════════════════════════════════════════════
+   UI KONTROL FONKSİYONLARI
+════════════════════════════════════════════════ */
+window.SL2_leftTab=function(tab,el){
+  S.leftTab=tab;
+  document.querySelectorAll('.sl2-tab').forEach(function(t){t.classList.remove('on');});
+  ['sl2SecGlobal','sl2SecKalem','sl2SecFirma'].forEach(function(id){var e=document.getElementById(id);if(e)e.classList.remove('on');});
+  if(el)el.classList.add('on');
+  var map={global:'sl2SecGlobal',kalem:'sl2SecKalem',firma:'sl2SecFirma'};
+  var sec=document.getElementById(map[tab]);if(sec)sec.classList.add('on');
+  // Tablolar lazımsa doldur
+  if((tab==='kalem'||tab==='firma')&&CACHE.base){
+    if(tab==='kalem')fillKalemTable(CACHE.base);
+    else fillFirmaTable(CACHE.base);
+  }
+};
+
+window.SL2_rightTab=function(tab,el){
+  S.rightTab=tab;
+  document.querySelectorAll('.sl2-rtab').forEach(function(t){t.classList.remove('on');});
+  ['sl2RGrafik','sl2RAylik','sl2RKalemRM','sl2RFirmaSen'].forEach(function(id){var e=document.getElementById(id);if(e)e.classList.remove('on');});
+  if(el)el.classList.add('on');
+  var map={grafik:'sl2RGrafik',aylik:'sl2RAylik',kalemrm:'sl2RKalemRM',firmasen:'sl2RFirmaSen'};
+  var sec=document.getElementById(map[tab]);if(sec)sec.classList.add('on');
+  if(!CACHE.proj)return;
+  if(tab==='grafik')renderCharts(CACHE.proj);
+  else if(tab==='aylik')renderAylik(CACHE.proj);
+  else if(tab==='kalemrm')renderKalemRM(CACHE.proj,CACHE.base);
+  else if(tab==='firmasen')renderFirmaSen(CACHE.proj,CACHE.base);
+};
+
+window.SL2_setAy=function(ay,el){
+  S.ay=ay;
+  document.querySelectorAll('.sl2-dur-btn').forEach(function(b){b.classList.remove('on');});
+  if(el)el.classList.add('on');
+  var v=document.getElementById('sl2AyVal');if(v)v.textContent=ay+' ay ('+Math.round(ay/12*10)/10+' yıl)';
+  CACHE.sig='';SL2_scheduleRender();
+};
+
+window.SL2_onBakiye=function(){
+  var el=document.getElementById('sl2BasBakiye');if(!el)return;
+  var v=el.value.trim().replace(/\./g,'').replace(',','.');
+  var n=parseFloat(v);S.baslangicBakiye=isNaN(n)?null:n;
+  CACHE.sig='';SL2_scheduleRender();
+};
+
+window.SL2_kalemAktif=function(rm,checked){
+  if(!S.kalemOverride[rm])S.kalemOverride[rm]={};
+  S.kalemOverride[rm].aktif=checked;
+  CACHE.sig='';SL2_scheduleRender();
+};
+window.SL2_kalemBuyume=function(rm,val){
+  if(!S.kalemOverride[rm])S.kalemOverride[rm]={};
+  S.kalemOverride[rm].buyume=parseFloat(val)||0;
+  CACHE.sig='';SL2_scheduleRender();
+};
+window.SL2_firmaAktif=function(f,checked){
+  if(!S.firmaOverride[f])S.firmaOverride[f]={};
+  S.firmaOverride[f].aktif=checked;
+  CACHE.sig='';SL2_scheduleRender();
+};
+window.SL2_firmaBuyume=function(f,val){
+  if(!S.firmaOverride[f])S.firmaOverride[f]={};
+  S.firmaOverride[f].buyume=parseFloat(val)||0;
+  CACHE.sig='';SL2_scheduleRender();
+};
+
+window.SL2_sortProje=function(col){
+  if(S.sortProje.col===col)S.sortProje.dir*=-1;else{S.sortProje.col=col;S.sortProje.dir=col==='ay'?1:-1;}
+  if(CACHE.proj)renderAylik(CACHE.proj);
+};
+window.SL2_sortRM2=function(col){
+  if(S.sortRM2.col===col)S.sortRM2.dir*=-1;else{S.sortRM2.col=col;S.sortRM2.dir=col==='rm'?1:-1;}
+  if(CACHE.proj&&CACHE.base)renderKalemRM(CACHE.proj,CACHE.base);
+};
+window.SL2_sortFirma2=function(col){
+  if(S.sortFirma2.col===col)S.sortFirma2.dir*=-1;else{S.sortFirma2.col=col;S.sortFirma2.dir=col==='firma'?1:-1;}
+  if(CACHE.proj&&CACHE.base)renderFirmaSen(CACHE.proj,CACHE.base);
+};
+
+window.SL2_resetAll=function(){
+  S.gecikme=15;S.kayip=5;S.kaydirma=0;S.kurSoku=0;S.giderArtis=5;
+  S.gelirBuyume=8;S.giderBuyume=6;S.enflasyon=30;S.ay=24;S.baslangicBakiye=null;
+  S.kalemOverride={};S.firmaOverride={};
+  var sliders=[['sl2GelirBuyume','8','sl2GelirVal','%8'],['sl2GiderBuyume','6','sl2GiderVal','%6'],
+    ['sl2Enflasyon','30','sl2EnfVal','%30'],['sl2KurSoku','0','sl2KurVal','%0'],
+    ['sl2Gecikme','15','sl2GecVal','15 gün'],['sl2Kayip','5','sl2KayVal','%5'],['sl2Kaydirma','0','sl2KaydVal','0 gün']];
+  sliders.forEach(function(s){var e=document.getElementById(s[0]);if(e)e.value=s[1];var v=document.getElementById(s[2]);if(v)v.textContent=s[3];});
+  var bb=document.getElementById('sl2BasBakiye');if(bb)bb.value='';
+  document.querySelectorAll('.sl2-dur-btn').forEach(function(b){b.classList.remove('on');if(b.textContent.indexOf('2')>-1)b.classList.add('on');});
+  CACHE.sig='';SL2_render();
+};
+
+/* Slider binding */
+function bindSliders(){
+  var defs=[
+    {id:'sl2GelirBuyume',key:'gelirBuyume',valId:'sl2GelirVal',fmt:function(v){return (v>0?'+':'')+v+'%';}},
+    {id:'sl2GiderBuyume',key:'giderBuyume',valId:'sl2GiderVal',fmt:function(v){return (v>0?'+':'')+v+'%';}},
+    {id:'sl2Enflasyon',key:'enflasyon',valId:'sl2EnfVal',fmt:function(v){return '%'+v;}},
+    {id:'sl2KurSoku',key:'kurSoku',valId:'sl2KurVal',fmt:function(v){return (v>=0?'+':'')+v+'%';}},
+    {id:'sl2Gecikme',key:'gecikme',valId:'sl2GecVal',fmt:function(v){return v+' gün';}},
+    {id:'sl2Kayip',key:'kayip',valId:'sl2KayVal',fmt:function(v){return '%'+v;}},
+    {id:'sl2Kaydirma',key:'kaydirma',valId:'sl2KaydVal',fmt:function(v){return (v>=0?'+':'')+v+' gün';}}
+  ];
+  defs.forEach(function(d){
+    var el=document.getElementById(d.id);if(!el||el.__sl2bound)return;
+    el.__sl2bound=true;
+    el.addEventListener('input',function(){
+      var v=parseInt(this.value,10);S[d.key]=v;
+      var ve=document.getElementById(d.valId);if(ve)ve.textContent=d.fmt(v);
+      CACHE.sig='';SL2_scheduleRender();
+    });
+  });
+}
+
+/* ── nav hook ── */
+var _sl2OldNav=window.nav;
+window.nav=function(id){
+  if(id==='senaryolab'){
+    ensurePage();
+    document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');});
+    var pg=document.getElementById('pg-senaryolab');if(pg)pg.classList.add('on');
+    var t=document.getElementById('pgTitle');if(t)t.textContent='Senaryo Laboratuvarı';
+    document.querySelectorAll('.sb-item').forEach(function(x){x.classList.remove('on');});
+    var m=document.querySelector('.sb-item[onclick*="senaryolab"]');if(m)m.classList.add('on');
+    bindSliders();
+    var bb=document.getElementById('sl2BasBakiye');
+    if(bb&&!bb.value&&S.baslangicBakiye===null){
+      try{var ob=CACHE.base?CACHE.base.opening:0;if(ob)bb.placeholder='Otomatik: '+fmt(ob);}catch(e){}
+    }
+    CACHE.sig='';SL2_render();
+    return;
+  }
+  return typeof _sl2OldNav==='function'?_sl2OldNav.apply(this,arguments):undefined;
+};
+
+/* ── applyF hook ── */
+var _sl2OldApply=window.applyF;
+window.applyF=function(){
+  var r=typeof _sl2OldApply==='function'?_sl2OldApply.apply(this,arguments):undefined;
+  var on=document.querySelector('.pg.on');
+  if(on&&on.id==='pg-senaryolab'){CACHE.sig='';SL2_scheduleRender();}
+  return r;
+};
+
+/* ── Boot ── */
+function boot(){ensurePage();bindSliders();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,800);});
+else setTimeout(boot,800);
+
 })();
 </script>
 
