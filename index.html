@@ -37,7 +37,7 @@
   --rose:#fb7185; --rose2:rgba(251,113,133,.12);
   --sage:#4ade80; --sage2:rgba(74,222,128,.12);
   --sky:#60a5fa; --sky2:rgba(96,165,250,.12);
-  --txt:#e8edf5; --txt2:#8fa3be; --txt3:#4a6080;
+  --txt:#e8edf5; --txt2:#8fa3be; --txt3:#8a9fc0;
   --r:10px; --r2:16px; --r3:24px;
   --ff:'Mulish',sans-serif; --ffd:'Syne',sans-serif; --ffm:'DM Mono',monospace;
 }
@@ -690,6 +690,8 @@ html[data-theme="dark"] .sidebar, html[data-theme="dark"] .topbar, html[data-the
 .report-grid input,.report-option input{accent-color:var(--gold)}
 [data-theme="light"] .report-grid label,[data-theme="light"] .report-option{background:var(--s2);border-color:var(--b1);color:var(--txt2)}
 [data-theme="light"] .report-grid label:hover,[data-theme="light"] .report-option:hover{background:var(--s3);color:var(--txt)}
+.report-grid-sec{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px}
+.report-grid-sec:first-of-type{margin-top:2px}
 @page{size:A4 landscape;margin:9mm}
 @media print{
   .pg.print-active{display:block!important;break-after:page;page-break-after:always}
@@ -1429,23 +1431,37 @@ canvas,
 
 <!-- PDF RAPOR MODAL -->
 <div class="overlay" id="pdfModal" onclick="if(event.target===this)closePdf()">
- <div class="modal" style="max-width:560px">
+ <div class="modal" style="max-width:600px">
   <div class="mh"><div class="mt">🖨 Rapor / PDF Al</div><div class="xbtn" onclick="closePdf()">×</div></div>
   <div class="mb">
    <div style="font-size:12px;color:var(--txt3);margin-bottom:10px;line-height:1.5">
-    Yazdırma <b>manzara/yatay</b> formatına göre düzenlenmiştir. İstediğiniz ekranları seçip tek PDF alabilirsiniz.
+    Yazdırma <b>manzara/yatay</b> formatına göre düzenlenmiştir. İstediğiniz ekranları seçip tek PDF alabilirsiniz. Detaylı işlem listeleri (Nakit Hareketleri, Anormal İşlem) hacimli olduğundan kendi sayfalarındaki <b>🖨 Yazdır</b> butonuyla ayrıca alınır.
    </div>
+   <div class="report-grid-sec">Yönetim</div>
    <div class="report-grid">
     <label><input type="checkbox" class="rpChk" value="exec" checked> Yönetici Özeti</label>
     <label><input type="checkbox" class="rpChk" value="dashboard" checked> Kontrol Paneli</label>
     <label><input type="checkbox" class="rpChk" value="firma" checked> Firma Analizi</label>
     <label><input type="checkbox" class="rpChk" value="mapping" checked> Rapor Mapping</label>
+   </div>
+   <div class="report-grid-sec">CFO Analiz</div>
+   <div class="report-grid">
     <label><input type="checkbox" class="rpChk" value="runway" checked> Nakit Ömrü</label>
     <label><input type="checkbox" class="rpChk" value="risk" checked> Risk & Açık</label>
     <label><input type="checkbox" class="rpChk" value="grup" checked> Grup / Ortak</label>
     <label><input type="checkbox" class="rpChk" value="ortak" checked> Ortak Analizi</label>
-    <label><input type="checkbox" class="rpChk" value="doviz" checked> Döviz Riski</label>
+    <label><input type="checkbox" class="rpChk" value="senaryolab"> Senaryo Lab.</label>
+    <label><input type="checkbox" class="rpChk" value="sektor"> Sektör Görünümü</label>
+   </div>
+   <div class="report-grid-sec">Nakit / Veri</div>
+   <div class="report-grid">
     <label><input type="checkbox" class="rpChk" value="trend" checked> Günlük Trend</label>
+    <label><input type="checkbox" class="rpChk" value="raporDisi"> Rapor Dışı Hareketler</label>
+   </div>
+   <div class="report-grid-sec">Kontrol</div>
+   <div class="report-grid">
+    <label><input type="checkbox" class="rpChk" value="doviz" checked> Döviz Riski</label>
+    <label><input type="checkbox" class="rpChk" value="kalite"> Veri Kalitesi</label>
    </div>
    <label class="report-option"><input type="checkbox" id="rpOrtakDetay"> Ortak işlem detaylarını rapora dahil et</label>
    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -1910,6 +1926,10 @@ const EMBEDDED_DATA=null; // Büyük işlem verisi data.json dosyasına taşınd
 // STATE
 // ══════════════════════════════════════
 let D=null, F=[], CH={}, dPage=1, fcSort='net', dTimer=null;
+/* v_fix: bazı sonradan eklenen script'ler grafik nesnelerini window.CH üzerinden takip ediyordu,
+   burada ise düz CH kullanılıyordu — iki ayrı kayıt defteri aynı canvas'a farklı Chart.js
+   örnekleri bağlanmasına ve "Canvas is already in use" hatasına yol açıyordu. Artık tek nesne. */
+window.CH=CH;
 
 // v106.2 FIX: data.json dış dosyadan gelirken bazı durumlarda D/meta hazır olmadan render çalışıyordu.
 // Bu yardımcı tüm veri modelini güvenli hale getirir; renderExec artık D.meta null hatasına düşmez.
@@ -2568,7 +2588,17 @@ function renderKPI(){
 // ══════════════════════════════════════
 // CHARTS
 // ══════════════════════════════════════
-function dc(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+function dc(id){
+  try{
+    if(CH[id]){ CH[id].destroy(); delete CH[id]; }
+    /* Ek güvenlik: başka bir kod yolu aynı canvas'a farklı bir kayıt altında grafik bağlamış olabilir. */
+    var canvas=document.getElementById(id);
+    if(canvas && typeof Chart!=='undefined' && Chart.getChart){
+      var existing=Chart.getChart(canvas);
+      if(existing) existing.destroy();
+    }
+  }catch(e){}
+}
 function cOpts(horiz){
   const light=document.documentElement.getAttribute('data-theme')==='light';
   const tc=light?'#64748b':'#4a6080';
@@ -2882,18 +2912,24 @@ function beforePrintRender(ids){
   try{
     if(typeof applyF==='function') applyF();
     if(typeof renderAll==='function') renderAll();
+    var legacyIds=['exec','dashboard','firma','mapping','runway','risk','grup','ortak','doviz','trend'];
     ids.forEach(id=>{
       try{
         if(id==='exec') renderExec();
-        if(id==='dashboard'){renderKPI();renderTrend();renderFirmaChart();renderRMChart();renderTopLists();}
-        if(id==='firma') renderFirmaPage();
-        if(id==='mapping') renderMappingPage();
-        if(id==='runway') renderRunwayPage();
-        if(id==='risk') renderRiskPage();
-        if(id==='grup') renderGrupPage();
-        if(id==='ortak') renderOrtakPage();
-        if(id==='doviz') renderDovizPage();
-        if(id==='trend') renderTrendPage();
+        else if(id==='dashboard'){renderKPI();renderTrend();renderFirmaChart();renderRMChart();renderTopLists();}
+        else if(id==='firma') renderFirmaPage();
+        else if(id==='mapping') renderMappingPage();
+        else if(id==='runway') renderRunwayPage();
+        else if(id==='risk') renderRiskPage();
+        else if(id==='grup') renderGrupPage();
+        else if(id==='ortak') renderOrtakPage();
+        else if(id==='doviz') renderDovizPage();
+        else if(id==='trend') renderTrendPage();
+        else if(legacyIds.indexOf(id)<0 && typeof nav==='function'){
+          /* Sonradan eklenen sayfalar (Sektör, Senaryo Lab, Rapor Dışı, Veri Kalitesi, ...):
+             kendi güncel render akışları nav() üzerinden çalıştığı için burada da nav() kullanılır. */
+          nav(id);
+        }
       }catch(e){console.warn('Rapor render uyarısı:',id,e);}
     });
   }catch(e){console.warn('Rapor hazırlık uyarısı:',e);}
@@ -2924,7 +2960,7 @@ function printSelectedReport(){
 }
 function printAll(){
   closePdf();
-  const ids=['exec','dashboard','firma','mapping','runway','risk','grup','ortak','doviz','trend'];
+  const ids=['exec','dashboard','firma','mapping','runway','risk','grup','ortak','senaryolab','sektor','doviz','trend','raporDisi','kalite'];
   beforePrintRender(ids); preparePrintPages(ids); setPrintMeta('all');
   setTimeout(()=>{window.print(); setTimeout(cleanupPrint,300);},900);
 }
@@ -7252,6 +7288,7 @@ document.addEventListener('DOMContentLoaded',function(){
       '<div class="sb-item on v98-keep" onclick="nav(\'exec\')"><span class="sb-ico">◈</span>Yönetici Özeti</div>'+ 
       '<div class="sb-item v98-keep" onclick="nav(\'dashboard\')"><span class="sb-ico">▦</span>Kontrol Paneli</div>'+ 
       '<div class="sb-item v98-keep" onclick="nav(\'firma\')"><span class="sb-ico">◉</span>Firma Analizi</div>'+ 
+      '<div class="sb-item v98-keep" onclick="nav(\'mapping\')"><span class="sb-ico">◈</span>Rapor Mapping</div>'+ 
       '<div class="sb-sec v98-group">CFO Analiz</div>'+
       '<div class="sb-item v98-keep" onclick="nav(\'runway\')"><span class="sb-ico">▲</span>Nakit Ömrü <span class="sb-badge warn" id="bRW">—</span></div>'+ 
       '<div class="sb-item v98-keep" onclick="nav(\'risk\')"><span class="sb-ico">⚑</span>Risk & Açık <span class="sb-badge" id="bRK">—</span></div>'+ 
@@ -8291,7 +8328,18 @@ window.kpiDrillClear = function(){
   };
   try{renderExecEnhanced=window.renderExecEnhanced;}catch(e){}
 
-  function destroyChart(id){try{window.CH=window.CH||{}; if(window.CH[id]){window.CH[id].destroy(); delete window.CH[id];}}catch(e){}}
+  function destroyChart(id){
+    try{
+      window.CH=window.CH||{};
+      if(window.CH[id]){ window.CH[id].destroy(); delete window.CH[id]; }
+      /* Ek güvenlik: aynı canvas'a farklı bir kayıt defterinden bağlanmış grafik olabilir. */
+      var canvas=document.getElementById(id);
+      if(canvas && typeof Chart!=='undefined' && Chart.getChart){
+        var existing=Chart.getChart(canvas);
+        if(existing) existing.destroy();
+      }
+    }catch(e){}
+  }
   function chartColors(){var isLight=document.documentElement.getAttribute('data-theme')==='light'||document.body.classList.contains('light')||document.documentElement.classList.contains('light'); return {text:isLight?'#334155':'#8fa3be', grid:isLight?'rgba(100,116,139,.18)':'rgba(148,163,184,.12)', border:isLight?'#fff':'#12161e'};}
   function monthlyGroups(fl){
     fl=fl||getFilters(); var key=cacheKey('monthly',fl,{}); if(STATE.cache[key]) return STATE.cache[key];
@@ -11456,10 +11504,39 @@ window.SV_doPrint=function(){
   };
   var T=themes[theme]||themes.light;
 
-  /* Pivot: RM kırılımı */
-  var rmMap={};
-  rows.forEach(function(d){var r=d.rm||'—';if(!rmMap[r])rmMap[r]={g:0,c:0,n:0};var t=svN(d.tutar);if(t>=0)rmMap[r].g+=t;else rmMap[r].c+=t;rmMap[r].n++;});
-  var rmArr=Object.keys(rmMap).map(function(r){return{r:r,net:rmMap[r].g+rmMap[r].c,n:rmMap[r].n};}).sort(function(a,b){return Math.abs(b.net)-Math.abs(a.net);});
+  /* Pivot: RM kırılımı — Mapping panelindeki grup adları burada da uygulanır */
+  var sid=SV.sektor;
+  var svGroups=sid?(svGetMgGroups(sid)||[]):[];
+  var inGroupOf={}; /* rmKey -> group index */
+  svGroups.forEach(function(gr,gi){ (gr.items||[]).forEach(function(rmKey){ inGroupOf[rmKey]=gi; }); });
+
+  /* Ham (gruplanmamış) mapping bazında toplamlar — her grubun kendi üyelerini de göstermek için gerekli */
+  var rawMap={};
+  rows.forEach(function(d){
+    var raw=d.rm||'—';
+    if(!rawMap[raw])rawMap[raw]={g:0,c:0,n:0};
+    var t=svN(d.tutar);if(t>=0)rawMap[raw].g+=t;else rawMap[raw].c+=t;rawMap[raw].n++;
+  });
+
+  /* Grup bazlı satırlar: grup başlığı (toplam) + altında üye kalemler */
+  var rmGroupRows=[]; /* {name,color,net,g,c,n,members:[{r,g,c,net,n}]} */
+  svGroups.forEach(function(gr){
+    var members=(gr.items||[]).filter(function(k){return rawMap[k];}).map(function(k){
+      var m=rawMap[k]; return {r:k,g:m.g,c:m.c,net:m.g+m.c,n:m.n};
+    });
+    if(!members.length)return;
+    var g=0,c=0,n=0;
+    members.forEach(function(m){g+=m.g;c+=m.c;n+=m.n;});
+    rmGroupRows.push({name:gr.name||'(İsimsiz Grup)',color:gr.color||'',net:g+c,g:g,c:c,n:n,members:members});
+  });
+  /* Herhangi bir gruba dahil olmayan mapping'ler tekil satır olarak kalır */
+  var rmSingleRows=Object.keys(rawMap).filter(function(k){return inGroupOf[k]===undefined;}).map(function(k){
+    var m=rawMap[k]; return {r:k,g:m.g,c:m.c,net:m.g+m.c,n:m.n};
+  });
+  rmGroupRows.sort(function(a,b){return Math.abs(b.net)-Math.abs(a.net);});
+  rmSingleRows.sort(function(a,b){return Math.abs(b.net)-Math.abs(a.net);});
+  var rmArr=rmGroupRows.concat(rmSingleRows); /* toplam kalem sayısı bilgisi için */
+  var rmMap=rawMap;
 
   /* Pivot: Firma kırılımı */
   var fMap={};
@@ -11484,6 +11561,11 @@ window.SV_doPrint=function(){
     'tr:nth-child(even) td{background:'+T.even+'}'+
     '.pos{color:'+T.pos+'}.neg{color:'+T.neg+'}.fw7{font-weight:700}'+
     '.note{background:'+T.th+';border:1px solid '+T.border+';border-radius:6px;padding:9px 12px;font-size:10px;color:'+T.sub+';margin-bottom:12px}'+
+    '.rm-grp td{background:'+T.th+'!important;font-weight:700;border-top:2px solid '+T.border+'}'+
+    '.rm-grp .grp-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}'+
+    '.rm-member td{color:'+T.sub+';font-size:'+(Math.max(8,parseInt(fontSize)-1))+'px}'+
+    '.rm-member td.rm-name{padding-left:20px}'+
+    '.rm-member td.rm-name::before{content:"↳ ";color:'+T.border+'}'+
     '.footer{margin-top:16px;font-size:8px;color:'+T.sub+';text-align:center;border-top:1px solid '+T.border+';padding-top:6px}';
 
   var html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+svE(title)+'</title><style>'+css+'</style></head><body>';
@@ -11500,14 +11582,28 @@ window.SV_doPrint=function(){
     '</div>';
   }
 
-  if(showRM&&rmArr.length){
-    html+='<div class="section"><div class="sh">📋 Rapor Mapping Kırılımı ('+rmArr.length+' kalem)</div>';
+  if(showRM&&(rmGroupRows.length||rmSingleRows.length)){
+    var totalItemCount=rmGroupRows.reduce(function(s,g){return s+g.members.length;},0)+rmSingleRows.length;
+    html+='<div class="section"><div class="sh">📋 Rapor Mapping Kırılımı ('+rmGroupRows.length+' grup, '+totalItemCount+' kalem)</div>';
     html+='<table><thead><tr><th>Mapping</th><th>Giriş</th><th>Çıkış</th><th>Net</th><th>İşlem</th></tr></thead><tbody>';
-    rmArr.forEach(function(x){
-      var rd=rmMap[x.r];
+    rmGroupRows.forEach(function(grp){
+      html+='<tr class="rm-grp"><td>'+(grp.color?'<span class="grp-dot" style="background:'+svE(grp.color)+'"></span>':'')+svE(grp.name)+' <span style="font-weight:400;opacity:.7">('+grp.members.length+' kalem)</span></td>'+
+        '<td class="pos">'+svFmt(grp.g)+'</td>'+
+        '<td class="neg">'+svFmt(grp.c)+'</td>'+
+        '<td class="'+(grp.net>=0?'pos':'neg')+'">'+svFmt(grp.net)+'</td>'+
+        '<td>'+grp.n+'</td></tr>';
+      grp.members.sort(function(a,b){return Math.abs(b.net)-Math.abs(a.net);}).forEach(function(m){
+        html+='<tr class="rm-member"><td class="rm-name">'+svE(m.r)+'</td>'+
+          '<td class="pos">'+svFmt(m.g)+'</td>'+
+          '<td class="neg">'+svFmt(m.c)+'</td>'+
+          '<td class="'+(m.net>=0?'pos':'neg')+'">'+svFmt(m.net)+'</td>'+
+          '<td>'+m.n+'</td></tr>';
+      });
+    });
+    rmSingleRows.forEach(function(x){
       html+='<tr><td class="fw7">'+svE(x.r)+'</td>'+
-        '<td class="pos">'+svFmt(rd.g)+'</td>'+
-        '<td class="neg">'+svFmt(rd.c)+'</td>'+
+        '<td class="pos">'+svFmt(x.g)+'</td>'+
+        '<td class="neg">'+svFmt(x.c)+'</td>'+
         '<td class="fw7 '+(x.net>=0?'pos':'neg')+'">'+svFmt(x.net)+'</td>'+
         '<td>'+x.n+'</td></tr>';
     });
