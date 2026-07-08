@@ -2789,7 +2789,12 @@ function renderFirmaPage(){
 // ══════════════════════════════════════
 function renderMappingPage(){
   const rm={};
-  F.forEach(d=>{if(!d.rm||d.rm==='nan')return;if(!rm[d.rm])rm[d.rm]={s:0,n:0};rm[d.rm].s+=d.tutar;rm[d.rm].n++;});
+  F.forEach(d=>{
+    if(!d.rm||d.rm==='nan')return;
+    var y=String(d.yon||'').trim().toLocaleUpperCase('tr-TR');
+    if(y==='NÖTR'||y==='NOTR')return;
+    if(!rm[d.rm])rm[d.rm]={s:0,n:0};rm[d.rm].s+=d.tutar;rm[d.rm].n++;
+  });
   const all=Object.entries(rm).map(([k,v])=>({rm:k,s:v.s,n:v.n,avg:v.s/v.n})).sort((a,b)=>a.s-b.s);
   const gi=all.filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,10);
   const ci=all.filter(x=>x.s<0).sort((a,b)=>a.s-b.s).slice(0,10);
@@ -2817,6 +2822,8 @@ function renderMappingCategoryChart(selectedRM){
   const months={};
   F.forEach(d=>{
     if((d.rm||'')!==selectedRM)return;
+    var y=String(d.yon||'').trim().toLocaleUpperCase('tr-TR');
+    if(y==='NÖTR'||y==='NOTR')return;
     const ay=String(d.ay||(d.tarih?d.tarih.slice(0,7):'')).trim();
     if(!ay)return;
     if(!months[ay])months[ay]={g:0,c:0,n:0};
@@ -10887,6 +10894,11 @@ function svRows(){
       tarih:m.tarih||'', _manuel:true
     });
   });
+  /* Nötr yönlü hareketler (konsolideden hariç tutulanlar) Sektör Görünümü'nde gösterilmez */
+  base=base.filter(function(d){
+    var y=String(d.yon||'').trim().toLocaleUpperCase('tr-TR');
+    return y!=='NÖTR' && y!=='NOTR';
+  });
   return base;
 }
 
@@ -10988,7 +11000,7 @@ function svRender(){
 
   /* Meta */
   var meta=document.getElementById('svMeta');
-  if(meta)meta.textContent=(Array.isArray(window.F)?window.F.length:0).toLocaleString('tr-TR')+
+  if(meta)meta.textContent=allRows.length.toLocaleString('tr-TR')+
     ' işlem · '+(SV.manuel.length?SV.manuel.length+' manuel kayıt · ':'')+
     'Filtre motoruna bağlı';
 
