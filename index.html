@@ -11400,23 +11400,31 @@ window.SV_toggleMgDetail=function(el){
   rows=rows.slice().sort(function(a,b){return Math.abs(svN(b.tutar))-Math.abs(svN(a.tutar));});
   var html='<div class="sv-mg-detail-inner">'+
     '<div class="sv-mg-detail-head"><span>İşlem Detayı ('+rows.length.toLocaleString('tr-TR')+' kayıt)</span>'+
-    '<span class="sv-mg-detail-more" data-sid="'+svE(sid)+'" data-key="'+svE(key)+'" onclick="SV_selectRM(this.dataset.key)">Tüm işlemleri gör →</span></div>'+
-    '<div class="sv-mg-detail-list">';
+    '<span class="sv-mg-detail-more" data-sid="'+svE(sid)+'" data-key="'+svE(key)+'" onclick="SV_selectRM(this.dataset.key)">Tüm işlemleri gör →</span></div>';
   if(!rows.length){
-    html+='<div style="color:var(--txt3);font-size:11px;padding:6px 0">Kayıt bulunamadı</div>';
+    html+='<div style="color:var(--txt3);font-size:11px;padding:10px 0">Kayıt bulunamadı</div>';
   } else {
-    rows.slice(0,80).forEach(function(d){
+    html+='<div class="sv-trx-wrap" style="max-height:260px">'+
+      '<table class="sv-trx-table"><thead><tr>'+
+        '<th>Tarih</th><th>Firma</th><th>Alıcı</th><th>Döviz</th><th class="num">Tutar</th>'+
+      '</tr></thead><tbody>';
+    rows.slice(0,150).forEach(function(d){
       var t=svN(d.tutar);
-      html+='<div class="sv-mg-detail-row">'+
-        '<span class="sv-mg-detail-date">'+svE(String(d.tarih||'—'))+'</span>'+
-        '<span class="sv-mg-detail-firma" title="'+svE(d.firma||'')+'">'+svE(d.firma||'—')+'</span>'+
-        '<span class="sv-mg-detail-doviz">'+svE(d.doviz||'')+'</span>'+
-        '<span class="sv-mg-detail-val" style="color:'+(t>=0?'var(--sage)':'var(--rose)')+'">'+svFmt(t)+'</span>'+
-      '</div>';
+      var tarih=String(d.tarih||'').slice(0,10);
+      var alici=String(d.alici||d['Alıcı / Karşı Taraf']||d.alici_unvani||'—');
+      var doviz=String(d.doviz||'TL');
+      html+='<tr>'+
+        '<td style="font-family:var(--ffm);font-size:10.5px;white-space:nowrap;color:var(--txt3)">'+svE(tarih)+'</td>'+
+        '<td style="font-weight:600;color:var(--sky);cursor:pointer;white-space:nowrap" data-firma="'+svE(d.firma||'')+'" onclick="event.stopPropagation();SV_selectFirma(this.dataset.firma)">'+svE(String(d.firma||'—'))+'</td>'+
+        '<td style="font-size:10.5px;color:var(--txt3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+svE(alici.length>18?alici.slice(0,18)+'…':alici)+'</td>'+
+        '<td><span class="badge bx" style="font-size:9px">'+svE(doviz)+'</span></td>'+
+        '<td class="num '+(t>=0?'pos':'neg')+' fw6">'+svFmt(t)+'</td>'+
+      '</tr>';
     });
-    if(rows.length>80)html+='<div style="padding:6px 0;color:var(--txt3);font-size:11px">+ '+(rows.length-80)+' işlem daha — tamamı için "Tüm işlemleri gör"</div>';
+    if(rows.length>150)html+='<tr><td colspan="5" style="padding:8px;text-align:center;color:var(--txt3);font-size:10.5px">+'+(rows.length-150).toLocaleString('tr-TR')+' kayıt daha — tamamı için "Tüm işlemleri gör"</td></tr>';
+    html+='</tbody></table></div>';
   }
-  html+='</div></div>';
+  html+='</div>';
   detail.innerHTML=html;
   detail.style.display='block';
   row.classList.add('expanded');
