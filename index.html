@@ -10615,7 +10615,9 @@ else setTimeout(boot,800);
 .sv-mg-detail-list { display:flex; flex-direction:column; gap:2px; max-height: 260px; overflow-y:auto; }
 .sv-mg-detail-row { display:flex; align-items:center; gap:8px; padding:4px 8px; border-radius:6px; font-size:11px; }
 .sv-mg-detail-row:hover { background: rgba(30,45,69,.35); }
+.sv-mg-detail-date { font-family: var(--ffm); font-size:10px; color: var(--txt3); flex-shrink:0; width:64px; }
 .sv-mg-detail-firma { flex:1; min-width:0; color: var(--txt2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sv-mg-detail-doviz { color: var(--txt3); font-size:10px; flex-shrink:0; width:34px; text-align:center; }
 .sv-mg-detail-n { color: var(--txt3); font-size:10px; flex-shrink:0; }
 .sv-mg-detail-val { font-family: var(--ffm); font-weight:700; flex-shrink:0; white-space:nowrap; min-width:76px; text-align:right; }
 .sv-mg-detail-more { color: var(--sky); font-size:11px; cursor:pointer; flex-shrink:0; }
@@ -11395,29 +11397,24 @@ window.SV_toggleMgDetail=function(el){
     if(r.nextElementSibling)r.nextElementSibling.style.display='none';
   });
   var rows=(SV._lastFiltered||[]).filter(function(d){return (d.rm||'—')===key;});
-  var byFirma={};
-  rows.forEach(function(d){
-    var f=d.firma||'—';
-    if(!byFirma[f])byFirma[f]={g:0,c:0,n:0};
-    var t=svN(d.tutar); if(t>=0)byFirma[f].g+=t; else byFirma[f].c+=t; byFirma[f].n++;
-  });
-  var arr=Object.keys(byFirma).map(function(f){var m=byFirma[f];return {firma:f,net:m.g+m.c,n:m.n};})
-    .sort(function(a,b){return Math.abs(b.net)-Math.abs(a.net);});
+  rows=rows.slice().sort(function(a,b){return Math.abs(svN(b.tutar))-Math.abs(svN(a.tutar));});
   var html='<div class="sv-mg-detail-inner">'+
-    '<div class="sv-mg-detail-head"><span>Firma bazında kırılım ('+arr.length+' firma)</span>'+
+    '<div class="sv-mg-detail-head"><span>İşlem Detayı ('+rows.length.toLocaleString('tr-TR')+' kayıt)</span>'+
     '<span class="sv-mg-detail-more" data-sid="'+svE(sid)+'" data-key="'+svE(key)+'" onclick="SV_selectRM(this.dataset.key)">Tüm işlemleri gör →</span></div>'+
     '<div class="sv-mg-detail-list">';
-  if(!arr.length){
+  if(!rows.length){
     html+='<div style="color:var(--txt3);font-size:11px;padding:6px 0">Kayıt bulunamadı</div>';
   } else {
-    arr.slice(0,50).forEach(function(x){
+    rows.slice(0,80).forEach(function(d){
+      var t=svN(d.tutar);
       html+='<div class="sv-mg-detail-row">'+
-        '<span class="sv-mg-detail-firma" title="'+svE(x.firma)+'">'+svE(x.firma)+'</span>'+
-        '<span class="sv-mg-detail-n">'+x.n+' kayıt</span>'+
-        '<span class="sv-mg-detail-val" style="color:'+(x.net>=0?'var(--sage)':'var(--rose)')+'">'+svFmt(x.net)+'</span>'+
+        '<span class="sv-mg-detail-date">'+svE(String(d.tarih||'—'))+'</span>'+
+        '<span class="sv-mg-detail-firma" title="'+svE(d.firma||'')+'">'+svE(d.firma||'—')+'</span>'+
+        '<span class="sv-mg-detail-doviz">'+svE(d.doviz||'')+'</span>'+
+        '<span class="sv-mg-detail-val" style="color:'+(t>=0?'var(--sage)':'var(--rose)')+'">'+svFmt(t)+'</span>'+
       '</div>';
     });
-    if(arr.length>50)html+='<div style="padding:6px 0;color:var(--txt3);font-size:11px">+ '+(arr.length-50)+' firma daha — tamamı için "Tüm işlemleri gör"</div>';
+    if(rows.length>80)html+='<div style="padding:6px 0;color:var(--txt3);font-size:11px">+ '+(rows.length-80)+' işlem daha — tamamı için "Tüm işlemleri gör"</div>';
   }
   html+='</div></div>';
   detail.innerHTML=html;
