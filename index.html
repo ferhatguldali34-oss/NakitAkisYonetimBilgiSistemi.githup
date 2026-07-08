@@ -108,6 +108,18 @@ body{background:var(--ink);color:var(--txt);font-family:var(--ff);font-size:14px
 .ftag{display:inline-flex;align-items:center;gap:3px;background:var(--gold3);border:1px solid rgba(201,168,76,.25);color:var(--gold);font-size:11px;padding:2px 7px;border-radius:8px;cursor:pointer;font-weight:500}
 .ftag:hover{background:rgba(201,168,76,.2)}
 
+/* Ay hızlı seçim (tarih aralığına alternatif) */
+.mq-wrap{display:flex;flex-direction:column;gap:3px}
+.mq-row{display:flex;align-items:center;gap:3px}
+.mq-year-btn{cursor:pointer;color:var(--txt3);font-size:11px;padding:2px 3px;user-select:none;border-radius:4px}
+.mq-year-btn:hover{color:var(--gold);background:var(--ink3)}
+.mq-year{font-family:var(--ffm);font-size:11px;color:var(--txt2);width:32px;text-align:center;flex-shrink:0}
+.mq-btn{width:22px;height:22px;border-radius:5px;border:1px solid var(--rim);background:var(--ink3);color:var(--txt2);font-size:10px;font-weight:700;cursor:pointer;padding:0;transition:.12s;flex-shrink:0}
+.mq-btn:hover{background:var(--ink4);color:var(--txt)}
+.mq-btn.active{background:var(--gold);border-color:var(--gold);color:#1e293b}
+[data-theme="light"] .mq-btn{background:var(--s2);border-color:var(--b1);color:var(--txt2)}
+[data-theme="light"] .mq-btn:hover{background:var(--s3);color:var(--txt)}
+
 /* ── KPI ROW ─────────────────────────────────────────── */
 .krow{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;margin-bottom:14px}
 .kcard{background:var(--ink2);border:1px solid var(--rim);border-radius:var(--r2);padding:14px 16px;position:relative;overflow:hidden;transition:border-color .12s,transform .12s}
@@ -1546,6 +1558,25 @@ canvas,
    <div class="frow">
     <div class="fg"><div class="flbl">Başlangıç</div><input type="month" id="fBas" class="fi" value="2026-01"></div>
     <div class="fg"><div class="flbl">Bitiş</div><input type="month" id="fBit" class="fi" value="2026-12"></div>
+    <div class="fg mq-wrap"><div class="flbl">Ay Seç (Hızlı)</div>
+     <div class="mq-row">
+      <span class="mq-year-btn" onclick="mqShiftYear(-1)" title="Önceki yıl">◀</span>
+      <span class="mq-year" id="mqYear">2026</span>
+      <span class="mq-year-btn" onclick="mqShiftYear(1)" title="Sonraki yıl">▶</span>
+      <button type="button" class="mq-btn" data-m="01" title="Ocak" onclick="quickSelectMonth('01')">O</button>
+      <button type="button" class="mq-btn" data-m="02" title="Şubat" onclick="quickSelectMonth('02')">Ş</button>
+      <button type="button" class="mq-btn" data-m="03" title="Mart" onclick="quickSelectMonth('03')">M</button>
+      <button type="button" class="mq-btn" data-m="04" title="Nisan" onclick="quickSelectMonth('04')">N</button>
+      <button type="button" class="mq-btn" data-m="05" title="Mayıs" onclick="quickSelectMonth('05')">M</button>
+      <button type="button" class="mq-btn" data-m="06" title="Haziran" onclick="quickSelectMonth('06')">H</button>
+      <button type="button" class="mq-btn" data-m="07" title="Temmuz" onclick="quickSelectMonth('07')">T</button>
+      <button type="button" class="mq-btn" data-m="08" title="Ağustos" onclick="quickSelectMonth('08')">A</button>
+      <button type="button" class="mq-btn" data-m="09" title="Eylül" onclick="quickSelectMonth('09')">E</button>
+      <button type="button" class="mq-btn" data-m="10" title="Ekim" onclick="quickSelectMonth('10')">E</button>
+      <button type="button" class="mq-btn" data-m="11" title="Kasım" onclick="quickSelectMonth('11')">K</button>
+      <button type="button" class="mq-btn" data-m="12" title="Aralık" onclick="quickSelectMonth('12')">A</button>
+     </div>
+    </div>
     <div class="fg ms-wrap" style="min-width:155px"><div class="flbl">Firma</div>
      <div class="ms-btn" id="fFirmaBtn" onclick="msToggle('fFirma')">Tüm Firmalar</div>
      <div class="ms-drop" id="fFirmaDrop"><div class="ms-search"><input placeholder="Ara..." oninput="msFilter('fFirma',this.value)"></div><div class="ms-list" id="fFirmaList"></div><div class="ms-foot"><span class="ms-all" onclick="msAll('fFirma')">Tümünü Seç</span><span class="ms-all" onclick="msNone('fFirma')">Temizle</span></div></div>
@@ -1616,7 +1647,7 @@ canvas,
        <div class="card-b"><div class="cwrap" style="height:200px"><canvas id="cExecFirma"></canvas></div></div>
      </div>
    </div>
-   <div class="card" style="margin-bottom:12px"><div class="card-h"><div class="card-ht">📈 Önceki Aya Göre En Çok Değişen 10 Kalem</div><div class="card-hsub">Mavi = önceki ay · Renkli = bu ay · Δ fark</div></div><div class="card-b"><div class="cwrap" style="height:340px"><canvas id="cExecRMDelta"></canvas></div></div></div>
+   <div class="card" style="margin-bottom:12px"><div class="card-h"><div class="card-ht">📊 Son 3 Ay Kategori Karşılaştırması</div><div class="card-hsub">Filtreye bağlı · en çok hareket eden 14 kategori</div></div><div class="card-b"><div class="cwrap" style="height:340px"><canvas id="cExecRM3Ay"></canvas></div></div></div>
    <div class="g2">
      <div class="exec-insight card">
        <div class="card-h"><div class="card-ht">⚡ Öne Çıkan Bulgular</div></div>
@@ -1627,6 +1658,7 @@ canvas,
        <div class="alist" id="execGider"></div>
      </div>
    </div>
+   <div class="card" style="margin-top:12px"><div class="card-h"><div class="card-ht">🏢 Hacmi Yüksek Firmalar — Giriş / Çıkış / Net</div><div class="card-hsub">Filtreye bağlı · en yüksek hacimli 12 firma</div></div><div class="card-b"><div class="cwrap" style="height:360px"><canvas id="cExecFirmaLines"></canvas></div></div></div>
   </div>
 
   <!-- ══ DASHBOARD PAGE ══ -->
@@ -1686,11 +1718,10 @@ canvas,
      <div class="card"><div class="card-h"><div class="card-ht">🔴 Çıkış Kategorileri</div></div><div class="alist" id="mapC"></div></div>
    </div>
    <div class="card" style="margin-top:12px">
-     <div class="card-h"><div class="card-ht">Tüm Kategoriler</div><span class="badge bx" id="mapCnt">—</span></div>
-     <div class="twrap"><table>
-       <thead><tr><th>Kategori</th><th>İşlem</th><th>Toplam</th><th>Ortalama</th><th>Nakit Yönü</th></tr></thead>
-       <tbody id="mapB"></tbody>
-     </table></div>
+     <div class="card-h"><div class="card-ht">📈 Kategori Bazlı Aylık Trend</div>
+       <select id="mapCatSelect" class="fi" style="min-width:240px" onchange="renderMappingCategoryChart(this.value)"></select>
+     </div>
+     <div class="cwrap" style="height:280px"><canvas id="cMapCatTrend"></canvas></div>
    </div>
   </div>
 
@@ -2433,8 +2464,36 @@ function resetF(){
   ['fMin','fMax'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   if(document.getElementById('fGrupIci'))document.getElementById('fGrupIci').value='dahil';
   if(document.getElementById('fOrtakIci'))document.getElementById('fOrtakIci').value='dahil';
+  MQ_YEAR=null;
+  document.querySelectorAll('.mq-btn').forEach(b=>b.classList.remove('active'));
+  mqRenderYear();
   applyF();
 }
+/* ── Ay hızlı seçim: Başlangıç/Bitiş tarih aralığına alternatif ── */
+var MQ_YEAR=null;
+function mqCurrentYear(){
+  if(MQ_YEAR) return MQ_YEAR;
+  var bitEl=document.getElementById('fBit'), basEl=document.getElementById('fBas');
+  var y=(bitEl&&bitEl.value?bitEl.value.split('-')[0]:null)||(basEl&&basEl.value?basEl.value.split('-')[0]:null)||String(new Date().getFullYear());
+  MQ_YEAR=y; return y;
+}
+function mqRenderYear(){ var el=document.getElementById('mqYear'); if(el) el.textContent=mqCurrentYear(); }
+function mqShiftYear(delta){
+  MQ_YEAR=String(Number(mqCurrentYear())+delta);
+  mqRenderYear();
+}
+function quickSelectMonth(mm){
+  var yr=mqCurrentYear();
+  var val=yr+'-'+mm;
+  var basEl=document.getElementById('fBas'), bitEl=document.getElementById('fBit');
+  if(basEl)basEl.value=val;
+  if(bitEl)bitEl.value=val;
+  document.querySelectorAll('.mq-btn').forEach(function(b){b.classList.remove('active');});
+  var active=document.querySelector('.mq-btn[data-m="'+mm+'"]');
+  if(active)active.classList.add('active');
+  applyF();
+}
+try{ mqRenderYear(); }catch(e){}
 function renderTags(fl){
   const tags=[];
   if(fl.bas!=='202601'||fl.bit!=='202612') tags.push({l:fl.bas.slice(0,4)+'-'+fl.bas.slice(4)+' → '+fl.bit.slice(0,4)+'-'+fl.bit.slice(4),k:'period'});
@@ -2735,10 +2794,47 @@ function renderMappingPage(){
   const gi=all.filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,10);
   const ci=all.filter(x=>x.s<0).sort((a,b)=>a.s-b.s).slice(0,10);
   const mG=Math.max(...gi.map(x=>x.s),1), mC=Math.max(...ci.map(x=>Math.abs(x.s)),1);
-  document.getElementById('mapCnt').textContent=all.length+' kategori';
   document.getElementById('mapG').innerHTML=gi.map(x=>`<div class="arow" onclick="drillRM('${x.rm}')"><div class="albl">${x.rm}</div><div class="abar"><div class="abar-bg"><div class="abar-fill" style="width:${x.s/mG*100}%;background:var(--sage)"></div></div></div><div class="aval pos">${fK(x.s)}</div></div>`).join('');
   document.getElementById('mapC').innerHTML=ci.map(x=>`<div class="arow" onclick="drillRM('${x.rm}')"><div class="albl">${x.rm}</div><div class="abar"><div class="abar-bg"><div class="abar-fill" style="width:${Math.abs(x.s)/mC*100}%;background:var(--rose)"></div></div></div><div class="aval neg">${fK(x.s)}</div></div>`).join('');
-  document.getElementById('mapB').innerHTML=all.map(x=>`<tr><td class="clip" style="max-width:230px">${x.rm}</td><td class="num">${x.n}</td><td class="num ${x.s>=0?'pos':'neg'} fw6">${fK(x.s)}</td><td class="num">${fK(x.avg)}</td><td><span class="tg ${x.s>=0?'tg-g':'tg-r'}">${x.s>=0?'GİRİŞ':'ÇIKIŞ'}</span></td></tr>`).join('');
+
+  /* Kategori bazlı aylık trend: en yüksek hacimli kategori öntanımlı seçili gelir,
+     kullanıcı seçimi (varsa) sayfa yeniden çizilirken korunur. */
+  const sel=document.getElementById('mapCatSelect');
+  if(sel){
+    const byVolume=all.slice().sort((a,b)=>Math.abs(b.s)-Math.abs(a.s));
+    const prevVal=sel.value;
+    sel.innerHTML=byVolume.map(x=>`<option value="${x.rm.replace(/"/g,'&quot;')}">${x.rm}</option>`).join('')||'<option value="">Kategori yok</option>';
+    const chosen=(prevVal&&rm[prevVal])?prevVal:(byVolume[0]?byVolume[0].rm:'');
+    sel.value=chosen;
+    renderMappingCategoryChart(chosen);
+  }
+}
+
+function renderMappingCategoryChart(selectedRM){
+  dc('cMapCatTrend');
+  const canvas=document.getElementById('cMapCatTrend');
+  if(!canvas||typeof Chart==='undefined'||!selectedRM)return;
+  const months={};
+  F.forEach(d=>{
+    if((d.rm||'')!==selectedRM)return;
+    const ay=String(d.ay||(d.tarih?d.tarih.slice(0,7):'')).trim();
+    if(!ay)return;
+    if(!months[ay])months[ay]={g:0,c:0,n:0};
+    const t=Number(d.tutar)||0;
+    if(t>=0)months[ay].g+=t;else months[ay].c+=t;
+    months[ay].n++;
+  });
+  const keys=Object.keys(months).sort();
+  if(!keys.length)return;
+  const g=keys.map(k=>months[k].g);
+  const c=keys.map(k=>Math.abs(months[k].c));
+  const net=keys.map(k=>months[k].g+months[k].c);
+  const ctx=canvas.getContext('2d');
+  CH.cMapCatTrend=new Chart(ctx,{data:{labels:keys,datasets:[
+    {type:'bar',label:'Giriş',data:g,backgroundColor:'rgba(74,222,128,.55)',borderRadius:3,order:2},
+    {type:'bar',label:'Çıkış',data:c,backgroundColor:'rgba(251,113,133,.55)',borderRadius:3,order:2},
+    {type:'line',label:'Net',data:net,borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,.12)',tension:.3,pointRadius:3,fill:false,order:1}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8fa3be',font:{size:10},boxWidth:9}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fK(c.raw),afterBody:function(ctx){var i=ctx[0].dataIndex;return ['İşlem: '+months[keys[i]].n];}}}},scales:{x:{ticks:{color:'#8fa3be',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#8fa3be',callback:v=>fK(v)},grid:{color:'rgba(30,45,69,.3)'}}}}});
 }
 
 // ══════════════════════════════════════
@@ -8368,50 +8464,78 @@ window.kpiDrillClear = function(){
     window.CH[canvasId]=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:arr.map(function(x){return x.firma;}),datasets:[{label:'Net Pozisyon',data:arr.map(function(x){return x.net;}),backgroundColor:arr.map(function(x){return x.net>=0?'rgba(74,222,128,.72)':'rgba(251,113,133,.72)';}),borderWidth:0}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){var f=arr[c.dataIndex];return ['Net Pozisyon: '+fmtK(f.net),'Dönem Başı: '+fmtK(f.opening),'Kapanış: '+fmtK(f.closing),'Giriş: '+fmtK(f.g),'Çıkış: '+fmtK(f.c)];}}}},scales:{x:{ticks:{color:cc.text,callback:function(v){return fmtK(v);}},grid:{color:cc.grid}},y:{ticks:{color:cc.text,font:{size:9}},grid:{display:false}}}}});
   }
 
-  function renderRMDeltaChart(canvasId){
+  function renderExecRM3AyChart(canvasId){
     var canvas=document.getElementById(canvasId); if(!canvas||typeof Chart==='undefined') return;
     destroyChart(canvasId);
     var fl=getFilters(); var rows=kpiRows(fl);
     var months=monthlyGroups(fl).map(function(x){return x.key;}).sort();
-    if(months.length<2) return;
-    var cur=months[months.length-1], prev=months[months.length-2];
-    var rmCur={},rmPrev={};
+    if(!months.length) return;
+    var last3=months.slice(-3); /* filtreye göre 3'ten az ay olabilir, elde ne varsa o kullanılır */
+    var byMonthRM={};
+    last3.forEach(function(mk){byMonthRM[mk]={};});
     rows.forEach(function(d){
-      var mk=monthKey(d); if(!mk) return;
+      var mk=monthKey(d); if(!mk||last3.indexOf(mk)<0) return;
       var r=rowRM(d)||'—'; var t=signedAmount(d);
-      if(mk===cur) rmCur[r]=(rmCur[r]||0)+t;
-      if(mk===prev) rmPrev[r]=(rmPrev[r]||0)+t;
+      byMonthRM[mk][r]=(byMonthRM[mk][r]||0)+t;
     });
-    var allRM=Object.keys(Object.assign({},rmCur,rmPrev));
-    var deltas=allRM.map(function(r){var c=rmCur[r]||0,p=rmPrev[r]||0; return {r:r,cur:c,prev:p,delta:c-p,abs:Math.abs(c-p)};})
-      .filter(function(x){return x.abs>0;}).sort(function(a,b){return b.abs-a.abs;}).slice(0,10);
-    if(!deltas.length) return;
-    var cc=chartColors(); window.CH=window.CH||{};
-    /* Yatay bar: isimler y ekseninde, tam okunur */
+    var allRM=[];
+    last3.forEach(function(mk){Object.keys(byMonthRM[mk]).forEach(function(r){if(allRM.indexOf(r)<0)allRM.push(r);});});
+    var ranked=allRM.map(function(r){
+      var maxAbs=Math.max.apply(null,last3.map(function(mk){return Math.abs(byMonthRM[mk][r]||0);}));
+      return {r:r,maxAbs:maxAbs};
+    }).sort(function(a,b){return b.maxAbs-a.maxAbs;}).slice(0,14).map(function(x){return x.r;});
+    if(!ranked.length) return;
+    var cc=chartColors();
+    var palette=['rgba(96,165,250,.55)','rgba(201,168,76,.6)','rgba(74,222,128,.65)'];
+    var datasets=last3.map(function(mk,i){
+      return {label:monthLabel(mk),data:ranked.map(function(r){return byMonthRM[mk][r]||0;}),backgroundColor:palette[i]||'rgba(148,163,184,.5)',borderRadius:3};
+    });
+    window.CH=window.CH||{};
     window.CH[canvasId]=new Chart(canvas.getContext('2d'),{type:'bar',
-      data:{labels:deltas.map(function(x){return x.r;}), /* tam isim - tooltip'te de görünür */
-        datasets:[
-          {label:monthLabel(prev),data:deltas.map(function(x){return x.prev;}),backgroundColor:'rgba(96,165,250,.55)',borderRadius:3},
-          {label:monthLabel(cur), data:deltas.map(function(x){return x.cur;}), backgroundColor:deltas.map(function(x){return x.delta>=0?'rgba(74,222,128,.7)':'rgba(251,113,133,.7)';}),borderRadius:3}
-        ]},
-      options:{indexAxis:'y', responsive:true,maintainAspectRatio:false,
+      data:{labels:ranked,datasets:datasets},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
         plugins:{legend:{position:'top',labels:{color:cc.text,font:{size:10},boxWidth:9}},
           tooltip:{callbacks:{
-            title:function(ctx){return deltas[ctx[0].dataIndex].r;}, /* tooltip başlığında tam isim */
-            label:function(c){return c.dataset.label+': '+fmtK(c.raw);},
-            afterBody:function(ctx){var d=deltas[ctx[0].dataIndex]; return ['Δ: '+(d.delta>=0?'+':'')+fmtK(d.delta)];} }}},
+            title:function(ctx){return ranked[ctx[0].dataIndex];},
+            label:function(c){return c.dataset.label+': '+fmtK(c.raw);}
+          }}},
         scales:{
-          y:{ticks:{color:cc.text,font:{size:10},
-            callback:function(v){var s=String(v); return s.length>28?s.slice(0,28)+'…':s;}}, /* y ekseni kısalt */
-            grid:{display:false}},
+          y:{ticks:{color:cc.text,font:{size:10},callback:function(v){var s=String(v);return s.length>26?s.slice(0,26)+'…':s;}},grid:{display:false}},
           x:{ticks:{color:cc.text,callback:function(v){return fmtK(v);}},grid:{color:cc.grid}}
+        }}
+    });
+  }
+  function renderExecFirmaLinesChart(canvasId){
+    var canvas=document.getElementById(canvasId); if(!canvas||typeof Chart==='undefined') return;
+    destroyChart(canvasId);
+    var _cs=companyStats(getFilters());
+    var arr=Object.keys(_cs).map(function(k){return _cs[k];});
+    arr.forEach(function(x){x.vol=(x.g||0)+Math.abs(x.c||0);});
+    arr=arr.sort(function(a,b){return b.vol-a.vol;}).slice(0,12);
+    if(!arr.length) return;
+    var cc=chartColors();
+    window.CH=window.CH||{};
+    window.CH[canvasId]=new Chart(canvas.getContext('2d'),{type:'bar',
+      data:{labels:arr.map(function(x){return x.firma;}),
+        datasets:[
+          {label:'Nakit Girişi',data:arr.map(function(x){return x.g;}),backgroundColor:'rgba(74,222,128,.7)',borderRadius:3},
+          {label:'Nakit Çıkışı',data:arr.map(function(x){return Math.abs(x.c);}),backgroundColor:'rgba(251,113,133,.7)',borderRadius:3},
+          {label:'Net Pozisyon',data:arr.map(function(x){return x.net;}),backgroundColor:arr.map(function(x){return x.net>=0?'rgba(201,168,76,.85)':'rgba(201,168,76,.5)';}),borderRadius:3}
+        ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{color:cc.text,font:{size:10},boxWidth:9}},
+          tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtK(c.raw);}}}},
+        scales:{
+          x:{ticks:{color:cc.text,font:{size:10},maxRotation:35,minRotation:0},grid:{display:false}},
+          y:{ticks:{color:cc.text,callback:function(v){return fmtK(v);}},grid:{color:cc.grid}}
         }}
     });
   }
   function renderExecSupplement(){
     renderTrendChart('cExecTrend', monthlyGroups(getFilters()), 'Aylık Trend');
     renderCompanyChart('cExecFirma');
-    renderRMDeltaChart('cExecRMDelta');
+    renderExecRM3AyChart('cExecRM3Ay');
+    renderExecFirmaLinesChart('cExecFirmaLines');
     var s=kpiSummary(getFilters()), insights=document.getElementById('execInsights');
     var firms=Object.keys(companyStats(getFilters())).map(function(k){return companyStats(getFilters())[k];}).sort(function(a,b){return a.net-b.net;});
     var worst=firms[0], best=firms[firms.length-1];
@@ -10482,6 +10606,21 @@ else setTimeout(boot,800);
 .sv-mg-row.active-filter { background: rgba(201,168,76,.08); }
 .sv-mg-row.active-filter .sv-mg-name { color: var(--gold); }
 
+/* Satır içi açılır/kapanır detay (firma kırılımı) */
+.sv-mg-expand-btn { color: var(--txt3); font-size: 9px; flex-shrink: 0; width: 14px; text-align: center; transition: transform .15s; cursor: pointer; }
+.sv-mg-row.expanded .sv-mg-expand-btn { transform: rotate(90deg); color: var(--gold); }
+.sv-mg-detail { display: none; padding: 4px 12px 10px 40px; background: rgba(10,14,20,.35); border-bottom: 1px solid rgba(30,45,69,.25); }
+.sv-mg-detail-inner {}
+.sv-mg-detail-head { font-size: 10px; color: var(--txt3); margin-bottom: 6px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.sv-mg-detail-list { display:flex; flex-direction:column; gap:2px; max-height: 260px; overflow-y:auto; }
+.sv-mg-detail-row { display:flex; align-items:center; gap:8px; padding:4px 8px; border-radius:6px; font-size:11px; }
+.sv-mg-detail-row:hover { background: rgba(30,45,69,.35); }
+.sv-mg-detail-firma { flex:1; min-width:0; color: var(--txt2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sv-mg-detail-n { color: var(--txt3); font-size:10px; flex-shrink:0; }
+.sv-mg-detail-val { font-family: var(--ffm); font-weight:700; flex-shrink:0; white-space:nowrap; min-width:76px; text-align:right; }
+.sv-mg-detail-more { color: var(--sky); font-size:11px; cursor:pointer; flex-shrink:0; }
+.sv-mg-detail-more:hover { text-decoration:underline; }
+
 /* "Yeni Grup" butonu */
 .sv-new-group-btn {
   display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -11226,15 +11365,65 @@ function svMgRow(key, mk, sid, isExcl, isActive, groupId){
       ' data-sid="'+svE(sid)+'" data-key="'+svE(key)+'"'+
       ' onclick="SV_mgToggleExclude(this.dataset.sid,this.dataset.key,event)"></div>'+
     '<span class="sv-mg-drag-ico">⠿</span>'+
+    '<span class="sv-mg-expand-btn" data-sid="'+svE(sid)+'" data-key="'+svE(key)+'" title="Detayı aç/kapat" onclick="event.stopPropagation();SV_toggleMgDetail(this)">▸</span>'+
     '<div style="flex:1;min-width:0">'+
       '<div class="sv-mg-name" data-sid="'+svE(sid)+'" data-key="'+svE(key)+'"'+
-        ' onclick="SV_selectRM(this.dataset.key)"'+
-        ' title="'+svE(key)+'">'+svE(key)+'</div>'+
+        ' onclick="SV_toggleMgDetail(this)"'+
+        ' title="'+svE(key)+' — detay için tıklayın">'+svE(key)+'</div>'+
       '<div class="sv-mg-sub">'+mk.n.toLocaleString('tr-TR')+' kayıt</div>'+
     '</div>'+
     '<div class="sv-mg-val" style="color:'+(isExcl?'var(--txt3)':col)+'">'+svFmt(mk.sum)+'</div>'+
-  '</div>';
+  '</div>'+
+  '<div class="sv-mg-detail" data-sid="'+svE(sid)+'" data-key="'+svE(key)+'"></div>';
 }
+
+/* Mapping satırına tıklayınca (sayfa değiştirmeden) satırın hemen altında firma bazlı detay açılır/kapanır */
+window.SV_toggleMgDetail=function(el){
+  var sid=el.dataset.sid, key=el.dataset.key;
+  var row=el.closest('.sv-mg-row');
+  var detail=row?row.nextElementSibling:null;
+  if(!detail||!detail.classList.contains('sv-mg-detail'))return;
+  var isOpen=row.classList.contains('expanded');
+  if(isOpen){
+    row.classList.remove('expanded');
+    detail.style.display='none';
+    return;
+  }
+  /* Diğer açık detayları kapat (tek seferde bir tanesi açık kalsın, karışıklık olmasın) */
+  document.querySelectorAll('.sv-mg-row.expanded').forEach(function(r){
+    r.classList.remove('expanded');
+    if(r.nextElementSibling)r.nextElementSibling.style.display='none';
+  });
+  var rows=(SV._lastFiltered||[]).filter(function(d){return (d.rm||'—')===key;});
+  var byFirma={};
+  rows.forEach(function(d){
+    var f=d.firma||'—';
+    if(!byFirma[f])byFirma[f]={g:0,c:0,n:0};
+    var t=svN(d.tutar); if(t>=0)byFirma[f].g+=t; else byFirma[f].c+=t; byFirma[f].n++;
+  });
+  var arr=Object.keys(byFirma).map(function(f){var m=byFirma[f];return {firma:f,net:m.g+m.c,n:m.n};})
+    .sort(function(a,b){return Math.abs(b.net)-Math.abs(a.net);});
+  var html='<div class="sv-mg-detail-inner">'+
+    '<div class="sv-mg-detail-head"><span>Firma bazında kırılım ('+arr.length+' firma)</span>'+
+    '<span class="sv-mg-detail-more" data-sid="'+svE(sid)+'" data-key="'+svE(key)+'" onclick="SV_selectRM(this.dataset.key)">Tüm işlemleri gör →</span></div>'+
+    '<div class="sv-mg-detail-list">';
+  if(!arr.length){
+    html+='<div style="color:var(--txt3);font-size:11px;padding:6px 0">Kayıt bulunamadı</div>';
+  } else {
+    arr.slice(0,50).forEach(function(x){
+      html+='<div class="sv-mg-detail-row">'+
+        '<span class="sv-mg-detail-firma" title="'+svE(x.firma)+'">'+svE(x.firma)+'</span>'+
+        '<span class="sv-mg-detail-n">'+x.n+' kayıt</span>'+
+        '<span class="sv-mg-detail-val" style="color:'+(x.net>=0?'var(--sage)':'var(--rose)')+'">'+svFmt(x.net)+'</span>'+
+      '</div>';
+    });
+    if(arr.length>50)html+='<div style="padding:6px 0;color:var(--txt3);font-size:11px">+ '+(arr.length-50)+' firma daha — tamamı için "Tüm işlemleri gör"</div>';
+  }
+  html+='</div></div>';
+  detail.innerHTML=html;
+  detail.style.display='block';
+  row.classList.add('expanded');
+};
 
 /* ── Grup Eylemleri ── */
 window.SV_newGroup=function(sid){
