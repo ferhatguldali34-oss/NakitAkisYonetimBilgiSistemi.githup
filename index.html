@@ -10664,6 +10664,17 @@ else setTimeout(boot,800);
 .sv-trx-table tr:hover td { background: rgba(30,45,69,.3); color: var(--txt); }
 .sv-trx-table .num { font-family: var(--ffm); text-align: right; white-space: nowrap; }
 .sv-trx-table .clip { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sv-trx-grp-head { cursor: pointer; }
+.sv-trx-grp-head:hover td { background: var(--ink3); }
+.sv-trx-grp-head td { background: var(--ink4); padding: 6px 10px; border-bottom: 1px solid var(--rim); }
+.sv-trx-grp-row { display: flex; align-items: center; gap: 10px; }
+.sv-trx-grp-arrow { display: inline-block; width: 10px; flex-shrink: 0; color: var(--txt3); transition: transform .15s; font-size: 9px; }
+.sv-trx-grp-head.open .sv-trx-grp-arrow { transform: rotate(90deg); color: var(--gold); }
+.sv-trx-grp-name { font-weight: 700; color: var(--txt); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sv-trx-grp-meta { color: var(--txt3); font-size: 10px; font-weight: 400; }
+.sv-trx-grp-net { font-family: var(--ffm); font-weight: 700; margin-left: auto; white-space: nowrap; }
+.sv-trx-grp-net.pos { color: var(--sage); }
+.sv-trx-grp-net.neg { color: var(--rose); }
 .sv-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; color: var(--txt3); text-align: center; gap: 8px; }
 .sv-empty-state .ico { font-size: 32px; opacity: .4; }
 .sv-empty-state .txt { font-size: 12px; }
@@ -11380,22 +11391,112 @@ function svMgRow(key, mk, sid, isExcl, isActive, groupId){
 }
 
 /* Mapping satırına tıklayınca (sayfa değiştirmeden) satırın hemen altında firma bazlı detay açılır/kapanır */
+/* Alıcı bilgisi olmayan (banka masrafı vb.) kayıtlar için boş/anlamsız değerleri ayıklar */
+function svAliciOf(d){
+  var a=String(d.alici||d['Alıcı / Karşı Taraf']||d.alici_unvani||'').trim();
+  if(!a||a==='—'||a.toLowerCase()==='nan'||a.toLowerCase()==='null')return '';
+  return a;
+}
+/* Saf veri: satırları Alıcı'ya göre gruplar (Alıcı'sı olmayanlar ayrı, gruplanmamış listede kalır) */
+function svGroupRowsByAlici(rows){
+  var withA=[], withoutA=[];
+  rows.forEach(function(d){ (svAliciOf(d)?withA:withoutA).push(d); });
+  var byAlici={};
+  withA.forEach(function(d){
+    var a=svAliciOf(d);
+    if(!byAlici[a])byAlici[a]={rows:[],net:0,n:0};
+    byAlici[a].rows.push(d); byAlici[a].net+=svN(d.tutar); byAlici[a].n++;
+  });
+  var groups=Object.keys(byAlici).map(function(a){
+    return {alici:a,net:byAlici[a].net,n:byAlici[a].n,
+      rows:byAlici[a].rows.sort(function(x,y){return Math.abs(svN(y.tutar))-Math.abs(svN(x.tutar));})};
+  }).sort(function(a,b){return Math.abs(b.net)-Math.abs(a.net);});
+  return {groups:groups, withoutA:withoutA};
+}
+/* İşlem tablosunu Alıcı'ya göre gruplar: Alıcı'sı olanlar başlık+alt satır, olmayanlar (banka masrafı vb.) düz liste halinde altta kalır */
+function svBuildTrxTableByAlici(rows, limit, sid, key){
+  limit=limit||150;
+  var g=svGroupRowsByAlici(rows), groups=g.groups, withoutA=g.withoutA;
+  var stateKey=(sid&&key)?(sid+'|'+key):null;
+  var expandedAlici=(stateKey && SV.mgExpandedAlici && SV.mgExpandedAlici[stateKey])||{};
+
+  function rowHtml(d){
+    var t=svN(d.tutar);
+    var tarih=String(d.tarih||'').slice(0,10);
+    var alici=svAliciOf(d)||'—';
+    var doviz=String(d.doviz||'TL');
+    return '<tr>'+
+      '<td style="font-family:var(--ffm);font-size:10.5px;white-space:nowrap;color:var(--txt3)">'+svE(tarih)+'</td>'+
+      '<td style="font-weight:600;color:var(--sky);cursor:pointer;white-space:nowrap" data-firma="'+svE(d.firma||'')+'" onclick="event.stopPropagation();SV_selectFirma(this.dataset.firma)">'+svE(String(d.firma||'—'))+'</td>'+
+      '<td style="font-size:10.5px;color:var(--txt3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+svE(alici.length>18?alici.slice(0,18)+'…':alici)+'</td>'+
+      '<td><span class="badge bx" style="font-size:9px">'+svE(doviz)+'</span></td>'+
+      '<td class="num '+(t>=0?'pos':'neg')+' fw6">'+svFmt(t)+'</td>'+
+    '</tr>';
+  }
+  var html='<table class="sv-trx-table"><thead><tr>'+
+      '<th>Tarih</th><th>Firma</th><th>Alıcı</th><th>Döviz</th><th class="num">Tutar</th>'+
+    '</tr></thead><tbody>';
+  var shown=0, cut=false;
+  for(var gi=0; gi<groups.length && !cut; gi++){
+    var grp=groups[gi];
+    var isOpen=!!expandedAlici[grp.alici];
+    html+='<tr class="sv-trx-grp-head'+(isOpen?' open':'')+'"'+
+      ' data-sid="'+svE(sid||'')+'" data-key="'+svE(key||'')+'" data-alici="'+svE(grp.alici)+'"'+
+      ' onclick="svToggleTrxGrp(this)"><td colspan="5"><div class="sv-trx-grp-row">'+
+      '<span class="sv-trx-grp-arrow">▸</span>'+
+      '<span class="sv-trx-grp-name" title="'+svE(grp.alici)+'">'+svE(grp.alici)+'</span>'+
+      '<span class="sv-trx-grp-meta">'+grp.n+' işlem</span>'+
+      '<span class="sv-trx-grp-net '+(grp.net>=0?'pos':'neg')+'">'+svFmt(grp.net)+'</span>'+
+    '</div></td></tr>';
+    for(var ri=0; ri<grp.rows.length; ri++){
+      if(shown>=limit){cut=true;break;}
+      html+=rowHtml(grp.rows[ri]).replace('<tr>','<tr class="sv-trx-grp-member" style="display:'+(isOpen?'':'none')+'">'); shown++;
+    }
+  }
+  for(var wi=0; wi<withoutA.length && !cut; wi++){
+    if(shown>=limit){cut=true;break;}
+    html+=rowHtml(withoutA[wi]); shown++;
+  }
+  var remaining=rows.length-shown;
+  if(remaining>0)html+='<tr><td colspan="5" style="padding:8px;text-align:center;color:var(--txt3);font-size:10.5px">+'+remaining.toLocaleString('tr-TR')+' kayıt daha — tamamı için "Tüm işlemleri gör"</td></tr>';
+  html+='</tbody></table>';
+  return html;
+}
+/* Alıcı grup başlığına tıklayınca altındaki işlem satırlarını aç/kapat; hangi Alıcı'ların açık olduğu
+   SV.mgExpandedAlici'de tutulur — yazdırmada sadece açık bırakılan Alıcı'ların detayı görünsün diye */
+
+window.svToggleTrxGrp=function(headerRow){
+  var open=headerRow.classList.toggle('open');
+  var el=headerRow.nextElementSibling;
+  while(el && el.classList.contains('sv-trx-grp-member')){
+    el.style.display=open?'':'none';
+    el=el.nextElementSibling;
+  }
+  var sid=headerRow.dataset.sid, key=headerRow.dataset.key, alici=headerRow.dataset.alici;
+  if(sid && key){
+    SV.mgExpandedAlici=SV.mgExpandedAlici||{};
+    var stateKey=sid+'|'+key;
+    SV.mgExpandedAlici[stateKey]=SV.mgExpandedAlici[stateKey]||{};
+    if(open) SV.mgExpandedAlici[stateKey][alici]=true;
+    else delete SV.mgExpandedAlici[stateKey][alici];
+  }
+};
+
 window.SV_toggleMgDetail=function(el){
   var sid=el.dataset.sid, key=el.dataset.key;
   var row=el.closest('.sv-mg-row');
   var detail=row?row.nextElementSibling:null;
   if(!detail||!detail.classList.contains('sv-mg-detail'))return;
+  SV.mgExpandedKeys=SV.mgExpandedKeys||{};
   var isOpen=row.classList.contains('expanded');
   if(isOpen){
     row.classList.remove('expanded');
     detail.style.display='none';
+    delete SV.mgExpandedKeys[sid+'|'+key];
     return;
   }
-  /* Diğer açık detayları kapat (tek seferde bir tanesi açık kalsın, karışıklık olmasın) */
-  document.querySelectorAll('.sv-mg-row.expanded').forEach(function(r){
-    r.classList.remove('expanded');
-    if(r.nextElementSibling)r.nextElementSibling.style.display='none';
-  });
+  /* Birden fazla kategori aynı anda açık kalabilir; diğerleri kapatılmaz */
+  SV.mgExpandedKeys[sid+'|'+key]=true;
   var rows=(SV._lastFiltered||[]).filter(function(d){return (d.rm||'—')===key;});
   rows=rows.slice().sort(function(a,b){return Math.abs(svN(b.tutar))-Math.abs(svN(a.tutar));});
   var html='<div class="sv-mg-detail-inner">'+
@@ -11404,25 +11505,7 @@ window.SV_toggleMgDetail=function(el){
   if(!rows.length){
     html+='<div style="color:var(--txt3);font-size:11px;padding:10px 0">Kayıt bulunamadı</div>';
   } else {
-    html+='<div class="sv-trx-wrap" style="max-height:260px">'+
-      '<table class="sv-trx-table"><thead><tr>'+
-        '<th>Tarih</th><th>Firma</th><th>Alıcı</th><th>Döviz</th><th class="num">Tutar</th>'+
-      '</tr></thead><tbody>';
-    rows.slice(0,150).forEach(function(d){
-      var t=svN(d.tutar);
-      var tarih=String(d.tarih||'').slice(0,10);
-      var alici=String(d.alici||d['Alıcı / Karşı Taraf']||d.alici_unvani||'—');
-      var doviz=String(d.doviz||'TL');
-      html+='<tr>'+
-        '<td style="font-family:var(--ffm);font-size:10.5px;white-space:nowrap;color:var(--txt3)">'+svE(tarih)+'</td>'+
-        '<td style="font-weight:600;color:var(--sky);cursor:pointer;white-space:nowrap" data-firma="'+svE(d.firma||'')+'" onclick="event.stopPropagation();SV_selectFirma(this.dataset.firma)">'+svE(String(d.firma||'—'))+'</td>'+
-        '<td style="font-size:10.5px;color:var(--txt3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+svE(alici.length>18?alici.slice(0,18)+'…':alici)+'</td>'+
-        '<td><span class="badge bx" style="font-size:9px">'+svE(doviz)+'</span></td>'+
-        '<td class="num '+(t>=0?'pos':'neg')+' fw6">'+svFmt(t)+'</td>'+
-      '</tr>';
-    });
-    if(rows.length>150)html+='<tr><td colspan="5" style="padding:8px;text-align:center;color:var(--txt3);font-size:10.5px">+'+(rows.length-150).toLocaleString('tr-TR')+' kayıt daha — tamamı için "Tüm işlemleri gör"</td></tr>';
-    html+='</tbody></table></div>';
+    html+='<div class="sv-trx-wrap" style="max-height:260px">'+svBuildTrxTableByAlici(rows,150,sid,key)+'</div>';
   }
   html+='</div>';
   detail.innerHTML=html;
@@ -11599,15 +11682,25 @@ window.SV_showPrintDialog=function(title, rows){
     /* Bölümler */
     '<div style="margin-bottom:14px">'+
       '<div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Rapor Bölümleri</div>'+
-      ['svPrintKPI|✓|KPI Özeti (Giriş / Çıkış / Net)',
-       'svPrintPivotRM|✓|Rapor Mapping Kırılımı',
-       'svPrintPivotFirma|✓|Firma Kırılımı',
-       'svPrintTrx|✓|İşlem Listesi',
-       'svPrintAciklama||Açıklama / Not Satırı'].map(function(x){
+      (function(){
+        var opts=['svPrintKPI|✓|KPI Özeti (Giriş / Çıkış / Net)',
+         'svPrintPivotRM|✓|Rapor Mapping Kırılımı',
+         'svPrintPivotFirma|✓|Firma Kırılımı',
+         'svPrintTrx|✓|İşlem Listesi'];
+        var expandedKeys=[];
+        if(SV.mgExpandedKeys){
+          Object.keys(SV.mgExpandedKeys).forEach(function(k){
+            if(k.indexOf(SV.sektor+'|')===0) expandedKeys.push(k.slice((SV.sektor+'|').length));
+          });
+        }
+        if(expandedKeys.length) opts.push('svPrintOpenDetail|✓|Açık Bıraktığım Kategori Detayları ('+expandedKeys.length+' kategori: '+svE(expandedKeys.join(', '))+')');
+        opts.push('svPrintAciklama||Açıklama / Not Satırı');
+        return opts.map(function(x){
          var p=x.split('|'); var id=p[0],chk=p[1],lbl=p[2];
          return '<label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:12px;color:var(--txt2)">'+
            '<input type="checkbox" id="'+id+'" '+(chk?'checked':'')+' style="accent-color:var(--gold);width:14px;height:14px">'+svE(lbl)+'</label>';
-       }).join('')+
+       }).join('');
+      })()+
     '</div>'+
     /* Sayfa ayarları */
     '<div style="margin-bottom:14px">'+
@@ -11684,6 +11777,8 @@ window.SV_doPrint=function(){
   var showRM=!dlg||dlg.querySelector('#svPrintPivotRM').checked;
   var showFirma=!dlg||dlg.querySelector('#svPrintPivotFirma').checked;
   var showTrx=!dlg||dlg.querySelector('#svPrintTrx').checked;
+  var openDetailChk=dlg?dlg.querySelector('#svPrintOpenDetail'):null;
+  var showOpenDetail=openDetailChk?openDetailChk.checked:false;
   if(dlg)dlg.remove();
 
   var rows=SV._lastFiltered||[];
@@ -11700,6 +11795,12 @@ window.SV_doPrint=function(){
 
   /* Pivot: RM kırılımı — Mapping panelindeki grup adları burada da uygulanır */
   var sid=SV.sektor;
+  var expandedKeysForPrint=[];
+  if(SV.mgExpandedKeys){
+    Object.keys(SV.mgExpandedKeys).forEach(function(k){
+      if(k.indexOf(sid+'|')===0) expandedKeysForPrint.push(k.slice((sid+'|').length));
+    });
+  }
   var svGroups=sid?(svGetMgGroups(sid)||[]):[];
   var inGroupOf={}; /* rmKey -> group index */
   svGroups.forEach(function(gr,gi){ (gr.items||[]).forEach(function(rmKey){ inGroupOf[rmKey]=gi; }); });
@@ -11776,6 +11877,46 @@ window.SV_doPrint=function(){
     '</div>';
   }
 
+  function svPrintOpenDetailBlock(key){
+    if(!(showOpenDetail && expandedKeysForPrint.indexOf(key)>=0)) return '';
+    var openRows=rows.filter(function(d){return (d.rm||'—')===key;});
+    if(!openRows.length) return '';
+    var og=svGroupRowsByAlici(openRows);
+    var stateKey=sid+'|'+key;
+    var expandedAlici=(SV.mgExpandedAlici && SV.mgExpandedAlici[stateKey])||{};
+    var inner='<div style="margin:4px 0 10px 14px;border:1px solid '+T.border+';border-radius:6px;overflow:hidden">'+
+      '<div style="background:'+T.th+';padding:5px 10px;font-size:9px;font-weight:700;color:'+T.sub+';text-transform:uppercase;letter-spacing:.05em">🔍 İşlem Detayı — '+svE(key)+' ('+openRows.length.toLocaleString('tr-TR')+' kayıt)</div>'+
+      '<table style="margin:0"><thead><tr><th>Tarih</th><th>Firma</th><th>Alıcı</th><th>Döviz</th><th>Tutar</th></tr></thead><tbody>';
+    og.groups.forEach(function(grp){
+      var isOpen=!!expandedAlici[grp.alici];
+      inner+='<tr style="background:'+T.th+'"><td colspan="5" class="fw7">'+svE(grp.alici)+
+        ' <span style="font-weight:400;color:'+T.sub+'">('+grp.n+' işlem)</span>'+
+        (isOpen?'':' <span style="font-weight:400;color:'+T.sub+';font-style:italic">— kapalı, özet</span>')+
+        '<span class="'+(grp.net>=0?'pos':'neg')+'" style="float:right">'+svFmt(grp.net)+'</span></td></tr>';
+      if(isOpen){
+        grp.rows.forEach(function(d){
+          var t=svN(d.tutar);
+          var alici=svAliciOf(d)||'—';
+          inner+='<tr><td>'+svE(String(d.tarih||'').slice(0,10))+'</td>'+
+            '<td class="fw7">'+svE(String(d.firma||'—'))+'</td>'+
+            '<td>'+svE(alici.length>22?alici.slice(0,22)+'…':alici)+'</td>'+
+            '<td>'+svE(String(d.doviz||'TL'))+'</td>'+
+            '<td class="fw7 '+(t>=0?'pos':'neg')+'">'+svFmt(t)+'</td></tr>';
+        });
+      }
+    });
+    og.withoutA.forEach(function(d){
+      var t=svN(d.tutar);
+      inner+='<tr><td>'+svE(String(d.tarih||'').slice(0,10))+'</td>'+
+        '<td class="fw7">'+svE(String(d.firma||'—'))+'</td>'+
+        '<td>—</td>'+
+        '<td>'+svE(String(d.doviz||'TL'))+'</td>'+
+        '<td class="fw7 '+(t>=0?'pos':'neg')+'">'+svFmt(t)+'</td></tr>';
+    });
+    inner+='</tbody></table></div>';
+    return '<tr><td colspan="5" style="padding:0;border:none">'+inner+'</td></tr>';
+  }
+
   if(showRM&&(rmGroupRows.length||rmSingleRows.length)){
     var totalItemCount=rmGroupRows.reduce(function(s,g){return s+g.members.length;},0)+rmSingleRows.length;
     html+='<div class="section"><div class="sh">📋 Rapor Mapping Kırılımı ('+rmGroupRows.length+' grup, '+totalItemCount+' kalem)</div>';
@@ -11792,6 +11933,7 @@ window.SV_doPrint=function(){
           '<td class="neg">'+svFmt(m.c)+'</td>'+
           '<td class="'+(m.net>=0?'pos':'neg')+'">'+svFmt(m.net)+'</td>'+
           '<td>'+m.n+'</td></tr>';
+        html+=svPrintOpenDetailBlock(m.r);
       });
     });
     rmSingleRows.forEach(function(x){
@@ -11800,6 +11942,7 @@ window.SV_doPrint=function(){
         '<td class="neg">'+svFmt(x.c)+'</td>'+
         '<td class="fw7 '+(x.net>=0?'pos':'neg')+'">'+svFmt(x.net)+'</td>'+
         '<td>'+x.n+'</td></tr>';
+      html+=svPrintOpenDetailBlock(x.r);
     });
     html+='</tbody></table></div>';
   }
