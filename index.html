@@ -10921,7 +10921,6 @@ window.SV_customSearchInput=function(el){
 };
 function svCustomAllFirmaNames(){
   var names=[];
-  if(Array.isArray(window.D)&&window.D.firma){} /* no-op guard */
   if(window.D&&Array.isArray(window.D.firma)){
     window.D.firma.forEach(function(f){if(f&&f.firma&&names.indexOf(f.firma)<0)names.push(f.firma);});
   }
@@ -10948,11 +10947,18 @@ function svRenderCustomFirmaList(){
 /* Sıralı sektör listesi */
 function svSektorler(){
   var def=SV_DEF.map(function(x){return x.id;});
-  if(!SV.order)return SV_DEF.slice();
-  var byId={};SV_DEF.forEach(function(s){byId[s.id]=s;});
-  var result=[];
-  SV.order.forEach(function(id){if(byId[id])result.push(byId[id]);});
-  SV_DEF.forEach(function(s){if(result.indexOf(s)<0)result.push(s);});
+  var result;
+  if(!SV.order){
+    result=SV_DEF.slice();
+  } else {
+    var byId={};SV_DEF.forEach(function(s){byId[s.id]=s;});
+    result=[];
+    SV.order.forEach(function(id){if(byId[id])result.push(byId[id]);});
+    SV_DEF.forEach(function(s){if(result.indexOf(s)<0)result.push(s);});
+  }
+  /* 'Tüm Grup (Özel)' her zaman en üstte görünsün — eski kaydedilmiş sıralamalarda bu öğe olmadığından gözden kaçmasın */
+  var ci=result.findIndex(function(s){return s.id==='CUSTOM';});
+  if(ci>0){var custom=result.splice(ci,1)[0];result.unshift(custom);}
   return result;
 }
 
@@ -11624,7 +11630,7 @@ window.SV_toggleMgDetail=function(el){
   if(!rows.length){
     html+='<div style="color:var(--txt3);font-size:11px;padding:10px 0">Kayıt bulunamadı</div>';
   } else {
-    html+='<div class="sv-trx-wrap" style="max-height:260px">'+svBuildTrxTableByAlici(rows,150,sid,key)+'</div>';
+    html+='<div class="sv-trx-wrap" style="max-height:260px">'+svBuildTrxTableByAlici(rows,5000,sid,key)+'</div>';
   }
   html+='</div>';
   detail.innerHTML=html;
