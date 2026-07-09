@@ -10682,6 +10682,23 @@ else setTimeout(boot,800);
 .sv-trx-grp-net { font-family: var(--ffm); font-weight: 700; margin-left: auto; white-space: nowrap; }
 .sv-trx-grp-net.pos { color: var(--sage); }
 .sv-trx-grp-net.neg { color: var(--rose); }
+
+/* 'Tüm Grup (Özel)' — firma yönetim paneli */
+.sv-custom-mgmt { background: var(--ink2); border: 1px solid var(--rim); border-radius: var(--r); margin-bottom: 12px; overflow: hidden; }
+.sv-custom-mgmt-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--txt); }
+.sv-custom-mgmt-head:hover { background: var(--ink3); }
+.sv-custom-mgmt-toggle { color: var(--txt3); font-size: 11px; }
+.sv-custom-mgmt-body { border-top: 1px solid var(--rim); padding: 10px 14px 14px; }
+.sv-custom-mgmt-tools { display: flex; gap: 8px; margin-bottom: 10px; }
+.sv-custom-mgmt-tools .fi { flex: 1; }
+.sv-custom-firma-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px; max-height: 260px; overflow-y: auto; }
+.sv-custom-firma-row { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-radius: 7px; font-size: 12.5px; color: var(--txt2); cursor: pointer; border: 1px solid transparent; }
+.sv-custom-firma-row:hover { background: var(--ink3); }
+.sv-custom-firma-row.checked { background: rgba(201,168,76,.1); border-color: rgba(201,168,76,.3); color: var(--txt); }
+.sv-custom-firma-row input { accent-color: var(--gold); }
+[data-theme="light"] .sv-custom-mgmt { background: var(--s2); border-color: var(--b1); }
+[data-theme="light"] .sv-custom-mgmt-head:hover { background: var(--s3); }
+[data-theme="light"] .sv-custom-firma-row:hover { background: var(--s3); }
 .sv-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; color: var(--txt3); text-align: center; gap: 8px; }
 .sv-empty-state .ico { font-size: 32px; opacity: .4; }
 .sv-empty-state .txt { font-size: 12px; }
@@ -10762,6 +10779,7 @@ function svNorm(s){return String(s||'').toLocaleUpperCase('tr-TR').trim();}
    SEKTÖR TANIMLARI
 ═══════════════════════════════════════════════ */
 var SV_DEF=[
+  {id:'CUSTOM', lbl:'Tüm Grup (Özel)', emoji:'⭐',color:'#c9a84c',bg:'rgba(201,168,76,.13)', custom:true},
   {id:'ENERJI', lbl:'Enerji',         emoji:'⚡',color:'#f97316',bg:'rgba(249,115,22,.13)'},
   {id:'MADEN',  lbl:'Maden',          emoji:'⛏', color:'#78716c',bg:'rgba(120,113,108,.13)'},
   {id:'RUZGAR', lbl:'Rüzgar',         emoji:'💨',color:'#38bdf8',bg:'rgba(56,189,248,.13)'},
@@ -10856,7 +10874,10 @@ var SV={
   dragging: null,
   /* Mapping gruplama: {sektorId: {groups:[{id,name,color,items:[rmKey],collapsed}], excluded:[rmKey]}} */
   mgGroups: {},
-  mgDrag: null    /* sürüklenen mapping */
+  mgDrag: null,   /* sürüklenen mapping */
+  customFirms: null,   /* null = henüz ayarlanmamış → ilk açılışta tüm firmalarla doldurulur */
+  customPanelOpen: true,
+  customSearch: ''
 };
 
 /* localStorage */
@@ -10864,10 +10885,65 @@ var SV={
   try{var o=localStorage.getItem('sv2_order');if(o)SV.order=JSON.parse(o);}catch(e){}
   try{var m=localStorage.getItem('sv2_manuel');if(m)SV.manuel=JSON.parse(m);}catch(e){}
   try{var g=localStorage.getItem('sv2_groups');if(g)SV.mgGroups=JSON.parse(g);}catch(e){}
+  try{var cf=localStorage.getItem('sv2_customFirms');if(cf)SV.customFirms=JSON.parse(cf);}catch(e){}
 })();
 function svSaveOrder(){try{localStorage.setItem('sv2_order',JSON.stringify(SV.order));}catch(e){}}
 function svSaveManuel(){try{localStorage.setItem('sv2_manuel',JSON.stringify(SV.manuel));}catch(e){}}
 function svSaveGroups(){try{localStorage.setItem('sv2_groups',JSON.stringify(SV.mgGroups));}catch(e){}}
+function svSaveCustomFirms(){try{localStorage.setItem('sv2_customFirms',JSON.stringify(SV.customFirms));}catch(e){}}
+/* 'Tüm Grup (Özel)' sektörü için firma üyelik yardımcıları */
+function svCustomHasFirma(firma){
+  var u=svNorm(firma);
+  return (SV.customFirms||[]).some(function(f){return svNorm(f)===u;});
+}
+window.SV_customToggleFirma=function(firma){
+  SV.customFirms=SV.customFirms||[];
+  var u=svNorm(firma);
+  var idx=SV.customFirms.findIndex(function(f){return svNorm(f)===u;});
+  if(idx>=0)SV.customFirms.splice(idx,1); else SV.customFirms.push(firma);
+  svSaveCustomFirms();
+  svRender();
+};
+window.SV_customToggleAll=function(select){
+  var all=svCustomAllFirmaNames();
+  SV.customFirms=select?all.slice():[];
+  svSaveCustomFirms();
+  svRender();
+};
+window.SV_customTogglePanel=function(){
+  SV.customPanelOpen=!SV.customPanelOpen;
+  svRender();
+};
+window.SV_customSearchInput=function(el){
+  SV.customSearch=el.value||'';
+  var list=document.getElementById('svCustomList');
+  if(list)list.innerHTML=svRenderCustomFirmaList();
+};
+function svCustomAllFirmaNames(){
+  var names=[];
+  if(Array.isArray(window.D)&&window.D.firma){} /* no-op guard */
+  if(window.D&&Array.isArray(window.D.firma)){
+    window.D.firma.forEach(function(f){if(f&&f.firma&&names.indexOf(f.firma)<0)names.push(f.firma);});
+  }
+  /* D.firma eksikse F'den türet */
+  if(!names.length&&Array.isArray(window.F)){
+    window.F.forEach(function(d){if(d.firma&&names.indexOf(d.firma)<0)names.push(d.firma);});
+  }
+  return names.sort(function(a,b){return a.localeCompare(b,'tr');});
+}
+function svRenderCustomFirmaList(){
+  var all=svCustomAllFirmaNames();
+  var q=svNorm(SV.customSearch||'');
+  var list=q?all.filter(function(f){return svNorm(f).indexOf(q)>-1;}):all;
+  if(!list.length)return '<div style="padding:10px;color:var(--txt3);font-size:11px">Firma bulunamadı</div>';
+  return list.map(function(f){
+    var checked=svCustomHasFirma(f);
+    return '<label class="sv-custom-firma-row'+(checked?' checked':'')+'">'+
+      '<input type="checkbox" '+(checked?'checked':'')+' onclick="SV_customToggleFirma(this.dataset.firma)" data-firma="'+svE(f)+'">'+
+      '<span>'+svE(f)+'</span>'+
+    '</label>';
+  }).join('');
+}
 
 /* Sıralı sektör listesi */
 function svSektorler(){
@@ -10904,7 +10980,13 @@ function svRows(){
 
 function svFilter(rows, sektorId, rmKey, firmaKey, excludedRMs){
   return rows.filter(function(d){
-    if(sektorId&&svGetSektor(d.firma||'')!==sektorId)return false;
+    if(sektorId){
+      if(sektorId==='CUSTOM'){
+        if(!svCustomHasFirma(d.firma||''))return false;
+      } else if(svGetSektor(d.firma||'')!==sektorId){
+        return false;
+      }
+    }
     if(excludedRMs&&excludedRMs.length&&excludedRMs.indexOf(String(d.rm||''))>-1)return false;
     if(rmKey&&String(d.rm||'')!==rmKey)return false;
     if(firmaKey&&svNorm(d.firma||'')!==svNorm(firmaKey))return false;
@@ -10995,6 +11077,11 @@ function svEnsurePage(){
 ═══════════════════════════════════════════════ */
 function svRender(){
   svEnsurePage();
+  /* 'Tüm Grup (Özel)' ilk kez kullanılıyorsa tüm firmalarla başlasın, kullanıcı sonra çıkarabilir */
+  if(SV.customFirms===null){
+    SV.customFirms=svCustomAllFirmaNames();
+    svSaveCustomFirms();
+  }
   var allRows=svRows();
   var sektorler=svSektorler();
 
@@ -11170,7 +11257,27 @@ function svRenderContent(allRows){
   if(!sorted.length)trxHTML+='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--txt3)">Veri yok</td></tr>';
   trxHTML+='</tbody></table></div></div>';
 
-  body.innerHTML=gridHTML+trxHTML;
+  var customMgmtHTML='';
+  if(s==='CUSTOM'){
+    customMgmtHTML='<div class="sv-custom-mgmt">'+
+      '<div class="sv-custom-mgmt-head" onclick="SV_customTogglePanel()">'+
+        '<span>⭐ Firma Yönetimi <span style="color:var(--txt3);font-weight:400">('+(SV.customFirms||[]).length+' firma seçili)</span></span>'+
+        '<span class="sv-custom-mgmt-toggle">'+(SV.customPanelOpen?'▾':'▸')+'</span>'+
+      '</div>'+
+      (SV.customPanelOpen?(
+        '<div class="sv-custom-mgmt-body">'+
+          '<div class="sv-custom-mgmt-tools">'+
+            '<input type="text" class="fi" placeholder="Firma ara…" value="'+svE(SV.customSearch||'')+'" oninput="SV_customSearchInput(this)" onclick="event.stopPropagation()">'+
+            '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();SV_customToggleAll(true)">Tümünü Seç</button>'+
+            '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();SV_customToggleAll(false)">Tümünü Kaldır</button>'+
+          '</div>'+
+          '<div class="sv-custom-firma-list" id="svCustomList" onclick="event.stopPropagation()">'+svRenderCustomFirmaList()+'</div>'+
+        '</div>'
+      ):'')+
+    '</div>';
+  }
+
+  body.innerHTML=customMgmtHTML+gridHTML+trxHTML;
 }
 
 
