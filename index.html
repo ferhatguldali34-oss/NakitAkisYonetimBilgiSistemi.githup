@@ -1558,6 +1558,8 @@ canvas,
    <div class="frow">
     <div class="fg"><div class="flbl">Başlangıç</div><input type="month" id="fBas" class="fi" value="2026-01"></div>
     <div class="fg"><div class="flbl">Bitiş</div><input type="month" id="fBit" class="fi" value="2026-12"></div>
+    <div class="fg"><div class="flbl">Gün Başlangıç</div><input type="date" id="fGunBas" class="fi"></div>
+    <div class="fg"><div class="flbl">Gün Bitiş</div><input type="date" id="fGunBit" class="fi"></div>
     <div class="fg mq-wrap"><div class="flbl">Ay Seç (Hızlı)</div>
      <div class="mq-row">
       <span class="mq-year-btn" onclick="mqShiftYear(-1)" title="Önceki yıl">◀</span>
@@ -2488,6 +2490,9 @@ function quickSelectMonth(mm){
   var basEl=document.getElementById('fBas'), bitEl=document.getElementById('fBit');
   if(basEl)basEl.value=val;
   if(bitEl)bitEl.value=val;
+  var gunBasEl=document.getElementById('fGunBas'), gunBitEl=document.getElementById('fGunBit');
+  if(gunBasEl)gunBasEl.value='';
+  if(gunBitEl)gunBitEl.value='';
   document.querySelectorAll('.mq-btn').forEach(function(b){b.classList.remove('active');});
   var active=document.querySelector('.mq-btn[data-m="'+mm+'"]');
   if(active)active.classList.add('active');
@@ -5785,6 +5790,10 @@ exportKalite = function(){
       var l=(fl.basRaw||'Başlangıç yok')+' → '+(fl.bitRaw||'Bitiş yok');
       if(!(fl.basRaw==='2026-01' && fl.bitRaw==='2026-12')) tags.push({l:l,k:'period'});
     }
+    if(fl.gunBasRaw || fl.gunBitRaw){
+      var gl=(fl.gunBasRaw||'İlk gün yok')+' → '+(fl.gunBitRaw||'Son gün yok');
+      tags.push({l:'Gün: '+gl,k:'dayPeriod'});
+    }
     if(fl.firmalar.length) tags.push({l:fl.firmalar.length===1?'Firma: '+fl.firmalar[0]:fl.firmalar.length+' firma',k:'fFirma'});
     if(fl.firmaTip) tags.push({l:'Tip: '+(fl.firmaTip==='ticari'?'Ticari':fl.firmaTip==='ortak'?'★ Ortak':'Pasif'),k:'firmaTip'});
     if(fl.yon) tags.push({l:'Yön: '+fl.yon,k:'yon'});
@@ -5807,6 +5816,7 @@ exportKalite = function(){
     if(['fFirma','fRM','fBanka','fDoviz','fGider'].includes(k)){try{if(typeof msReset==='function')msReset(k);}catch(e){} applyF(); return;}
     var map={firmaTip:'fFirmaTip',yon:'fYon',kaynak:'fKaynak',minT:'fMin',maxT:'fMax',bankaBoş:'fBankaBoş',grupIci:'fGrupIci'};
     if(k==='period'){ if(el('fBas')) el('fBas').value=''; if(el('fBit')) el('fBit').value=''; }
+    else if(k==='dayPeriod'){ if(el('fGunBas')) el('fGunBas').value=''; if(el('fGunBit')) el('fGunBit').value=''; }
     else if(map[k]&&el(map[k])) el(map[k]).value='';
     applyF();
   };
@@ -5814,6 +5824,8 @@ exportKalite = function(){
   window.resetF = resetF = function(){
     if(el('fBas')) el('fBas').value='';
     if(el('fBit')) el('fBit').value='';
+    if(el('fGunBas')) el('fGunBas').value='';
+    if(el('fGunBit')) el('fGunBit').value='';
     ['fFirma','fRM','fBanka','fDoviz','fGider'].forEach(function(id){try{if(typeof msReset==='function')msReset(id);}catch(e){}});
     ['fFirmaTip','fYon','fKaynak','fBankaBoş','fGrupIci','fMin','fMax'].forEach(function(id){if(el(id)) el(id).value='';});
     applyF();
@@ -8257,9 +8269,10 @@ window.kpiDrillClear = function(){
   }
   function getFilters(){
     function v(id){var e=document.getElementById(id);return e?(e.value||''):'';}
-    var basRaw=v('fBas'), bitRaw=v('fBit');
+    var basRaw=v('fBas'), bitRaw=v('fBit'), gunBasRaw=v('fGunBas'), gunBitRaw=v('fGunBit');
     return {
       bas:String(basRaw).replace('-','')||'000000', bit:String(bitRaw).replace('-','')||'999999', basRaw:basRaw, bitRaw:bitRaw,
+      gunBasRaw:gunBasRaw, gunBitRaw:gunBitRaw,
       firmalar:selected('fFirma'), firmaTip:v('fFirmaTip'), yon:v('fYon'), rmler:selected('fRM'), grupIci:v('fGrupIci'), ortakIci:v('fOrtakIci'),
       bankalar:selected('fBanka'), dovizler:selected('fDoviz'), giderler:selected('fGider'), kaynak:v('fKaynak'),
       minT:num(v('fMin'))*1000, maxT:num(v('fMax'))*1000, bankaBos:v('fBankaBoş')
@@ -8298,6 +8311,11 @@ window.kpiDrillClear = function(){
     if(STATE.cache[key]) return STATE.cache[key];
     var rows=rawRows().filter(function(d){
       var mk=monthKey(d); if(!opt.ignoreDate && mk){ if(mk<fl.bas || mk>fl.bit) return false; }
+      if(!opt.ignoreDate && (fl.gunBasRaw || fl.gunBitRaw)){
+        var dk=rowDate(d);
+        if(fl.gunBasRaw && (!dk || dk<fl.gunBasRaw)) return false;
+        if(fl.gunBitRaw && (!dk || dk>fl.gunBitRaw)) return false;
+      }
       var firma=rowFirma(d), banka=rowBanka(d), rm=rowRM(d), detay=rowDetay(d), doviz=rowDoviz(d), yon=rowYon(d), tut=rowTutar(d), tip=firmaTipOf(firma);
       if(fl.firmalar && fl.firmalar.length && fl.firmalar.indexOf(firma)<0) return false;
       if(fl.firmaTip && tip!==fl.firmaTip) return false;
@@ -9031,6 +9049,7 @@ window.kpiDrillClear = function(){
     function v(id){var e=document.getElementById(id);return e?(e.value||''):'';}
     return {
       bas:String(v('fBas')||'0000-00').replace('-',''), bit:String(v('fBit')||'9999-99').replace('-',''),
+      gunBasRaw:v('fGunBas'), gunBitRaw:v('fGunBit'),
       firmalar:selected('fFirma'), firmaTip:v('fFirmaTip'), yon:v('fYon'), rmler:selected('fRM'), bankalar:selected('fBanka'),
       dovizler:selected('fDoviz'), giderler:selected('fGider'), kaynak:v('fKaynak'), minT:num(v('fMin'))*1000, maxT:num(v('fMax'))*1000,
       bankaBos:v('fBankaBoş'), grupIci:v('fGrupIci'), ortakIci:v('fOrtakIci')
@@ -9054,6 +9073,11 @@ window.kpiDrillClear = function(){
     fl=fl||getFiltersFixed(); normalizeDatesInData();
     return rawRows().filter(function(d){
       var mk=monthKey(d); if(mk && (mk<fl.bas || mk>fl.bit)) return false;
+      if(fl.gunBasRaw || fl.gunBitRaw){
+        var dk=isoDate(val(d,['tarih','Tarih','date','TARİH','TARIH'],''));
+        if(fl.gunBasRaw && (!dk || dk<fl.gunBasRaw)) return false;
+        if(fl.gunBitRaw && (!dk || dk>fl.gunBitRaw)) return false;
+      }
       var firma=rowFirma(d), banka=rowBanka(d), rm=rowRM(d), detay=rowDetay(d), doviz=rowDoviz(d), yon=rowYon(d), tut=rowTutar(d), tip=firmaTypeOf(firma);
       if(fl.firmalar.length && !includesNormalized(fl.firmalar,firma)) return false;
       if(fl.firmaTip && tip!==fl.firmaTip) return false;
