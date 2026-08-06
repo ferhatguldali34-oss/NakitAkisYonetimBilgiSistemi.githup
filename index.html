@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nakit Akış Yönetim Sistemi</title>
+<title>Nakit Akış Yönetim Sistemi · V13.5</title>
 <!-- Site paketindeki harici faviconlar -->
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
@@ -1467,6 +1467,7 @@ canvas,
    </div>
    <div class="report-grid-sec">Nakit / Veri</div>
    <div class="report-grid">
+    <label><input type="checkbox" class="rpChk" value="bankaMerkezi"> Banka Bakiyeleri</label>
     <label><input type="checkbox" class="rpChk" value="trend" checked> Günlük Trend</label>
     <label><input type="checkbox" class="rpChk" value="raporDisi"> Rapor Dışı Hareketler</label>
    </div>
@@ -1995,7 +1996,7 @@ function normalizeDashboardData(raw){
       alici: clean(r.alici || r['Alıcı/Karşı Taraf'] || r.counterparty),
       tutar,
       doviz: clean(r.doviz || r['Döviz Cinsi'] || r.currency || 'TL') || 'TL',
-      dov_bak: num(r.dov_bak ?? r['Döviz Bakiye'] ?? r.currency_amount),
+      dov_bak: num(r.dov_bak ?? r['Döviz Bakiye'] ?? r['Döviz Bakiyesi'] ?? r.currency_amount),
       aciklama: clean(r.aciklama || r['Açıklama'] || r.description),
       rm: clean(r.rm || r['Rapor Mapping'] || r.report_mapping),
       yon: clean(r.yon || r['Nakit Yönü'] || r['Yönü'] || r.direction || (tutar>0?'GİRİŞ':(tutar<0?'ÇIKIŞ':'NÖTR'))),
@@ -3375,6 +3376,7 @@ function showManuel(){ return showManuelFull(undefined); }
 function saveManuel(){ return saveManuelFull(undefined); }
 
 function nav(id){
+  document.body.classList.toggle('bb-page-active',id==='bankaMerkezi');
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('on'));
   const pg=document.getElementById('pg-'+id);if(pg)pg.classList.add('on');
@@ -7297,7 +7299,7 @@ document.addEventListener('DOMContentLoaded',function(){
 (function(){
   'use strict';
   var NEW_IDS={bankaMerkezi:1,beklenen:1,forecast:1,mutabakat:1,raporDisi:1};
-  var TITLES={bankaMerkezi:'Banka Bakiye Merkezi',beklenen:'Beklenen Tahsilat / Ödeme',forecast:'Nakit Tahmin',mutabakat:'Mutabakat / Veri Kontrol',raporDisi:'Rapor Dışı Hareketler'};
+  var TITLES={bankaMerkezi:'Banka Bakiyeleri',beklenen:'Beklenen Tahsilat / Ödeme',forecast:'Nakit Tahmin',mutabakat:'Mutabakat / Veri Kontrol',raporDisi:'Rapor Dışı Hareketler'};
   function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function rows(){return Array.isArray(window.F)?window.F:[];}
   function num(v){ if(typeof v==='number')return isFinite(v)?v:0; var s=String(v==null?'':v).replace(/\s/g,''); if(!s)return 0; if(s.indexOf(',')>-1){s=s.replace(/\./g,'').replace(',','.');} var n=Number(s); return isFinite(n)?n:0; }
@@ -7308,7 +7310,7 @@ document.addEventListener('DOMContentLoaded',function(){
   function banka(d){return val(d,['banka','Banka','İşlem Yapan Banka','islem_yapan_banka'],'Bankasız');}
   function doviz(d){return val(d,['doviz','Döviz','Döviz Cinsi','doviz_cinsi'],'TL')||'TL';}
   function rm(d){return val(d,['rm','rapor_mapping','Rapor Mapping','mapping'],'Tanımsız');}
-  function detay(d){return val(d,['detay','Nakit İşlem Detayı','İşlem Detayı','islem_detayi'],'');}
+  function detay(d){return val(d,['nakit_det','detay','Nakit İşlem Detayı','İşlem Detayı','islem_detayi'],'');}
   function tarih(d){return val(d,['tarih','Tarih','date'],'');}
   function tutar(d){return num(val(d,['tutar','Tutar','amount'],0));}
   function yon(d){var y=val(d,['yon','Nakit Yönü','nakit_yonu'],''); if(!y){var t=tutar(d); y=t>0?'GİRİŞ':t<0?'ÇIKIŞ':'NÖTR';} return y;}
@@ -7319,7 +7321,7 @@ document.addEventListener('DOMContentLoaded',function(){
   function saveExpected(a){localStorage.setItem('v97_expected_flows',JSON.stringify(a||[]));}
   function pageShell(id,title,body){return '<div class="pg" id="pg-'+id+'"><div class="exec-hero"><div class="exec-title">'+E(title)+'</div><div class="exec-sub">Backend geçişine hazır CFO modülü</div><div class="exec-period">Filtreler mevcut veri üzerinden çalışır; yeni girişler şimdilik tarayıcı demo kaydıdır.</div></div>'+body+'</div>';}
   function ensurePages(){var content=document.querySelector('.content'); if(!content)return; if(document.getElementById('pg-bankaMerkezi'))return; content.insertAdjacentHTML('beforeend',
-    pageShell('bankaMerkezi','Banka Bakiye Merkezi','<div id="v97Banka"></div>')+
+    pageShell('bankaMerkezi','Banka Bakiyeleri','<div id="v97Banka"></div>')+
     pageShell('beklenen','Beklenen Tahsilat / Ödeme','<div id="v97Beklenen"></div>')+
     pageShell('forecast','Nakit Tahmin / Forecast','<div id="v97Forecast"></div>')+
     pageShell('mutabakat','Mutabakat / Veri Kontrol','<div id="v97Mutabakat"></div>')+
@@ -7346,7 +7348,428 @@ document.addEventListener('DOMContentLoaded',function(){
     sb.insertAdjacentHTML('beforeend',html); sb.appendChild(foot);
   }
   function kcards(list){return '<div class="v97-grid">'+list.map(function(k){return '<div class="kcard"><div class="kcard-line" style="background:'+k.c+'"></div><div class="kcard-lbl">'+E(k.l)+'</div><div class="kcard-val '+(k.cls||'')+'">'+E(k.v)+'</div><div class="kcard-meta"><span class="kcard-sub">'+E(k.s||'')+'</span></div></div>';}).join('')+'</div>';}
-  function renderBanka(){var r=activeRows().filter(function(d){return !isOut(d);}); var by=groupBy(r,function(d){return firma(d)+'|||'+banka(d)+'|||'+doviz(d);}); var arr=Object.keys(by).map(function(k){var p=k.split('|||'), o=by[k]; return {firma:p[0],banka:p[1],doviz:p[2],sum:o.sum,n:o.n};}).sort(function(a,b){return Math.abs(b.sum)-Math.abs(a.sum);}); var total=arr.reduce(function(s,x){return s+x.sum;},0); var neg=arr.filter(function(x){return x.sum<0;}).length; document.getElementById('v97Banka').innerHTML='<div class="v97-note"><b>Amaç:</b> Firma + banka + döviz bazında dönem sonu hareket pozisyonunu gösterir. Backend aşamasında bu ekran banka hesap bakiyesi ve banka ekstresi mutabakatıyla gerçek bakiye merkezine dönüşecek.</div>'+kcards([{l:'Toplam Net Pozisyon',v:fmt(total),s:'rapor dışı hariç',c:total>=0?'#4ade80':'#fb7185',cls:total>=0?'pos':'neg'},{l:'Banka/Döviz Kırılımı',v:String(arr.length),s:'aktif kombinasyon',c:'#60a5fa'},{l:'Negatif Pozisyon',v:String(neg),s:'kontrol edilecek',c:'#fb7185'},{l:'İşlem Sayısı',v:String(r.length.toLocaleString('tr-TR')),s:'filtrelenmiş',c:'#c9a84c'}])+'<div class="card"><div class="card-h"><div class="card-ht">Banka Bakiye Kırılımı</div></div><div class="v97-table-wrap"><table class="v97-table"><thead><tr><th>Firma</th><th>Banka</th><th>Döviz</th><th class="num">İşlem</th><th class="num">Net Pozisyon</th></tr></thead><tbody>'+arr.map(function(x){return '<tr><td>'+E(x.firma)+'</td><td>'+E(x.banka)+'</td><td>'+E(x.doviz)+'</td><td class="num">'+x.n+'</td><td class="num '+(x.sum>=0?'pos':'neg')+'">'+fmt(x.sum)+'</td></tr>';}).join('')+'</tbody></table></div></div>';}
+  /* V13.6 — Banka Bakiyeleri: mevcut bankaMerkezi motorunun yeni görünümü.
+     TL bakiyesi = Tutar toplamı; USD/EUR bakiyesi = dov_bak (Döviz Bakiyesi) toplamı. */
+  var BANK_DEFAULT_FIRMS=['ALD VE SEMAYRA','AYBİR','AYDÖRT','AYİKİ','AYTUN','AYÜÇ','AYZİRVE','DENİZAY','DEMAN','ETÜT','GÖKZİRVE','GÜRGEN','HCR','KUZENLER','NADİR','OSM','OZBİR','SMR','SMRA','SEMAYRA','SOHOENERJİ','SOHO MADEN','TARSUS','ÜÇKARDEŞLER','ÜLGEN','YETİŞ'];
+  var BANK_DEFAULT_BANKS=['Garanti Bankası','İş Bankası','Akbank','Halk Bankası'];
+  var BANK_STORE_BANKS='NAKIT_BANKA_BAKIYE_BANKS_V130';
+  var BANK_STORE_HIDDEN_FIRMS='NAKIT_BANKA_BAKIYE_HIDDEN_FIRMS_V130';
+  var BANK_STORE_SELECTED_CURS='NAKIT_BANKA_BAKIYE_SELECTED_CURS_V136';
+  var BANK_STORE_CUSTOM_CURS='NAKIT_BANKA_BAKIYE_CUSTOM_CURS_V136';
+  var BANK_STATE={bank:'',cur:'',q:'',asOf:'',detail:null};
+
+  function bankNorm(s){
+    return String(s==null?'':s).trim().toLocaleUpperCase('tr-TR')
+      .replace(/İ/g,'I').replace(/İ/g,'I').replace(/Ş/g,'S').replace(/Ğ/g,'G')
+      .replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C').replace(/[^A-Z0-9]+/g,' ').trim();
+  }
+  function firmKey(s){
+    var k=bankNorm(s).replace(/\s+/g,'');
+    /* V13.3 — Excel'deki kısa firma adı ile data.json'daki uzun unvan aynı firmadır. */
+    if(k.indexOf('ALDVESEMAYRA')===0)return 'ALDVESEMAYRA';
+    return k;
+  }
+  function bankCanon(s){
+    var n=bankNorm(s);
+    /* V13.5 — bankası boş / tanımsız kayıt Banka Bakiyeleri ekranına kesinlikle girmez.
+       Eski yardımcı banka() boş alanı "Bankasız" diye doldurabildiği için burada da kesiyoruz. */
+    if(!n||n==='BANKASIZ'||n==='BANKASI YOK'||n==='TANIMSIZ'||n==='TANIMSIZ BANKA'||n==='YOK'||n==='-')return '';
+    if(n.indexOf('GARANTI')>-1)return 'Garanti Bankası';
+    if(n.indexOf('IS BANK')>-1||n.indexOf('ISBANK')>-1)return 'İş Bankası';
+    if(n.indexOf('AKBANK')>-1)return 'Akbank';
+    if(n.indexOf('HALK')>-1)return 'Halk Bankası';
+    if(n.indexOf('ZIRAAT')>-1)return 'Ziraat Bankası';
+    if(n==='TEB'||n.indexOf('TURK EKONOMI BANK')>-1)return 'TEB';
+    if(n.indexOf('YAPI KREDI')>-1)return 'Yapı Kredi';
+    if(n.indexOf('VAKIF')>-1)return 'VakıfBank';
+    if(n.indexOf('DENIZBANK')>-1||n.indexOf('DENIZ BANK')>-1)return 'DenizBank';
+    if(n.indexOf('QNB')>-1)return 'QNB';
+    if(n.indexOf('KUVEYT')>-1)return 'Kuveyt Türk';
+    return String(s||'').trim();
+  }
+  function bankRawCurrency(d){
+    return String(val(d,['doviz','Döviz','Döviz Cinsi','doviz_cinsi','DOVIZ'],'')||'').trim();
+  }
+  function bankCur(d){
+    /* Ana para birimleri. Üst banka kartları DAİMA yalnız TL / USD / EUR gösterir. */
+    var c=bankNorm(bankRawCurrency(d));
+    if(c==='USD'||c==='DOLAR'||c==='US DOLLAR'||c==='AMERIKAN DOLARI')return 'USD';
+    if(c==='EUR'||c==='EURO')return 'EUR';
+    if(c==='TL'||c==='TRY'||c==='TURK LIRASI')return 'TL';
+    return '';
+  }
+  function bankDovAmount(d){return num(val(d,['dov_bak','Döviz Bakiye','Döviz Bakiyesi','currency_amount'],0));}
+  function bankInstrument(d){
+    var c=bankNorm(bankRawCurrency(d));
+    if(c==='FON')return 'FON';
+    if(c==='EUR FON'||c==='EURO FON')return 'EUR FON';
+    if(c==='VADELI'||c==='VADELI HESAP')return 'VADELİ';
+    if(c==='TEMLIK')return 'TEMLİK';
+    return '';
+  }
+  function bankAccountCur(d){
+    var c=bankCur(d); if(c)return c;
+    var i=bankInstrument(d); if(i)return i;
+    var raw=bankRawCurrency(d), n=bankNorm(raw);
+    if(!n)return '';
+    return raw.toLocaleUpperCase('tr-TR');
+  }
+  function bankAmount(d){
+    var c=bankAccountCur(d), fx=bankDovAmount(d), tv=tutar(d);
+    if(c==='TL')return tv;
+    if(c==='USD'||c==='EUR')return fx;
+    if((c.indexOf('EUR')>-1||c.indexOf('USD')>-1)&&Math.abs(fx)>0.0000001)return fx;
+    return tv;
+  }
+  function bankIsInternalTransfer(d){
+    var t=bankNorm(detay(d)+' '+rm(d)+' '+val(d,['aciklama','Açıklama'],''));
+    return t.indexOf('HESAPLAR ARASI VIRMAN')>-1||t.indexOf('DOVIZ ALIS SATIS')>-1;
+  }
+  function bankIsInterbankOut(d){
+    if(bankCur(d)!=='TL'||tutar(d)>=0)return false;
+    var t=bankNorm(detay(d)+' '+rm(d)+' '+val(d,['aciklama','Açıklama'],''));
+    return t.indexOf('BANKALAR ARASI VIRMAN')>-1||t.indexOf('BANKALAR ARASI TRANSFER')>-1;
+  }
+  function bankFmt(v,c,zeroDash){
+    var n=Number(v||0); if(zeroDash&&Math.abs(n)<0.0000001)return '–';
+    var x=Math.abs(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    var sign=n<0?'-':'';
+    if(c==='USD'||String(c||'').indexOf('USD')>-1)return sign+'$ '+x;
+    if(c==='EUR'||String(c||'').indexOf('EUR')>-1)return sign+'€ '+x;
+    return sign+'₺ '+x;
+  }
+  function bankLogo(b,all){
+    if(all)return '<span class="bb-bank-logo bb-logo-all" aria-hidden="true">⌂</span>';
+    var c=bankCanon(b), n=bankNorm(c), cls='bb-logo-generic', mark=(c||'?').trim().charAt(0).toLocaleUpperCase('tr-TR');
+    if(n.indexOf('GARANTI')>-1){cls='bb-logo-garanti';mark='✤';}
+    else if(n.indexOf('IS BANK')>-1||n.indexOf('ISBANK')>-1){cls='bb-logo-is';mark='İ';}
+    else if(n.indexOf('AKBANK')>-1){cls='bb-logo-akbank';mark='A';}
+    else if(n.indexOf('HALK')>-1){cls='bb-logo-halk';mark='H';}
+    else if(n.indexOf('ZIRAAT')>-1){cls='bb-logo-ziraat';mark='Z';}
+    else if(n==='TEB'||n.indexOf('TURK EKONOMI')>-1){cls='bb-logo-teb';mark='T';}
+    else if(n.indexOf('YAPI')>-1){cls='bb-logo-yapi';mark='YK';}
+    else if(n.indexOf('VAKIF')>-1){cls='bb-logo-vakif';mark='V';}
+    else if(n.indexOf('QNB')>-1||n.indexOf('FINANSBANK')>-1){cls='bb-logo-qnb';mark='Q';}
+    else if(n.indexOf('DENIZ')>-1){cls='bb-logo-deniz';mark='D';}
+    return '<span class="bb-bank-logo '+cls+'" aria-hidden="true">'+E(mark)+'</span>';
+  }
+  function bankCfg(){
+    try{var a=JSON.parse(localStorage.getItem(BANK_STORE_BANKS)||'null'); if(Array.isArray(a)&&a.length)return a.map(bankCanon).filter(Boolean);}catch(e){}
+    return BANK_DEFAULT_BANKS.slice();
+  }
+  function bankSaveCfg(a){localStorage.setItem(BANK_STORE_BANKS,JSON.stringify(a||[]));}
+  function bankHidden(){try{return new Set(JSON.parse(localStorage.getItem(BANK_STORE_HIDDEN_FIRMS)||'[]')||[]);}catch(e){return new Set();}}
+  function bankSaveHidden(s){localStorage.setItem(BANK_STORE_HIDDEN_FIRMS,JSON.stringify(Array.from(s||[])));}
+  function bankVisibleFirms(){var h=bankHidden();return BANK_DEFAULT_FIRMS.filter(function(f){return !h.has(firmKey(f));});}
+  function bankCustomCurrencies(){
+    try{var a=JSON.parse(localStorage.getItem(BANK_STORE_CUSTOM_CURS)||'[]');return Array.isArray(a)?a.map(function(x){return String(x||'').trim().toLocaleUpperCase('tr-TR');}).filter(Boolean):[];}catch(e){return [];}
+  }
+  function bankSaveCustomCurrencies(a){localStorage.setItem(BANK_STORE_CUSTOM_CURS,JSON.stringify((a||[]).filter(Boolean)));}
+  function bankAvailableCurrencies(){
+    var seen={TL:1,USD:1,EUR:1};
+    bankRawRows().forEach(function(d){
+      if(!bankCanon(banka(d)))return;
+      var c=bankAccountCur(d);
+      if(c)seen[c]=1;
+    });
+    bankCustomCurrencies().forEach(function(c){if(c)seen[c]=1;});
+    var base=['TL','USD','EUR'];
+    return base.concat(Object.keys(seen).filter(function(c){return base.indexOf(c)<0;}).sort(function(a,b){return a.localeCompare(b,'tr');}));
+  }
+  function bankSelectedCurrencies(){
+    var available=bankAvailableCurrencies(), arr=null;
+    try{arr=JSON.parse(localStorage.getItem(BANK_STORE_SELECTED_CURS)||'null');}catch(e){}
+    if(!Array.isArray(arr))arr=['TL','USD','EUR'];
+    arr=arr.map(function(x){return String(x||'').trim().toLocaleUpperCase('tr-TR');}).filter(Boolean);
+    var selected={};arr.forEach(function(c){selected[c]=1;});
+    var clean=available.filter(function(c){return !!selected[c];});
+    return clean.length?clean:['TL','USD','EUR'];
+  }
+  function bankSaveSelectedCurrencies(a){
+    localStorage.setItem(BANK_STORE_SELECTED_CURS,JSON.stringify((a||[]).filter(Boolean)));
+  }
+  function bankDisplayCurrencies(){return bankSelectedCurrencies();}
+
+  /* V13.3 — Banka bakiyesi nakit akış raporu değildir.
+     - window.F / rapor mapping / yön filtrelerinden bağımsız çalışır.
+     - Aynı yılın açılış bakiyesi + bakiye tarihine kadar banka hesabını gerçekten etkileyen hareketleri toplar.
+     - NÖTR olan HESAPLAR ARASI VİRMAN / NAKİT AKTARIMI / BANKALAR ARASI TRANSFER / DÖVİZ ALIŞ-SATIŞ hareketleri dahildir.
+     - GÜNCEL BAKİYE, KUR FARKI ve kredi kartı/senet gibi nakit dışı bilgi satırları bakiye hareketi sayılmaz. */
+  function bankRawRows(){
+    try{
+      var src=window.D||(typeof D!=='undefined'?D:null);
+      if(Array.isArray(src))return src;
+      if(src&&Array.isArray(src.detay))return src.detay;
+    }catch(e){}
+    return [];
+  }
+  function bankDateISO(d){
+    var v=val(d,['tarih','Tarih','date','TARİH','TARIH'],'');
+    if(typeof isoDate==='function'){try{return isoDate(v)||'';}catch(e){}}
+    var x=String(v||'').trim(),m;
+    if((m=x.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/)))return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+    if((m=x.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/)))return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+    return '';
+  }
+  function bankDatasetMaxDate(){
+    var max='';
+    bankRawRows().forEach(function(d){
+      /* Banka ekranının tarihini bankasız AUTO kayıtlar veya FON/VADELİ satırları ileri taşımasın. */
+      if(!bankCanon(banka(d))||!bankAccountCur(d))return;
+      var x=bankDateISO(d); if(x&&x>max)max=x;
+    });
+    return max;
+  }
+  function bankAsOfDate(){
+    /* V13.3 — Banka bakiyesi sayfası global nakit-akış gün/ay filtresinden BAĞIMSIZDIR.
+       Varsayılan tarih, data.json içindeki son gerçek banka hareketi tarihidir.
+       Kullanıcı geçmiş bir tarih seçerse o tarih kullanılır; veri sonrasına taşınamaz. */
+    var mx=bankDatasetMaxDate();
+    if(BANK_STATE.asOf){
+      if(mx&&BANK_STATE.asOf>mx)return mx;
+      return BANK_STATE.asOf;
+    }
+    return mx;
+  }
+  function bankIsOpening(d){
+    var t=bankNorm(rm(d)+' '+detay(d)+' '+val(d,['aciklama','Açıklama'],'') );
+    return t.indexOf('DONEM BASI MEVCUT BAKIYE')>-1||t.indexOf('ACILIS BAKIYESI')>-1;
+  }
+  function bankAffectsBalance(d){
+    /* V13.3 — Banka bakiyesi için YÖN değil, banka ekstresi hareketinin kendisi esastır.
+       NÖTR / RAPOR DIŞI olması hareketi bankadan çıkarmaz. Örn.:
+       - BANKALAR ARASI VİRMAN
+       - HESAPLAR ARASI VİRMAN
+       - ORTAĞA/ORTAKTAN GELEN-GİDEN PARA RAPOR DIŞI
+       - SORULACAK
+       Bunların tamamı banka hesabında işaretli tutar kadar bakiye etkisi yaratır.
+       Yalnız gerçekten nakit/banka hareketi olmayan bilgi satırları hariç tutulur. */
+    var t=bankNorm(rm(d)+' '+detay(d)+' '+val(d,['aciklama','Açıklama'],'') );
+    if(bankIsOpening(d))return true;
+
+    /* Muhasebe değerleme/bilgi satırları banka hesabının para miktarını değiştirmez. */
+    if(t.indexOf('GUNCEL BAKIYE')>-1||
+       t.indexOf('NAKIT DISI BILGI')>-1||
+       t.indexOf('KUR FARKI')>-1||
+       t.indexOf('NAKIT DISI ETKI')>-1)return false;
+
+    /* Henüz banka hesabına yansımamış / başka enstrümana ait hareketler. */
+    if(t.indexOf('CEK HAREKETI')>-1||
+       t.indexOf('SENET HAREKETI')>-1||
+       t.indexOf('KREDI KARTI HAREKETI')>-1||
+       t.indexOf('NAKIT ETKISI YOK')>-1||
+       t.indexOf('MAHSUP')>-1)return false;
+
+    /* Bankası ve gerçek döviz cinsi olan işaretli hareket banka bakiyesine girer.
+       Böylece NÖTR ve RAPOR DIŞI kayıtlar da doğru şekilde hesaba katılır. */
+    return Math.abs(tutar(d))>0.0000001||Math.abs(bankDovAmount(d))>0.0000001;
+  }
+  function bankRows(){
+    var asof=bankAsOfDate();
+    var year=asof?asof.slice(0,4):'';
+
+    /* V13.4 — FON/VADELİ/TEMLİK artık çöpe atılmıyor.
+       Bunlar tabloda gösterilmeyen gizli banka alt hesaplarıdır.
+       Amaç: banka ekstresinde BANKALAR ARASI VİRMAN çıkışı var ve bu çıkış öncesinde
+       aynı bankadaki FON/VADELİ likiditesinden TL'ye çözüm yapılmışsa, veri setinde
+       TL karşı bacağı eksik olduğunda bakiye yapay olarak eksiye düşmesin. */
+    var source=bankRawRows().filter(function(d){
+      if(!bankCanon(banka(d))||!firmKey(firma(d)))return false;
+      if(!bankAccountCur(d))return false;
+      var dt=bankDateISO(d);
+      if(asof&&dt&&dt>asof)return false;
+      if(year&&dt&&dt.slice(0,4)!==year)return false;
+      return bankAffectsBalance(d);
+    });
+
+    var groups={};
+    source.forEach(function(d,idx){
+      var key=firmKey(firma(d))+'|||'+bankNorm(bankCanon(banka(d)));
+      if(!groups[key])groups[key]=[];
+      d.__bbOrder=idx; groups[key].push(d);
+    });
+
+    var out=[];
+    Object.keys(groups).forEach(function(gk){
+      var arr=groups[gk];
+      arr.sort(function(a,b){
+        var da=bankDateISO(a),db=bankDateISO(b);
+        if(da!==db)return da<db?-1:1;
+        return (a.__bbOrder||0)-(b.__bbOrder||0);
+      });
+      var byDate={};
+      arr.forEach(function(d){var dt=bankDateISO(d)||'0000-00-00';if(!byDate[dt])byDate[dt]=[];byDate[dt].push(d);});
+
+      var tlBal=0, hidden={'FON':0,'EUR FON':0,'VADELİ':0,'TEMLİK':0};
+      Object.keys(byDate).sort().forEach(function(dt){
+        var day=byDate[dt], interbankOut=0, posTlInternal=0, negHiddenInternal=0;
+
+        day.forEach(function(d){
+          var c=bankCur(d), inst=bankInstrument(d), tv=tutar(d);
+          if(c){
+            out.push(d);
+            if(c==='TL')tlBal+=tv;
+            if(c==='TL'&&tv>0&&bankIsInternalTransfer(d))posTlInternal+=tv;
+            if(bankIsInterbankOut(d))interbankOut+=Math.abs(tv);
+          }
+          if(inst){
+            out.push(d);
+            hidden[inst]=(hidden[inst]||0)+tv;
+            if(tv<0&&bankIsInternalTransfer(d))negHiddenInternal+=Math.abs(tv);
+          } else if(!c && bankAccountCur(d)){
+            out.push(d);
+          }
+        });
+
+        /* Aynı gün açıkça kayıtlı FON/VADELİ -> TL çözümünü tekrar üretme. */
+        var explicitLiquidToTL=Math.min(posTlInternal,negHiddenInternal);
+
+        /* Eğer bankalar arası TL çıkışı, gerçek TL bakiyesini negatife düşürüyor ve aynı
+           bankada pozitif FON/VADELİ/TEMLİK likiditesi varsa; eksik TL karşı bacağını
+           otomatik eşleştir. Bu, SOHO MADEN / İş Bankası 05.08 örneğindeki 10 mn FON -> TL
+           çözümünün veri setinde karşı satırı bulunmadığında da doğru banka bakiyesini korur. */
+        if(tlBal<0&&interbankOut>0){
+          var unmatched=Math.max(0,interbankOut-explicitLiquidToTL);
+          var available=Math.max(0,hidden['FON']||0)+Math.max(0,hidden['VADELİ']||0)+Math.max(0,hidden['TEMLİK']||0);
+          var auto=Math.min(unmatched,available);
+          if(auto>0.0000001){
+            var remain=auto, used=[], sample=day[0]||{};
+            ['FON','VADELİ','TEMLİK'].forEach(function(k){
+              if(remain<=0)return;
+              var take=Math.min(remain,Math.max(0,hidden[k]||0));
+              if(take>0){
+                hidden[k]-=take;remain-=take;used.push(k+' '+bankFmt(take,'TL',false));
+                out.push({tarih:dt,firma:firma(sample),banka:bankCanon(banka(sample)),banka_adi:'',
+                  nakit_det:k+' → TL OTOMATİK EŞLEŞTİRME',alici:'',tutar:-take,doviz:k,dov_bak:0,
+                  aciklama:'TL karşı bacağı için otomatik likidite çözümü',rm:'NAKİT AKTARIMI / RAPOR DIŞI',
+                  yon:'NÖTR',kaynak:'index-otomatik',__bbSynthetic:true});
+              }
+            });
+            tlBal+=auto;
+            out.push({
+              tarih:dt, firma:firma(sample), banka:bankCanon(banka(sample)), banka_adi:'',
+              nakit_det:'FON / VADELİ → TL OTOMATİK EŞLEŞTİRME', alici:'', tutar:auto, doviz:'TL', dov_bak:0,
+              aciklama:'Eksik TL karşı bacağı otomatik tamamlandı · Kaynak: '+used.join(' + '),
+              rm:'NAKİT AKTARIMI / RAPOR DIŞI', yon:'NÖTR', kaynak:'index-otomatik', __bbSynthetic:true
+            });
+          }
+        }
+      });
+    });
+    return out;
+  }
+  function bankMatrix(){
+    var cfg=bankCfg(), cfgMap={}; cfg.forEach(function(b){cfgMap[bankNorm(b)]=b;});
+    var visible=bankVisibleFirms(), fMap={}; visible.forEach(function(f){fMap[firmKey(f)]=f;});
+    var m={}, counts={};
+    bankRows().forEach(function(d){
+      var fk=firmKey(firma(d)), bc=bankCanon(banka(d)), ck=bankAccountCur(d);
+      if(!bc||!ck||!fMap[fk]||!cfgMap[bankNorm(bc)])return;
+      var key=fk+'|||'+bankNorm(bc)+'|||'+ck;
+      m[key]=(m[key]||0)+bankAmount(d); counts[key]=(counts[key]||0)+1;
+    });
+    return {m:m,counts:counts,firms:visible,banks:cfg};
+  }
+  function bankCell(data,f,b,c){var k=firmKey(f)+'|||'+bankNorm(b)+'|||'+c;return {v:data.m[k]||0,n:data.counts[k]||0};}
+  function bankSumFor(data,b,c){return data.firms.reduce(function(s,f){return s+bankCell(data,f,b,c).v;},0);}
+  function bankAllSum(data,c){return data.banks.reduce(function(s,b){return s+bankSumFor(data,b,c);},0);}
+  function bankCard(title,bankName,data,all){
+    var active=!all&&BANK_STATE.bank===bankName;
+    var click=all?"v97BankLocal('bank','')":"v97BankLocal('bank',decodeURIComponent('"+encodeURIComponent(bankName)+"'))";
+    var curs=bankDisplayCurrencies();
+    var lines=curs.map(function(c){
+      var v=all?bankAllSum(data,c):bankSumFor(data,bankName,c);
+      return '<div class="bb-bank-line"><span>'+E(c)+'</span><b>'+bankFmt(v,c,false)+'</b></div>';
+    }).join('');
+    return '<button type="button" class="bb-bank-card '+(all?'bb-all ':'')+(active?'on':'')+'" onclick="'+click+'">'+
+      '<div class="bb-bank-title">'+bankLogo(bankName,all)+E(title)+'</div>'+lines+'</button>';
+  }
+  function bankDetailRows(sel){
+    if(!sel)return [];
+    var rows0=bankRows().filter(function(d){
+      var bc=bankCanon(banka(d));
+      if(!bc)return false;
+      if(sel.firm&&firmKey(firma(d))!==firmKey(sel.firm))return false;
+      if(sel.bank&&bankNorm(bc)!==bankNorm(sel.bank))return false;
+      if(sel.cur&&bankAccountCur(d)!==sel.cur)return false;
+      return true;
+    });
+    rows0.sort(function(a,b){return String(tarih(b)||'').localeCompare(String(tarih(a)||''));});
+    return rows0;
+  }
+  function bankRenderDetail(){
+    var el=document.getElementById('v97BankDetail'); if(!el)return;
+    var s=BANK_STATE.detail; if(!s){el.innerHTML='';return;}
+    var rr=bankDetailRows(s), cur=s.cur||'';
+    var bal=rr.reduce(function(x,d){return x+bankAmount(d);},0);
+    var ttl=[s.firm||'Tüm Firmalar',s.bank||'Tüm Bankalar',s.cur||'Tüm Dövizler'].join(' · ');
+    el.innerHTML='<div class="bb-detail">'+
+      '<div class="bb-detail-head"><div><div class="bb-detail-kicker">İŞLEM HAREKETLERİ</div><div class="bb-detail-title">'+E(ttl)+'</div></div><div class="bb-detail-actions"><span class="bb-detail-total">'+(cur?bankFmt(bal,cur,false):rr.length.toLocaleString('tr-TR')+' kayıt')+'</span><button class="btn btn-ghost btn-sm" onclick="v97BankCloseDetail()">✕ Kapat</button></div></div>'+
+      '<div class="bb-detail-wrap"><table class="bb-detail-table"><thead><tr><th>Tarih</th><th>Firma</th><th>Banka</th><th>Döviz</th><th>Yön</th><th class="num">Tutar</th><th class="num">Döviz Tutarı</th><th>Nakit İşlem Detayı</th><th>Alıcı Ünvanı</th><th>Açıklama</th></tr></thead><tbody>'+
+      rr.slice(0,700).map(function(d){var c=bankAccountCur(d), t=tutar(d), fx=bankDovAmount(d), y=String(val(d,['yon','Yönü','Nakit Yönü'],'')||(t>=0?'GİRİŞ':'ÇIKIŞ')).toLocaleUpperCase('tr-TR'); var ac=val(d,['aciklama','Açıklama'],''); var nd=detay(d); var al=val(d,['alici','Alıcı Ünvanı','Alıcı/Karşı Taraf','counterparty'],''); return '<tr><td>'+E(tarih(d)||'—')+'</td><td>'+E(firma(d)||'—')+'</td><td>'+E(bankCanon(banka(d))||banka(d)||'—')+'</td><td>'+E(c)+'</td><td><span class="bb-dir '+(y.indexOf('GİR')>-1?'in':(y.indexOf('ÇIK')>-1?'out':'neutral'))+'">'+E(y||'NÖTR')+'</span></td><td class="num '+(t>=0?'pos':'neg')+'">'+bankFmt(t,'TL',false)+'</td><td class="num '+(fx>=0?'pos':'neg')+'">'+(c==='TL'?'—':bankFmt(fx,c,true))+'</td><td class="bb-clip" title="'+E(nd)+'">'+E(nd||'—')+'</td><td class="bb-clip" title="'+E(al)+'">'+E(al||'—')+'</td><td class="bb-clip" title="'+E(ac)+'">'+E(ac||'—')+'</td></tr>';}).join('')+
+      (rr.length?'':'<tr><td colspan="10" class="empty">Bu seçimde hareket yok.</td></tr>')+'</tbody></table></div>'+
+      (rr.length>700?'<div class="bb-limit">İlk 700 kayıt gösteriliyor. Excel aktarımı tüm görünür matrisi içerir.</div>':'')+'</div>';
+  }
+  function renderBanka(){
+    var root=document.getElementById('v97Banka'); if(!root)return;
+    var data=bankMatrix(), bankList=data.banks.slice();
+    var q=bankNorm(BANK_STATE.q), firms=data.firms.filter(function(f){return !q||bankNorm(f).indexOf(q)>-1;});
+    var banks=BANK_STATE.bank?bankList.filter(function(b){return b===BANK_STATE.bank;}):bankList;
+    var curs=bankDisplayCurrencies();
+    var allCurs=bankAvailableCurrencies(), selectedMap={};curs.forEach(function(c){selectedMap[c]=1;});
+    var cards=bankCard('TÜM BANKALAR','',data,true)+bankList.map(function(b){return bankCard(b,b,data,false);}).join('')+
+      '<button type="button" class="bb-add-card" onclick="v97BankAdd()"><span>＋</span><b>BANKA EKLE</b></button>';
+    var curChecks=allCurs.map(function(c){return '<label class="bb-cur-check '+(selectedMap[c]?'on':'')+'"><input type="checkbox" '+(selectedMap[c]?'checked':'')+' onchange="v97BankToggleMainCur(decodeURIComponent(\''+encodeURIComponent(c)+'\'),this.checked)"><span>'+E(c)+'</span></label>';}).join('');
+    var h1='<tr><th class="bb-firm-h" rowspan="2">FİRMA</th>'+banks.map(function(b){return '<th colspan="'+curs.length+'" class="bb-bank-h"><span class="bb-bank-head-inner">'+bankLogo(b,false)+E(b)+'</span></th>';}).join('')+'</tr>';
+    var h2='<tr>'+banks.map(function(){return curs.map(function(c){return '<th class="bb-cur-h">'+E(c)+'</th>';}).join('');}).join('')+'</tr>';
+    var body=firms.map(function(f){return '<tr><td class="bb-firm"><button class="bb-plus" onclick="v97BankFirmDetail(decodeURIComponent(\''+encodeURIComponent(f)+'\'))">＋</button>'+E(f)+'</td>'+banks.map(function(b){return curs.map(function(c){var z=bankCell(data,f,b,c), encF=encodeURIComponent(f), encB=encodeURIComponent(b), encC=encodeURIComponent(c); return '<td class="num bb-cell '+(z.v<0?'neg':'')+' '+(z.n?'clickable':'')+'" '+(z.n?'onclick="v97BankDetail(decodeURIComponent(\''+encF+'\'),decodeURIComponent(\''+encB+'\'),decodeURIComponent(\''+encC+'\'))" title="'+z.n+' hareketi göster"':'')+'>'+bankFmt(z.v,c,true)+'</td>';}).join('');}).join('')+'</tr>';}).join('');
+    var total='<tr class="bb-total"><td>TOPLAM BAKİYE</td>'+banks.map(function(b){return curs.map(function(c){var v=bankSumFor(data,b,c);return '<td class="num '+(v>=0?'pos':'neg')+'">'+bankFmt(v,c,false)+'</td>';}).join('');}).join('')+'</tr>';
+    var bankOpts='<option value="">Tüm Bankalar</option>'+bankList.map(function(b){return '<option '+(BANK_STATE.bank===b?'selected':'')+'>'+E(b)+'</option>';}).join('');
+    root.innerHTML='<div class="bb-actions"><button class="btn btn-ghost btn-sm" onclick="v97BankExport()">▣ Excel\'e Aktar</button><button class="btn btn-ghost btn-sm" onclick="v97BankPrint()">▤ Yazdır</button><button class="btn btn-ghost btn-sm" onclick="v97BankManage()">▥ Firma & Banka Yönetimi</button></div>'+
+      '<div class="bb-card-strip">'+cards+'</div>'+
+      '<div class="bb-cur-togglebar"><div class="bb-cur-toggle-title"><b>Döviz / Hesap Sütunları</b><span>Seçilenler tabloya ve üst banka kartlarına anında eklenir.</span></div><div class="bb-cur-checks">'+curChecks+'</div></div>'+
+      '<div class="bb-filterbar bb-filterbar-v136"><label><span>Bakiye Tarihi</span><input type="date" value="'+E(bankAsOfDate()||'')+'" max="'+E(bankDatasetMaxDate()||'')+'" onchange="v97BankLocal(\'asOf\',this.value)"></label><label><span>Banka</span><select onchange="v97BankLocal(\'bank\',this.value)">'+bankOpts+'</select></label><label class="bb-search"><span>Firma ara</span><input value="'+E(BANK_STATE.q)+'" placeholder="Firma ara..." oninput="v97BankLocal(\'q\',this.value)"></label><button class="bb-filter-btn" onclick="v97BankResetLocal()">Filtreyi Temizle</button></div>'+
+      '<div class="bb-matrix-panel"><div class="bb-panel-head"><div><b>FİRMA</b> BANKA BAKİYELERİ <span style="margin-left:8px;color:var(--txt3);font-size:10px;font-weight:500">Bakiye tarihi: '+E(bankAsOfDate()||'—')+' · NÖTR / rapor dışı gerçek banka hareketleri dahil</span></div><button class="btn btn-ghost btn-sm" onclick="v97BankManage()">⚙ Firma & Banka Yönetimi</button></div><div class="bb-table-wrap"><table class="bb-table"><thead>'+h1+h2+'</thead><tbody>'+body+total+'</tbody></table></div></div><div id="v97BankDetail"></div>';
+    bankRenderDetail();
+  }
+  window.v97BankLocal=function(k,v){BANK_STATE[k]=v||'';BANK_STATE.detail=null;renderBanka();};
+  window.v97BankResetLocal=function(){BANK_STATE.bank='';BANK_STATE.cur='';BANK_STATE.q='';BANK_STATE.asOf='';BANK_STATE.detail=null;renderBanka();};
+  window.v97BankDetail=function(f,b,c){BANK_STATE.detail={firm:f,bank:b,cur:c};bankRenderDetail();var e=document.getElementById('v97BankDetail');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});};
+  window.v97BankFirmDetail=function(f){BANK_STATE.detail={firm:f,bank:'',cur:''};bankRenderDetail();var e=document.getElementById('v97BankDetail');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});};
+  window.v97BankCloseDetail=function(){BANK_STATE.detail=null;bankRenderDetail();};
+  window.v97BankAdd=function(){var x=prompt('Eklenecek banka adı (örnek: Ziraat Bankası, TEB):','');if(!x)return;var b=bankCanon(x);var a=bankCfg();if(a.some(function(y){return bankNorm(y)===bankNorm(b);})){try{toast('Bu banka zaten listede.','info');}catch(e){}return;}a.push(b);bankSaveCfg(a);BANK_STATE.bank='';renderBanka();};
+  window.v97BankRemove=function(enc){var b=decodeURIComponent(enc),a=bankCfg().filter(function(x){return bankNorm(x)!==bankNorm(b);});if(!a.length){alert('En az bir banka görünür kalmalı.');return;}bankSaveCfg(a);if(BANK_STATE.bank===b)BANK_STATE.bank='';renderBanka();v97BankManage();};
+  window.v97BankToggleFirm=function(enc){var f=decodeURIComponent(enc),h=bankHidden(),k=firmKey(f);if(h.has(k))h.delete(k);else h.add(k);bankSaveHidden(h);BANK_STATE.detail=null;renderBanka();v97BankManage();};
+  window.v97BankResetManage=function(){bankSaveCfg(BANK_DEFAULT_BANKS.slice());bankSaveHidden(new Set());bankSaveSelectedCurrencies(['TL','USD','EUR']);bankSaveCustomCurrencies([]);BANK_STATE={bank:'',cur:'',q:'',asOf:'',detail:null};renderBanka();v97BankManage();};
+  window.v97BankToggleMainCur=function(c,on){
+    c=String(c||'').trim().toLocaleUpperCase('tr-TR');
+    var a=bankSelectedCurrencies(), i=a.indexOf(c);
+    if(on&&i<0)a.push(c);
+    if(!on&&i>-1)a.splice(i,1);
+    if(!a.length){try{toast('En az bir döviz / hesap sütunu seçili kalmalı.','info');}catch(e){} renderBanka();return;}
+    bankSaveSelectedCurrencies(a);BANK_STATE.cur='';BANK_STATE.detail=null;renderBanka();
+  };
+  window.v97BankToggleCur=function(enc){var c=decodeURIComponent(enc),a=bankSelectedCurrencies();window.v97BankToggleMainCur(c,a.indexOf(c)<0);if(document.getElementById('drillModal')&&document.getElementById('drillModal').classList.contains('on'))v97BankManage();};
+  window.v97BankAddCur=function(){var x=prompt('Eklenecek döviz / hesap türü (örnek: GBP, CHF, ALTIN):','');if(!x)return;var c=String(x).trim().toLocaleUpperCase('tr-TR');if(!c)return;var custom=bankCustomCurrencies();if(custom.indexOf(c)<0)custom.push(c);bankSaveCustomCurrencies(custom);var a=bankSelectedCurrencies();if(a.indexOf(c)<0)a.push(c);bankSaveSelectedCurrencies(a);renderBanka();v97BankManage();};
+  window.v97BankManage=function(){
+    var title=document.getElementById('drillTitle'),body=document.getElementById('drillBody'),modal=document.getElementById('drillModal');if(!body||!modal)return;
+    if(title)title.textContent='Firma & Banka Yönetimi';
+    var h=bankHidden(),a=bankCfg(),selected=bankSelectedCurrencies(),allCur=bankAvailableCurrencies();
+    body.innerHTML='<div class="bb-manage-note">Firma ve bankalar bu ekrandan yönetilir. Döviz / hesap sütunlarını ana <b>Banka Bakiyeleri</b> ekranındaki tiklerden açıp kapatabilirsin. Seçilen dövizler hem matriste hem üst banka kartlarında görünür. <b>data.json yapısı değişmez.</b></div>'+ 
+      '<div class="bb-manage-grid"><div><div class="bb-manage-title">Bankalar</div><div class="bb-manage-list">'+a.map(function(b){return '<div><span class="bb-manage-bank">'+bankLogo(b,false)+E(b)+'</span><button class="btn btn-ghost btn-xs" onclick="v97BankRemove(\''+encodeURIComponent(b)+'\')">Kaldır</button></div>';}).join('')+'</div><button class="btn btn-gold btn-sm" style="margin-top:10px" onclick="v97BankAdd()">＋ Banka Ekle</button></div>'+ 
+      '<div><div class="bb-manage-title">Firmalar</div><div class="bb-manage-list bb-firms">'+BANK_DEFAULT_FIRMS.map(function(f){var hidden=h.has(firmKey(f));return '<div><span class="'+(hidden?'bb-hidden':'')+'">'+E(f)+'</span><button class="btn btn-ghost btn-xs" onclick="v97BankToggleFirm(\''+encodeURIComponent(f)+'\')">'+(hidden?'Göster':'Kaldır')+'</button></div>';}).join('')+'</div></div></div>'+ 
+      '<div class="bb-manage-cur-section"><div class="bb-manage-title">Algılanan Döviz / Hesap Türleri</div><div class="bb-manage-note bb-manage-note-small">'+allCur.map(function(c){return '<span class="bb-detected-cur '+(selected.indexOf(c)>-1?'on':'')+'">'+E(c)+'</span>';}).join(' ')+'</div><button class="btn btn-gold btn-sm" style="margin-top:10px" onclick="v97BankAddCur()">＋ Hesap Türü Ekle</button></div>'+ 
+      '<div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="v97BankResetManage()">↺ Varsayılana Dön</button></div>';
+    modal.classList.add('on');
+  };
+  window.v97BankExport=function(){
+    var data=bankMatrix(),banks=BANK_STATE.bank?data.banks.filter(function(b){return b===BANK_STATE.bank;}):data.banks,curs=bankDisplayCurrencies();var q=bankNorm(BANK_STATE.q),firms=data.firms.filter(function(f){return !q||bankNorm(f).indexOf(q)>-1;});
+    var hdr=['Firma'];banks.forEach(function(b){curs.forEach(function(c){hdr.push(b+' '+c);});});var out=[hdr];firms.forEach(function(f){var r=[f];banks.forEach(function(b){curs.forEach(function(c){r.push(bankCell(data,f,b,c).v.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}));});});out.push(r);});
+    var csv='\ufeff'+out.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='banka_bakiyeleri_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},500);
+  };
+  window.v97BankPrint=function(){document.body.classList.add('bb-print-mode');setTimeout(function(){window.print();},80);};
+  window.addEventListener('afterprint',function(){document.body.classList.remove('bb-print-mode');});
+
   function renderBeklenen(){var a=expected().sort(function(x,y){return String(x.vade).localeCompare(String(y.vade));}); var tah=a.filter(function(x){return x.tip==='TAHSİLAT';}).reduce(function(s,x){return s+num(x.tutar);},0), od=a.filter(function(x){return x.tip==='ÖDEME';}).reduce(function(s,x){return s+num(x.tutar);},0); document.getElementById('v97Beklenen').innerHTML='<div class="v97-note"><b>Şimdilik demo kayıt:</b> Bu ekrana girilen kayıtlar tarayıcı localStorage alanına kaydedilir. Backend aşamasında aynı kayıtlar PostgreSQL tablosuna yazılacak; kullanıcı, onay, log ve yetki bilgisi tutulacak.</div>'+kcards([{l:'Beklenen Tahsilat',v:fmt(tah),s:'manuel plan',c:'#4ade80',cls:'pos'},{l:'Beklenen Ödeme',v:fmt(od),s:'manuel plan',c:'#fb7185',cls:'neg'},{l:'Net Beklenen',v:fmt(tah+od),s:'tahsilat + ödeme',c:(tah+od)>=0?'#4ade80':'#fb7185',cls:(tah+od)>=0?'pos':'neg'},{l:'Kayıt Sayısı',v:String(a.length),s:'local demo',c:'#60a5fa'}])+'<div class="card" style="margin-bottom:12px"><div class="card-h"><div class="card-ht">Yeni Beklenen Nakit Kaydı</div></div><div class="card-b"><div class="v97-form"><div class="v97-field"><label>Tip</label><select id="exTip"><option>TAHSİLAT</option><option>ÖDEME</option></select></div><div class="v97-field"><label>Firma</label><input id="exFirma" placeholder="Firma"></div><div class="v97-field"><label>Karşı Taraf</label><input id="exKarsi" placeholder="Alıcı / borçlu"></div><div class="v97-field"><label>Vade</label><input id="exVade" type="date"></div><div class="v97-field"><label>Tutar</label><input id="exTutar" placeholder="1.000.000,00"></div><div class="v97-actions"><button class="btn btn-gold btn-sm" onclick="v97AddExpected()">Kaydet</button><button class="btn btn-ghost btn-sm" onclick="v97ClearExpected()">Temizle</button></div></div></div></div><div class="card"><div class="card-h"><div class="card-ht">Beklenen Tahsilat / Ödeme Listesi</div><span class="badge bo">Backend öncesi geçici kayıt</span></div><div class="v97-table-wrap"><table class="v97-table"><thead><tr><th>Tip</th><th>Firma</th><th>Karşı Taraf</th><th>Vade</th><th class="num">Tutar</th><th>Durum</th><th></th></tr></thead><tbody>'+a.map(function(x,i){var sign=x.tip==='ÖDEME'?-1:1, tv=num(x.tutar)*sign; return '<tr><td><span class="v97-pill '+(x.tip==='TAHSİLAT'?'green':'red')+'">'+E(x.tip)+'</span></td><td>'+E(x.firma)+'</td><td>'+E(x.karsi)+'</td><td>'+E(x.vade)+'</td><td class="num '+(tv>=0?'pos':'neg')+'">'+fmt(tv)+'</td><td>'+E(x.durum||'PLANLANDI')+'</td><td><button class="btn btn-ghost btn-xs" onclick="v97DelExpected('+i+')">Sil</button></td></tr>';}).join('')+'</tbody></table></div></div>';}
   window.v97AddExpected=function(){var tip=document.getElementById('exTip').value, firma=document.getElementById('exFirma').value||'Tanımsız', karsi=document.getElementById('exKarsi').value||'', vade=document.getElementById('exVade').value||new Date().toISOString().slice(0,10), tut=num(document.getElementById('exTutar').value); var a=expected(); a.push({id:Date.now(),tip:tip,firma:firma,karsi:karsi,vade:vade,tutar:tut,durum:'PLANLANDI',createdAt:new Date().toISOString()}); saveExpected(a); renderBeklenen(); if(window.toast)toast('Beklenen kayıt eklendi');};
   window.v97DelExpected=function(i){var a=expected(); a.splice(i,1); saveExpected(a); renderBeklenen();};
@@ -7356,7 +7779,7 @@ document.addEventListener('DOMContentLoaded',function(){
   function renderRaporDisi(){var r=activeRows().filter(isOut); var by=groupBy(r,function(d){return rm(d);}); var arr=Object.keys(by).map(function(k){return {rm:k,sum:by[k].sum,n:by[k].n};}).sort(function(a,b){return Math.abs(b.sum)-Math.abs(a.sum);}); document.getElementById('v97RaporDisi').innerHTML='<div class="v97-note"><b>Amaç:</b> Nakit aktarımı, virman, bankalar arası transfer ve rapor dışı hareketlerin normal faaliyet nakdini bozmadığını izlemek.</div>'+kcards([{l:'Rapor Dışı Toplam',v:fmt(r.reduce(function(s,d){return s+tutar(d);},0)),s:'net etki ideally 0 olmalı',c:'#c9a84c'},{l:'İşlem Sayısı',v:r.length.toLocaleString('tr-TR'),s:'rapor dışı',c:'#60a5fa'},{l:'Kategori Sayısı',v:String(arr.length),s:'mapping kırılımı',c:'#a78bfa'},{l:'Mutlak Hacim',v:fmt(r.reduce(function(s,d){return s+Math.abs(tutar(d));},0)),s:'transfer büyüklüğü',c:'#fb7185'}])+'<div class="v97-grid3"><div class="card"><div class="card-h"><div class="card-ht">Kategori Kırılımı</div></div><div class="alist">'+arr.map(function(x){return '<div class="arow"><div class="albl">'+E(x.rm)+'</div><div class="aval '+(x.sum>=0?'pos':'neg')+'">'+fmtShort(x.sum)+'</div></div>';}).join('')+'</div></div><div class="card" style="grid-column:span 2"><div class="card-h"><div class="card-ht">Rapor Dışı İşlem Listesi</div></div><div class="v97-table-wrap"><table class="v97-table"><thead><tr><th>Tarih</th><th>Firma</th><th>Banka</th><th>Rapor Mapping</th><th>Detay</th><th class="num">Tutar</th></tr></thead><tbody>'+r.slice(0,500).map(function(d){var t=tutar(d); return '<tr><td>'+E(tarih(d))+'</td><td>'+E(firma(d))+'</td><td>'+E(banka(d))+'</td><td>'+E(rm(d))+'</td><td>'+E(detay(d))+'</td><td class="num '+(t>=0?'pos':'neg')+'">'+fmt(t)+'</td></tr>';}).join('')+'</tbody></table></div></div></div>';}
   function render(id){ensurePages(); if(id==='bankaMerkezi')renderBanka(); else if(id==='beklenen')renderBeklenen(); else if(id==='forecast')renderForecast(); else if(id==='mutabakat')renderMutabakat(); else if(id==='raporDisi')renderRaporDisi();}
   function setActiveMenu(id){document.querySelectorAll('.sb-item').forEach(function(x){x.classList.remove('on');}); var el=document.querySelector('.sb-item[onclick="nav(\''+id+'\')"]'); if(el)el.classList.add('on');}
-  function showNew(id){ensurePages(); document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');}); var p=document.getElementById('pg-'+id); if(p)p.classList.add('on'); var t=document.getElementById('pgTitle'); if(t)t.textContent=TITLES[id]||id; setActiveMenu(id); render(id);}
+  function showNew(id){ensurePages(); document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');}); var p=document.getElementById('pg-'+id); if(p)p.classList.add('on'); var t=document.getElementById('pgTitle'); if(t)t.textContent=TITLES[id]||id; document.body.classList.toggle('bb-page-active',id==='bankaMerkezi'); setActiveMenu(id); render(id);}
   function init(){ensurePages(); rebuildMenu(); try{ if(window.PTITLES){Object.keys(TITLES).forEach(function(k){PTITLES[k]=TITLES[k];});} }catch(e){} }
   var oldNav=window.nav; window.nav=function(id){ if(NEW_IDS[id]){showNew(id); return;} if(typeof oldNav==='function'){var r=oldNav.apply(this,arguments); setActiveMenu(id); return r;} };
   var oldApply=window.applyF; window.applyF=function(){var r; if(typeof oldApply==='function')r=oldApply.apply(this,arguments); var on=document.querySelector('.pg.on'); if(on){var id=on.id.replace('pg-',''); if(NEW_IDS[id])render(id);} return r;};
@@ -7412,6 +7835,7 @@ document.addEventListener('DOMContentLoaded',function(){
       '<div class="sb-item v98-keep" onclick="nav(\'senaryolab\')" title="What-if analizi: tahsilat gecikmesi, kur şoku, gider artışı senaryoları"><span class="sb-ico">⚗</span>Senaryo Lab.</div>'+ 
       '<div class="sb-item v98-keep" onclick="nav(\'sektor\')"><span class="sb-ico">▤</span>Sektör Görünümü</div>'+ 
       '<div class="sb-sec v98-group">Nakit / Veri</div>'+
+      '<div class="sb-item v98-keep" onclick="nav(\'bankaMerkezi\')"><span class="sb-ico">▣</span>Banka Bakiyeleri</div>'+
       '<div class="sb-item v98-keep" onclick="nav(\'detay\')"><span class="sb-ico">≡</span>Nakit Hareketleri</div>'+ 
       '<div class="sb-item v98-keep" onclick="nav(\'raporDisi\')"><span class="sb-ico">⊘</span>Rapor Dışı Hareketler</div>'+ 
       '<div class="sb-item v98-keep" onclick="nav(\'trend\')"><span class="sb-ico">↗</span>Günlük Trend</div>'+ 
@@ -7441,7 +7865,7 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   var oldNav=window.nav;
   window.nav=function(id){
-    if(id==='bankaMerkezi'||id==='beklenen'||id==='forecast'||id==='mutabakat'){id='exec';}
+    if(id==='beklenen'||id==='forecast'||id==='mutabakat'){id='exec';}
     if(id==='raporDisi'){
       ensureRaporDisiPage(); document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');}); var p=document.getElementById('pg-raporDisi'); if(p)p.classList.add('on'); var t=document.getElementById('pgTitle'); if(t)t.textContent='Rapor Dışı Hareketler'; document.querySelectorAll('.sb-item').forEach(function(x){x.classList.remove('on');}); var m=document.querySelector('.sb-item[onclick="nav(\'raporDisi\')"]'); if(m)m.classList.add('on'); renderRaporDisiV98(); return;
     }
@@ -8957,7 +9381,8 @@ window.kpiDrillClear = function(){
   });
 
   function boot(){
-    applyTheme(currentTheme());
+    var v130Key='NAKIT_V130_DARK_THEME_DEFAULT_APPLIED';
+    try{if(!localStorage.getItem(v130Key)){applyTheme('dark');localStorage.setItem(v130Key,'1');}else{applyTheme(currentTheme());}}catch(e){applyTheme('dark');}
     observer.observe(document.documentElement, {attributes:true, attributeFilter:['class','data-theme']});
     observer.observe(document.body, {attributes:true, attributeFilter:['class','data-theme']});
   }
@@ -12325,5 +12750,293 @@ setTimeout(function(){svEnsurePage();},900);
 
 })();
 </script>
+
+<style id="v130_dark_finance_theme">
+/* =========================================================
+   V13.0 — GLOBAL KOYU FİNANS TEMA
+   Referans: Banka Bakiyeleri koyu arayüzü. İş mantığına dokunmaz.
+========================================================= */
+html[data-theme="dark"],body[data-theme="dark"],html.dark,body.dark{
+  --ink:#07111b!important;--ink2:#0b1521!important;--ink3:#101b28!important;--ink4:#162332!important;
+  --rim:#1d2a38!important;--rim2:#2a3949!important;--rim3:#415366!important;
+  --gold:#f02d52!important;--gold2:#ff627e!important;--gold3:rgba(240,45,82,.13)!important;
+  --rose:#ff4d67!important;--rose2:rgba(255,77,103,.12)!important;
+  --sage:#3bd27f!important;--sage2:rgba(59,210,127,.12)!important;
+  --sky:#4e9cff!important;--sky2:rgba(78,156,255,.12)!important;
+  --aqua:#41c7bd!important;--aqua2:rgba(65,199,189,.12)!important;
+  --txt:#f1f4f8!important;--txt2:#b6c0cd!important;--txt3:#7f8d9e!important;
+  --r:8px;--r2:12px;--r3:16px;--ff:'Segoe UI',Arial,sans-serif;--ffd:'Segoe UI',Arial,sans-serif;
+}
+html[data-theme="dark"] body,body[data-theme="dark"]{background:#07111b!important;color:var(--txt)!important;background-image:radial-gradient(circle at 70% 0%,rgba(26,55,84,.20),transparent 34%),linear-gradient(180deg,#07111b 0%,#08131f 100%)!important}
+html[data-theme="dark"] .sidebar{background:linear-gradient(180deg,#07111c 0%,#08131f 58%,#07111a 100%)!important;border-right:1px solid #1d2a38!important;box-shadow:10px 0 35px rgba(0,0,0,.18)!important}
+html[data-theme="dark"] .sb-logo{border-color:#1d2a38!important}
+html[data-theme="dark"] .sb-meta{background:#0d1925!important;border:1px solid #1c2a39!important}
+html[data-theme="dark"] .sb-sec{color:#728196!important;font-size:9px!important;font-weight:700!important;letter-spacing:.14em!important}
+html[data-theme="dark"] .sb-item{color:#bdc6d2!important;border-radius:7px!important;margin:2px 10px!important;padding:9px 10px!important;transition:.15s ease!important}
+html[data-theme="dark"] .sb-item:hover{background:#111e2c!important;color:#fff!important}
+html[data-theme="dark"] .sb-item.on{background:linear-gradient(90deg,rgba(240,45,82,.20),rgba(240,45,82,.07))!important;color:#ff5571!important;box-shadow:inset 0 0 0 1px rgba(240,45,82,.08)!important}
+html[data-theme="dark"] .sb-item.on::before{background:#f02d52!important;width:2px!important}
+html[data-theme="dark"] .topbar{background:rgba(8,18,29,.95)!important;border-bottom:1px solid #1d2a38!important;box-shadow:none!important;backdrop-filter:blur(16px)}
+html[data-theme="dark"] .topbar-title{font-size:18px!important;font-weight:700!important;letter-spacing:-.01em!important}
+html[data-theme="dark"] .topbar-pill{background:#0f1a27!important;border:1px solid #1d2a38!important;border-radius:8px!important;color:#8896a8!important}
+html[data-theme="dark"] .content{background:transparent!important}
+html[data-theme="dark"] .fbar,html[data-theme="dark"] .card,html[data-theme="dark"] .kcard,html[data-theme="dark"] .exec-k,html[data-theme="dark"] .exec-insight,html[data-theme="dark"] .fc,html[data-theme="dark"] .dov-c{background:linear-gradient(180deg,#101b28 0%,#0e1824 100%)!important;border:1px solid #1d2a38!important;box-shadow:0 10px 30px rgba(0,0,0,.10)!important}
+html[data-theme="dark"] .exec-hero{background:linear-gradient(135deg,#111d2a 0%,#0b1622 100%)!important;border:1px solid #1e2c3b!important;box-shadow:none!important}
+html[data-theme="dark"] .card-h{border-color:#1d2a38!important}
+html[data-theme="dark"] .fi,html[data-theme="dark"] .ms-btn,html[data-theme="dark"] .ms-drop,html[data-theme="dark"] .ms-search input,html[data-theme="dark"] select,html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),html[data-theme="dark"] textarea{background:#0b1521!important;border-color:#263544!important;color:#e8edf3!important;box-shadow:none!important}
+html[data-theme="dark"] .fi:focus,html[data-theme="dark"] input:focus,html[data-theme="dark"] select:focus{border-color:#f02d52!important;outline:none!important;box-shadow:0 0 0 2px rgba(240,45,82,.10)!important}
+html[data-theme="dark"] .btn{border-radius:7px!important;font-weight:600!important;box-shadow:none!important}
+html[data-theme="dark"] .btn-gold{background:linear-gradient(180deg,#ef3156,#c91f43)!important;border:1px solid #f34566!important;color:#fff!important}
+html[data-theme="dark"] .btn-ghost{background:#0e1926!important;border-color:#263544!important;color:#c3ccd7!important}
+html[data-theme="dark"] .btn-ghost:hover{background:#152231!important;border-color:#3a4b5d!important;color:#fff!important}
+html[data-theme="dark"] table{border-color:#223140!important}
+html[data-theme="dark"] th{background:#0a1521!important;color:#aab5c3!important;border-color:#223140!important;font-weight:650!important}
+html[data-theme="dark"] td{border-color:#1c2a38!important;color:#c7cfda!important}
+html[data-theme="dark"] tr:hover td{background:#13202e!important;color:#f4f7fa!important}
+html[data-theme="dark"] .pos{color:#39d27f!important}html[data-theme="dark"] .neg{color:#ff536b!important}
+html[data-theme="dark"] .badge{border-radius:6px!important}
+html[data-theme="dark"] .modal{background:#0d1824!important;border-color:#2a3b4c!important;box-shadow:0 30px 90px rgba(0,0,0,.55)!important}
+html[data-theme="dark"] .overlay{background:rgba(2,8,14,.76)!important;backdrop-filter:blur(4px)}
+html[data-theme="dark"] .twrap,html[data-theme="dark"] .v97-table-wrap{border-color:#223140!important;background:#0b1520!important}
+
+/* Banka Bakiyeleri sayfası */
+#pg-bankaMerkezi .exec-hero{display:none!important}
+#pg-bankaMerkezi{padding-top:0!important}
+.bb-actions{display:flex;justify-content:flex-end;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.bb-card-strip{display:flex;gap:10px;overflow-x:auto;padding:2px 1px 12px;scrollbar-width:thin;scrollbar-color:#263748 transparent}
+.bb-bank-card,.bb-add-card{appearance:none;text-align:left;min-width:210px;flex:1 0 210px;border-radius:11px;border:1px solid #223140;background:linear-gradient(145deg,#121d2a,#0d1722);color:var(--txt);padding:13px 14px;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.10);transition:.15s ease}
+.bb-bank-card:hover,.bb-bank-card.on{border-color:rgba(240,45,82,.70);transform:translateY(-1px);box-shadow:0 0 0 1px rgba(240,45,82,.10),0 12px 28px rgba(0,0,0,.14)}
+.bb-bank-card.bb-all{border-color:rgba(240,45,82,.72);background:linear-gradient(145deg,rgba(240,45,82,.13),#101a27 58%)}
+.bb-bank-title{font-size:11px;font-weight:750;letter-spacing:.01em;margin-bottom:11px;display:flex;align-items:center;gap:8px;color:#f3f6fa}
+.bb-bank-logo{width:21px;height:21px;min-width:21px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:Arial,sans-serif;font-size:10px;font-weight:800;line-height:1;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
+.bb-logo-all{background:#303b49;color:#ff536f}.bb-logo-garanti{background:#159447;font-size:13px}.bb-logo-is{background:#2677bd}.bb-logo-akbank{background:#e61e2b}.bb-logo-halk{background:#287fbe}.bb-logo-ziraat{background:#d71920}.bb-logo-teb{background:#169b88}.bb-logo-yapi{background:#65459b;font-size:8px}.bb-logo-vakif{background:#d2a516;color:#151515}.bb-logo-qnb{background:#742487}.bb-logo-deniz{background:#1d5ba7}.bb-logo-generic{background:#455468}
+.bb-bank-head-inner,.bb-manage-bank{display:inline-flex;align-items:center;gap:6px}.bb-bank-h .bb-bank-logo{width:17px;height:17px;min-width:17px;font-size:8px}.bb-manage-bank .bb-bank-logo{width:18px;height:18px;min-width:18px;font-size:8px}
+.bb-bank-line{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:2px 0;font-size:11px;color:#8997a8}.bb-bank-line b{font-family:var(--ffm);font-size:11.5px;color:#dce3eb;font-weight:600;white-space:nowrap}
+.bb-add-card{min-width:116px;flex:0 0 116px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:7px;border-style:dashed;border-color:#934058;background:rgba(240,45,82,.035);color:#ff5771}.bb-add-card span{font-size:24px;line-height:1}.bb-add-card b{font-size:10px;letter-spacing:.06em}
+.bb-filterbar{display:grid;grid-template-columns:minmax(145px,.8fr) minmax(135px,.7fr) minmax(165px,.9fr) minmax(240px,1.7fr) auto;gap:10px;background:#101a26;border:1px solid #223140;border-radius:11px;padding:8px;margin-bottom:10px}
+.bb-cur-togglebar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:#101a26;border:1px solid #223140;border-radius:11px;padding:9px 11px;margin-bottom:10px}
+.bb-cur-toggle-title{display:flex;flex-direction:column;gap:1px;min-width:190px}.bb-cur-toggle-title b{font-size:10px;color:#d9e4f0;letter-spacing:.04em}.bb-cur-toggle-title span{font-size:9px;color:#718096}
+.bb-cur-checks{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.bb-cur-check{height:28px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;border:1px solid #2b3a49;border-radius:7px;background:#0d1620;color:#8998aa;font-size:10px;font-weight:700;cursor:pointer;user-select:none;transition:.15s}.bb-cur-check:hover{border-color:#4b6075;color:#d9e4f0}.bb-cur-check.on{border-color:rgba(238,51,88,.72);background:rgba(238,51,88,.10);color:#f1f5f9}.bb-cur-check input{width:13px;height:13px;accent-color:#ee3358;margin:0}
+.bb-filterbar-v136{grid-template-columns:minmax(150px,.8fr) minmax(175px,.9fr) minmax(260px,1.8fr) auto!important}
+.bb-detected-cur{display:inline-flex;margin:3px 4px 3px 0;padding:3px 7px;border:1px solid #2a3949;border-radius:999px;color:#77879a;font-size:10px}.bb-detected-cur.on{border-color:rgba(74,222,128,.35);color:#4ade80;background:rgba(74,222,128,.06)}
+.bb-filterbar label{display:flex;flex-direction:column;gap:3px}.bb-filterbar label span{font-size:9px;color:#768598;padding-left:3px}.bb-filterbar select,.bb-filterbar input{height:34px;border-radius:7px;padding:0 10px;font-size:11.5px}.bb-filter-btn{height:34px;align-self:end;border:1px solid #ee3358;background:linear-gradient(180deg,#e92e52,#bc1f40);color:white;border-radius:7px;padding:0 15px;font-size:11px;font-weight:700;cursor:pointer}
+.bb-matrix-panel{background:linear-gradient(180deg,#101a26,#0c1722);border:1px solid #223140;border-radius:11px;overflow:hidden}.bb-panel-head{height:43px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #223140;color:#cbd3dc;font-size:11px}.bb-panel-head b{color:#f04a68;margin-right:4px}
+.bb-table-wrap{overflow:auto;max-height:540px;scrollbar-color:#2a3b4c #0a141f}.bb-table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:10.5px}.bb-table th,.bb-table td{border-right:1px solid #223140;border-bottom:1px solid #223140;padding:7px 9px;white-space:nowrap}.bb-table thead th{position:sticky;top:0;z-index:5;background:#09141f!important;text-align:center}.bb-table thead tr:nth-child(2) th{top:31px}.bb-bank-h{font-size:10px;color:#d9e0e8!important;letter-spacing:.02em}.bb-cur-h{font-size:9px;color:#8493a5!important;min-width:92px}.bb-firm-h{position:sticky!important;left:0!important;z-index:8!important;min-width:154px;text-align:left!important}.bb-firm{position:sticky;left:0;z-index:2;background:#0d1824!important;font-weight:650;color:#e3e8ee!important;min-width:154px}.bb-plus{width:18px;height:18px;border-radius:50%;border:1px solid #f02d52;background:transparent;color:#f34a69;line-height:15px;margin-right:7px;cursor:pointer;font-size:13px}.bb-cell{font-family:var(--ffm);color:#cbd3dc;min-width:92px}.bb-cell.clickable{cursor:pointer}.bb-cell.clickable:hover{background:rgba(240,45,82,.10)!important;box-shadow:inset 0 0 0 1px rgba(240,45,82,.24)}.bb-total td{position:sticky;bottom:0;z-index:3;background:#0a1520!important;font-weight:750;font-family:var(--ffm)}.bb-total td:first-child{left:0;z-index:6;color:#f1f4f8;font-family:var(--ff)}
+.bb-detail{margin-top:11px;border:1px solid #263646;border-radius:11px;background:#0d1824;overflow:hidden;box-shadow:0 15px 40px rgba(0,0,0,.18)}.bb-detail-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 14px;border-bottom:1px solid #223140}.bb-detail-kicker{font-size:10px;color:#f04a68;font-weight:800;letter-spacing:.07em}.bb-detail-title{font-size:12px;color:#dfe5ec;font-weight:700;margin-top:2px}.bb-detail-actions{display:flex;align-items:center;gap:8px}.bb-detail-total{font-family:var(--ffm);font-size:11px;color:#91a0b2}.bb-detail-wrap{overflow:auto;max-height:390px}.bb-detail-table{width:100%;min-width:1160px;border-collapse:collapse;font-size:10.5px}.bb-detail-table th{position:sticky;top:0;z-index:2}.bb-detail-table td,.bb-detail-table th{padding:7px 9px}.bb-dir{display:inline-flex;min-width:48px;justify-content:center;border-radius:5px;padding:2px 5px;font-size:9px;font-weight:750}.bb-dir.in{color:#35d47c;background:rgba(53,212,124,.08)}.bb-dir.out{color:#ff4f68;background:rgba(255,79,104,.08)}.bb-dir.neutral{color:#8d9bad;background:#111e2b}.bb-clip{max-width:220px;overflow:hidden;text-overflow:ellipsis}.bb-limit{padding:8px 12px;color:#7f8d9e;font-size:10px;border-top:1px solid #223140}
+.bb-manage-note{font-size:11px;color:var(--txt2);padding:10px 12px;border:1px solid #263646;background:#0c1722;border-radius:8px;margin-bottom:12px}.bb-manage-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:12px}.bb-manage-title{font-size:11px;font-weight:750;color:#f04a68;margin-bottom:7px}.bb-manage-list{border:1px solid #263646;border-radius:8px;overflow:auto;max-height:360px}.bb-manage-list>div{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border-bottom:1px solid #1d2a38;font-size:11px}.bb-manage-list>div:last-child{border-bottom:0}.bb-hidden{text-decoration:line-through;color:#647386}
+.bb-manage-cur-section{margin-top:14px}.bb-manage-note-small{margin:0 0 8px;padding:8px 10px;font-size:10.5px}.bb-cur-list{max-height:280px}.bb-fixed-tag{font-size:9px;font-weight:750;color:#48d88a;border:1px solid rgba(72,216,138,.28);border-radius:999px;padding:2px 7px;background:rgba(72,216,138,.06)}
+body:has(#pg-bankaMerkezi.on) .fbar{display:none!important}
+@media(max-width:1200px){.bb-filterbar,.bb-filterbar-v136{grid-template-columns:1fr 1fr!important}.bb-filter-btn{align-self:stretch}.bb-manage-grid{grid-template-columns:1fr}.bb-cur-togglebar{align-items:flex-start}}
+@media(max-width:760px){.bb-filterbar,.bb-filterbar-v136{grid-template-columns:1fr!important}.bb-card-strip{padding-bottom:8px}.bb-bank-card{min-width:190px}.bb-actions{justify-content:flex-start}.bb-detail-head{align-items:flex-start;flex-direction:column}.bb-cur-togglebar{display:block}.bb-cur-toggle-title{margin-bottom:8px}}
+@media print{body.bb-print-mode .sidebar,body.bb-print-mode .topbar,body.bb-print-mode .fbar,body.bb-print-mode .pg:not(#pg-bankaMerkezi),body.bb-print-mode #print-header,body.bb-print-mode #print-footer{display:none!important}body.bb-print-mode .shell,body.bb-print-mode .main,body.bb-print-mode .content{display:block!important;width:100%!important;margin:0!important;padding:0!important;overflow:visible!important}body.bb-print-mode #pg-bankaMerkezi{display:block!important}.bb-actions,.bb-add-card,.bb-filterbar,.bb-cur-togglebar,.bb-panel-head button{display:none!important}.bb-table-wrap,.bb-detail-wrap{max-height:none!important;overflow:visible!important}.bb-bank-card{break-inside:avoid}.bb-table{font-size:8px!important}.bb-table th,.bb-table td{padding:4px!important}}
+</style>
+
 </body>
 </html>
+
+<style id="v137_bb_light_theme_fix">
+/* V13.7 — Banka Bakiyeleri: açık tema uyumu
+   Koyu tema kuralları korunur; yalnız açık temada sert koyu sabit renkleri tema renklerine çevirir. */
+html:not([data-theme="dark"]) #pg-bankaMerkezi,
+html[data-theme="light"] #pg-bankaMerkezi{
+  --bb-bg:#f6f8fc;
+  --bb-surface:#ffffff;
+  --bb-surface-2:#f8fafc;
+  --bb-surface-3:#f1f5f9;
+  --bb-border:#dbe3ee;
+  --bb-border-2:#cbd5e1;
+  --bb-text:#172033;
+  --bb-text-2:#475569;
+  --bb-text-3:#7b8798;
+  --bb-accent:#ee3358;
+  --bb-accent-soft:rgba(238,51,88,.07);
+  --bb-positive:#149b55;
+  --bb-negative:#e02e4f;
+  color:var(--bb-text);
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-actions,
+html[data-theme="light"] #pg-bankaMerkezi .bb-actions{color:var(--bb-text)}
+
+/* Üst banka kartları */
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-card-strip,
+html[data-theme="light"] #pg-bankaMerkezi .bb-card-strip{scrollbar-color:#cbd5e1 transparent}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-bank-card,
+html[data-theme="light"] #pg-bankaMerkezi .bb-bank-card{
+  background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);
+  border-color:var(--bb-border);
+  color:var(--bb-text);
+  box-shadow:0 4px 14px rgba(15,23,42,.055);
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-bank-card:hover,
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-bank-card.on,
+html[data-theme="light"] #pg-bankaMerkezi .bb-bank-card:hover,
+html[data-theme="light"] #pg-bankaMerkezi .bb-bank-card.on{
+  border-color:rgba(238,51,88,.52);
+  box-shadow:0 0 0 1px rgba(238,51,88,.06),0 8px 20px rgba(15,23,42,.08);
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-bank-card.bb-all,
+html[data-theme="light"] #pg-bankaMerkezi .bb-bank-card.bb-all{
+  border-color:rgba(238,51,88,.55);
+  background:linear-gradient(145deg,rgba(238,51,88,.075),#ffffff 58%);
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-bank-title,
+html[data-theme="light"] #pg-bankaMerkezi .bb-bank-title{color:var(--bb-text)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-bank-line,
+html[data-theme="light"] #pg-bankaMerkezi .bb-bank-line{color:var(--bb-text-2)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-bank-line b,
+html[data-theme="light"] #pg-bankaMerkezi .bb-bank-line b{color:#243044}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-add-card,
+html[data-theme="light"] #pg-bankaMerkezi .bb-add-card{
+  background:#fffafd;
+  border-color:rgba(238,51,88,.45);
+  color:var(--bb-accent);
+  box-shadow:none;
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-add-card:hover,
+html[data-theme="light"] #pg-bankaMerkezi .bb-add-card:hover{background:#fff4f7;border-color:var(--bb-accent)}
+
+/* Döviz seçimleri + filtreler */
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-cur-togglebar,
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-filterbar,
+html[data-theme="light"] #pg-bankaMerkezi .bb-cur-togglebar,
+html[data-theme="light"] #pg-bankaMerkezi .bb-filterbar{
+  background:var(--bb-surface);
+  border-color:var(--bb-border);
+  box-shadow:0 2px 8px rgba(15,23,42,.035);
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-cur-toggle-title b,
+html[data-theme="light"] #pg-bankaMerkezi .bb-cur-toggle-title b{color:var(--bb-text)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-cur-toggle-title span,
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-filterbar label span,
+html[data-theme="light"] #pg-bankaMerkezi .bb-cur-toggle-title span,
+html[data-theme="light"] #pg-bankaMerkezi .bb-filterbar label span{color:var(--bb-text-3)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-cur-check,
+html[data-theme="light"] #pg-bankaMerkezi .bb-cur-check{
+  background:#fff;
+  border-color:var(--bb-border-2);
+  color:var(--bb-text-2);
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-cur-check:hover,
+html[data-theme="light"] #pg-bankaMerkezi .bb-cur-check:hover{border-color:#94a3b8;color:var(--bb-text)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-cur-check.on,
+html[data-theme="light"] #pg-bankaMerkezi .bb-cur-check.on{
+  border-color:rgba(238,51,88,.58);
+  background:rgba(238,51,88,.075);
+  color:#be2444;
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-filterbar select,
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-filterbar input,
+html[data-theme="light"] #pg-bankaMerkezi .bb-filterbar select,
+html[data-theme="light"] #pg-bankaMerkezi .bb-filterbar input{
+  background:#fff!important;
+  color:var(--bb-text)!important;
+  border:1px solid var(--bb-border-2)!important;
+  box-shadow:none!important;
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-filterbar select:focus,
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-filterbar input:focus,
+html[data-theme="light"] #pg-bankaMerkezi .bb-filterbar select:focus,
+html[data-theme="light"] #pg-bankaMerkezi .bb-filterbar input:focus{
+  border-color:rgba(238,51,88,.55)!important;
+  box-shadow:0 0 0 3px rgba(238,51,88,.08)!important;
+}
+
+/* Bakiye matrisi */
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-matrix-panel,
+html[data-theme="light"] #pg-bankaMerkezi .bb-matrix-panel{
+  background:var(--bb-surface);
+  border-color:var(--bb-border);
+  box-shadow:0 4px 16px rgba(15,23,42,.045);
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-panel-head,
+html[data-theme="light"] #pg-bankaMerkezi .bb-panel-head{
+  background:#fff;
+  border-bottom-color:var(--bb-border);
+  color:var(--bb-text-2);
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-table-wrap,
+html[data-theme="light"] #pg-bankaMerkezi .bb-table-wrap{scrollbar-color:#cbd5e1 #f8fafc}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-table th,
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-table td,
+html[data-theme="light"] #pg-bankaMerkezi .bb-table th,
+html[data-theme="light"] #pg-bankaMerkezi .bb-table td{border-color:#dfe6ee}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-table thead th,
+html[data-theme="light"] #pg-bankaMerkezi .bb-table thead th{
+  background:#f3f6fa!important;
+  color:#536174!important;
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-bank-h,
+html[data-theme="light"] #pg-bankaMerkezi .bb-bank-h{color:#2f3b4d!important;font-weight:800}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-cur-h,
+html[data-theme="light"] #pg-bankaMerkezi .bb-cur-h{color:#64748b!important}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-firm,
+html[data-theme="light"] #pg-bankaMerkezi .bb-firm{
+  background:#f7f9fc!important;
+  color:#1f2937!important;
+  border-right-color:#cbd5e1!important;
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-table tbody tr:nth-child(even) td:not(.bb-firm),
+html[data-theme="light"] #pg-bankaMerkezi .bb-table tbody tr:nth-child(even) td:not(.bb-firm){background:#fbfcfe}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-table tbody tr:hover td:not(.bb-firm),
+html[data-theme="light"] #pg-bankaMerkezi .bb-table tbody tr:hover td:not(.bb-firm){background:#fff6f8!important}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-cell,
+html[data-theme="light"] #pg-bankaMerkezi .bb-cell{color:#344054}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-cell.clickable:hover,
+html[data-theme="light"] #pg-bankaMerkezi .bb-cell.clickable:hover{
+  background:rgba(238,51,88,.07)!important;
+  box-shadow:inset 0 0 0 1px rgba(238,51,88,.16)
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-total td,
+html[data-theme="light"] #pg-bankaMerkezi .bb-total td{
+  background:#eef3f8!important;
+  color:#263446;
+  border-top:1px solid #cbd5e1;
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-total td:first-child,
+html[data-theme="light"] #pg-bankaMerkezi .bb-total td:first-child{color:#172033}
+
+/* İşlem hareketleri detayı */
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detail,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detail{
+  background:#fff;
+  border-color:var(--bb-border);
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detail-head,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detail-head{background:#fff;border-bottom-color:var(--bb-border)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detail-title,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detail-title{color:var(--bb-text)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detail-total,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detail-total{color:var(--bb-text-3)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detail-table th,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detail-table th{background:#f3f6fa!important;color:#536174!important;border-color:#dfe6ee!important}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detail-table td,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detail-table td{background:#fff;color:#344054;border-color:#e7ecf2!important}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detail-table tbody tr:nth-child(even) td,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detail-table tbody tr:nth-child(even) td{background:#fbfcfe}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detail-table tbody tr:hover td,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detail-table tbody tr:hover td{background:#fff6f8}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-dir.neutral,
+html[data-theme="light"] #pg-bankaMerkezi .bb-dir.neutral{color:#667085;background:#eef2f6}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-limit,
+html[data-theme="light"] #pg-bankaMerkezi .bb-limit{color:#7b8798;border-top-color:var(--bb-border);background:#fbfcfe}
+
+/* Yönetim modalındaki banka/döviz listeleri */
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-manage-note,
+html[data-theme="light"] #pg-bankaMerkezi .bb-manage-note{background:#f8fafc;border-color:var(--bb-border);color:var(--bb-text-2)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-manage-list,
+html[data-theme="light"] #pg-bankaMerkezi .bb-manage-list{background:#fff;border-color:var(--bb-border)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-manage-list>div,
+html[data-theme="light"] #pg-bankaMerkezi .bb-manage-list>div{border-bottom-color:#e7ecf2;color:var(--bb-text)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-hidden,
+html[data-theme="light"] #pg-bankaMerkezi .bb-hidden{color:#94a3b8}
+
+/* Artı/aksiyon kontrolleri açık temada daha net */
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-plus,
+html[data-theme="light"] #pg-bankaMerkezi .bb-plus{background:#fff;color:var(--bb-accent);border-color:rgba(238,51,88,.65)}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detected-cur,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detected-cur{border-color:#cbd5e1;color:#64748b;background:#fff}
+html:not([data-theme="dark"]) #pg-bankaMerkezi .bb-detected-cur.on,
+html[data-theme="light"] #pg-bankaMerkezi .bb-detected-cur.on{border-color:rgba(20,155,85,.28);color:#138a4c;background:rgba(20,155,85,.05)}
+</style>
+
