@@ -26,7 +26,8 @@
 <meta name="msapplication-TileColor" content="#0b1220">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Mulish:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Mulish:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ── TOKENS ──────────────────────────────────────────── */
 :root {
@@ -1036,6 +1037,19 @@ html[data-theme="dark"] .sidebar, html[data-theme="dark"] .topbar, html[data-the
     overflow:visible!important;
   }
 
+  /* V14.5 — "Rapor Mapping" gibi sayfalardaki iç-kaydırmalı kutular (.v121-wrap/.v121-trx)
+     yazdırmada kaydırma çubuğuyla kesik görünüyordu; bazen de sınırsız yüksekliğe
+     açılınca sayfa taşması ve arkasında boş/koyu sayfalar bırakıyordu. Basılabilir bir
+     üst sınırla (gizli taşma, kaydırma çubuğu yok) sabitlenir — tam liste isteyen
+     sayfa üstündeki "▣ Excel'e Aktar" ile alınır. */
+  .rp-page .v121-wrap,
+  .rp-page .v121-trx,
+  .rp-page .bb-table-wrap,
+  .rp-page .bb-detail-wrap{
+    max-height:150mm!important;
+    overflow:hidden!important;
+  }
+
   .rp-page table{
     width:100%!important;
     border-collapse:collapse!important;
@@ -1449,36 +1463,38 @@ canvas,
    <div style="font-size:12px;color:var(--txt3);margin-bottom:10px;line-height:1.5">
     Yazdırma <b>manzara/yatay</b> formatına göre düzenlenmiştir. İstediğiniz ekranları seçip tek PDF alabilirsiniz. Detaylı işlem listeleri (Nakit Hareketleri, Anormal İşlem) hacimli olduğundan kendi sayfalarındaki <b>🖨 Yazdır</b> butonuyla ayrıca alınır.
    </div>
-   <div class="report-grid-sec">Yönetim</div>
+   <div class="report-grid-sec">Analiz & Raporlama</div>
    <div class="report-grid">
     <label><input type="checkbox" class="rpChk" value="exec" checked> Yönetici Özeti</label>
-    <label><input type="checkbox" class="rpChk" value="dashboard" checked> Kontrol Paneli</label>
+    <label><input type="checkbox" class="rpChk" value="dashboard" checked> Kategori Analizi</label>
     <label><input type="checkbox" class="rpChk" value="firma" checked> Firma Analizi</label>
-    <label><input type="checkbox" class="rpChk" value="mapping" checked> Rapor Mapping</label>
+    <label><input type="checkbox" class="rpChk" value="mapping" checked> Mapping Ayarları</label>
+    <label><input type="checkbox" class="rpChk" value="sektor"> Sektör Görünümü</label>
    </div>
-   <div class="report-grid-sec">CFO Analiz</div>
+   <div class="report-grid-sec">Risk & Projeksiyon</div>
    <div class="report-grid">
     <label><input type="checkbox" class="rpChk" value="runway" checked> Nakit Ömrü</label>
     <label><input type="checkbox" class="rpChk" value="risk" checked> Risk & Açık</label>
-    <label><input type="checkbox" class="rpChk" value="grup" checked> Grup / Ortak</label>
-    <label><input type="checkbox" class="rpChk" value="ortak" checked> Ortak Analizi</label>
+    <label><input type="checkbox" class="rpChk" value="trend" checked> Günlük Trend</label>
     <label><input type="checkbox" class="rpChk" value="senaryolab"> Senaryo Lab.</label>
-    <label><input type="checkbox" class="rpChk" value="sektor"> Sektör Görünümü</label>
+    <label><input type="checkbox" class="rpChk" value="doviz" checked> Döviz Riski</label>
    </div>
-   <div class="report-grid-sec">Nakit / Veri</div>
+   <div class="report-grid-sec">Ortaklar</div>
+   <div class="report-grid">
+    <label><input type="checkbox" class="rpChk" value="ortaklarBakiye" checked> Ortaklar Bakiyesi</label>
+    <label><input type="checkbox" class="rpChk" value="grup" checked> Grup / Ortak</label>
+    <label><input type="checkbox" class="rpChk" value="ortak"> Ortak Analizi (eski)</label>
+   </div>
+   <div class="report-grid-sec">Banka & Veri Kontrolü</div>
    <div class="report-grid">
     <label><input type="checkbox" class="rpChk" value="bankaMerkezi"> Banka Bakiyeleri</label>
-    <label><input type="checkbox" class="rpChk" value="trend" checked> Günlük Trend</label>
+    <label><input type="checkbox" class="rpChk" value="sahisBanka"> Şahıs Banka Bakiyeleri</label>
     <label><input type="checkbox" class="rpChk" value="raporDisi"> Rapor Dışı Hareketler</label>
-   </div>
-   <div class="report-grid-sec">Kontrol</div>
-   <div class="report-grid">
-    <label><input type="checkbox" class="rpChk" value="doviz" checked> Döviz Riski</label>
     <label><input type="checkbox" class="rpChk" value="kalite"> Veri Kalitesi</label>
    </div>
    <label class="report-option"><input type="checkbox" id="rpOrtakDetay"> Ortak işlem detaylarını rapora dahil et</label>
    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-    <button class="btn btn-gold" onclick="printSelectedReport()">📄 Seçili Sayfaları Yazdır</button>
+    <button class="btn btn-gold" onclick="printSelectedReport(getReportSelection())">📄 Seçili Sayfaları Yazdır</button>
     <button class="btn btn-ghost" onclick="rpSelectAll(true)">Tümünü Seç</button>
     <button class="btn btn-ghost" onclick="rpSelectAll(false)">Temizle</button>
    </div>
@@ -1522,6 +1538,8 @@ canvas,
  <div class="sb-item" onclick="nav('risk')" title='Net açık veren firmalar ve risk seviyeleri'><span class="sb-ico">⚑</span>Risk & Açık <span class="sb-badge" id="bRK">—</span></div>
  <div class="sb-item" onclick="nav('grup')" title='Firmalar arası ve ortaklara yapılan transferler'><span class="sb-ico">⇄</span>Grup / Ortak</div>
  <div class="sb-item" onclick="nav('ortak')" title='5 ortağın nakit akış analizi ve firmalarla ilişkisi'><span class="sb-ico">★</span>Ortak Analizi</div>
+ <div class="sb-item" onclick="nav('ortaklarBakiye')" title='Her ortağın, seçilen tarih itibarıyla tüm geçmişten gelen kümülatif bakiyesi (dönem filtresinden bağımsız)'><span class="sb-ico">⚖</span>Ortaklar Bakiyesi</div>
+ <div class="sb-item" onclick="nav('sahisBanka')" title='İhsan, Semra, Hacer, Oğuz, Osman — kişisel banka, vadeli, fon ve döviz fon hesap bakiyeleri'><span class="sb-ico">🏦</span>Şahıs Banka Bakiyeleri</div>
  <div class="sb-item" onclick="nav('doviz')" title='Döviz bazında nakit pozisyonu ve kur riski'><span class="sb-ico">◈</span>Döviz Riski</div>
  <div class="sb-item" onclick="nav('anormal')" title='İstatistiksel olarak anormal büyüklükteki işlemler (Z-skor)'><span class="sb-ico">◉</span>Anormal İşlem <span class="sb-badge" id="bAN">—</span></div>
  <div class="sb-sec">Veri</div>
@@ -1783,6 +1801,8 @@ canvas,
   <!-- ══ ORTAK PAGE ══ -->
   <div class="pg" id="pg-ortak">
    <div class="krow" id="orkKpi"></div>
+   <div class="krow" id="orkKpiDisi" style="margin-top:8px"></div>
+   <div class="krow" id="orkKpiToplam" style="margin-top:8px"></div>
    <div class="g2" style="margin-top:2px">
      <div class="card">
        <div class="card-h"><div class="card-ht">★ Ortaklar Net Pozisyon</div></div>
@@ -1802,6 +1822,35 @@ canvas,
        <tbody id="orkDetB"></tbody>
      </table></div>
    </div>
+  </div>
+
+  <!-- ══ ORTAKLAR BAKİYE PAGE ══ -->
+  <div class="pg" id="pg-ortaklarBakiye">
+   <div class="v97-note"><b>Amaç:</b> Dönem filtresinden bağımsız, hesabın açıldığı günden seçilen tarihe kadar biriken <b>kümülatif</b> ortak bakiyesini gösterir. Pozitif değer = ortağın şirketlere borcu (ortak net almış); negatif değer = şirketlerin ortağa borcu (ortak net vermiş).</div>
+   <div class="bb-filterbar" style="margin:10px 0"><label><span>Bakiye Tarihi</span><input type="date" id="obkAsOf" onchange="renderOrtaklarBakiyePage()"></label><button class="bb-filter-btn" onclick="document.getElementById('obkAsOf').value='';renderOrtaklarBakiyePage()">En Güncel Tarihe Dön</button></div>
+   <div class="krow" id="obkKpi"></div>
+   <div class="g2" style="margin-top:12px">
+     <div class="card">
+       <div class="card-h"><div class="card-ht">⚖ Ortak Bazında Kümülatif Bakiye</div></div>
+       <div class="alist" id="obkList"></div>
+     </div>
+     <div class="card">
+       <div class="card-h"><div class="card-ht">Karşı Taraf Firma Kırılımı</div><span class="badge bx" id="obkFirmSel">Bir ortak seçin</span></div>
+       <div class="alist" id="obkFirmaKir"></div>
+     </div>
+   </div>
+   <div class="card" id="obkDetayCard" style="margin-top:12px">
+     <div class="card-h"><div class="card-ht">Bakiyeye Giren İşlemler</div><span class="badge bx" id="obkDetCnt">—</span></div>
+     <div class="twrap tall"><table>
+       <thead><tr><th>Tarih</th><th>Firma</th><th>Alıcı / Gönderici</th><th>Tutar</th><th>Döviz</th><th>Nakit Yönü</th><th>Kategori</th></tr></thead>
+       <tbody id="obkDetB"></tbody>
+     </table></div>
+   </div>
+  </div>
+
+  <!-- ══ ŞAHIS BANKA BAKİYE PAGE ══ -->
+  <div class="pg" id="pg-sahisBanka">
+   <div id="v97Sahis"></div>
   </div>
 
   <!-- ══ DÖVİZ PAGE ══ -->
@@ -1939,6 +1988,17 @@ canvas,
       <div class="srchwrap" style="flex:1;min-width:180px"><span class="srch-ico">🔍</span><input id="setFirmSearch" class="fi fi-search" placeholder="Firma ara…" oninput="NAKIT_V94.renderSettings()"></div>
      </div>
      <div class="twrap" style="max-height:360px"><table><thead><tr><th>Firma</th><th>Durum</th><th>İşlem</th></tr></thead><tbody id="setFirmBody"></tbody></table></div>
+    </div>
+   </div>
+   <div class="card" style="margin-top:12px">
+    <div class="card-h"><div class="card-ht">🎨 Tema</div><span class="badge bx">Zümrüt — aktif</span></div>
+    <div style="font-size:12px;color:var(--txt3);margin-bottom:12px;line-height:1.5">Sistemin tek teması: Zümrüt (yeşil/tosca vurgu, Space Grotesk başlık + Inter metin). Açık/koyu mod anahtarı (üst bardaki "Tema" anahtarı) bu tema içinde çalışmaya devam eder.</div>
+    <div class="theme-variant-grid" id="themeVariantGrid">
+     <div class="theme-variant-btn on" style="cursor:default">
+      <span class="theme-variant-swatch" style="background:linear-gradient(135deg,#10b981,#22d3ee)"></span>
+      <span class="theme-variant-name" style="font-family:'Space Grotesk',sans-serif">Zümrüt</span>
+      <span class="theme-variant-desc">Yeşil/tosca — Space Grotesk başlık, Inter metin — açık ve koyu modda</span>
+     </div>
     </div>
    </div>
    <div class="card" style="margin-top:12px">
@@ -2111,10 +2171,11 @@ document.addEventListener('click',e=>{
 
 const ORTAKLAR=new Set(['SEMRA AYRANCIOĞLU','OĞUZ AYRANCIOĞLU','HACER AYRANCIOĞLU YETİŞ','OSMAN AYRANCIOĞLU','İHSAN AYRANCIOĞLU']);
 const PS=50;
-const PTITLES={exec:'Yönetici Özeti',dashboard:'Kontrol Paneli',firma:'Firma Analizi',
-  mapping:'Rapor Mapping',runway:'Nakit Ömrü',risk:'Risk & Açık',
-  grup:'Grup / Ortak',ortak:'Ortak Analizi',doviz:'Döviz Riski',anormal:'Anormal İşlem',
-  detay:'Detay İşlemler',trend:'Günlük Trend',log:'Manuel Log',kalite:'Veri Kalitesi'};
+const PTITLES={exec:'Yönetici Özeti',dashboard:'Kategori Analizi',firma:'Firma Analizi',
+  mapping:'Mapping Ayarları',runway:'Nakit Ömrü',risk:'Risk & Açık',
+  grup:'Grup / Ortak',ortak:'Ortak Analizi',ortaklarBakiye:'Ortaklar Bakiyesi',sahisBanka:'Şahıs Banka Bakiyeleri',doviz:'Döviz Riski',anormal:'Anormal İşlem',
+  detay:'Detay İşlemler',trend:'Günlük Trend',log:'Manuel Log',kalite:'Veri Kalitesi',
+  senaryolab:'Senaryo Laboratuvarı',sektor:'Sektör Görünümü',bankaMerkezi:'Banka Bakiyeleri',raporDisi:'Rapor Dışı Hareketler'};
 const MN=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
 
 // ══════════════════════════════════════
@@ -3143,35 +3204,72 @@ function addChartClick(chartId, labels, clickFn){
 }
 
 
+function isOrtakInvolved(r){
+  return !!(r&&(ORTAKLAR.has(r.firma)||ORTAKLAR.has(r.alici||'')));
+}
+function isOrtakRaporDisi(r){
+  return !!(r&&r.yon==='NÖTR'&&(r.rapor_disi||/RAPOR DIŞI/i.test(r.rm||'')||/RAPOR DIŞI/i.test(r.nakit_det||'')));
+}
 function renderOrtakPage(){
   if(!D.ortak_analiz) return;
-  // F'den filtreli ortak hesapla
-  const orkC=F.filter(r=>ORTAKLAR.has(r.alici||'')&&r.yon==='ÇIKIŞ').reduce((s,r)=>s+r.tutar,0);
-  const orkG=F.filter(r=>ORTAKLAR.has(r.firma)&&r.yon==='GİRİŞ').reduce((s,r)=>s+r.tutar,0);
+  // Bir işlemde ortak hem "firma" (kendi hesabı) hem "alıcı" (karşı taraf) olarak geçebiliyor.
+  // Örn. "FİNANSMAN NAKİT GİRİŞİ / ORTAK" satırlarının çoğunda firma=şirket, alıcı=ortak — yani ortak şirkete
+  // para vermiş, ama eski hesap sadece "firma=ortak" satırlarını sayıyordu ve bu akışın büyük kısmını (1,3 Mr TL)
+  // hiç görmüyordu. Aşağıda TEK bir satır kümesi üzerinden, ortağın rolüne göre (firma/alıcı) işaret çevrilerek
+  // hesaplanıyor — böylece hem "ortak arsa aldı" (kendi hesabından çıkış) hem "ortak şirkete para verdi"
+  // (karşı taraf olarak alıcı) hem de "şirket ortağa ödedi" gibi TÜM yönler tek seferde, çift saymadan toplanıyor.
+  const orkFmIci={}, orkFmDisi={};
+  let orkG=0, orkC=0, orkGDisi=0, orkCDisi=0;
+  F.filter(isOrtakInvolved).forEach(r=>{
+    const disi=isOrtakRaporDisi(r);
+    if(!disi && r.yon!=='GİRİŞ' && r.yon!=='ÇIKIŞ') return; // sınıflandırılamamış (nötr ama rapor dışı değil) satırlar atlanır
+    const fmTarget=disi?orkFmDisi:orkFmIci;
+    if(ORTAKLAR.has(r.firma)){
+      const v=r.tutar; // ortağın kendi hesabı — tutar olduğu gibi
+      fmTarget[r.firma]=(fmTarget[r.firma]||0)+v;
+      if(disi){ if(v>0)orkGDisi+=v; else orkCDisi+=v; } else { if(v>0)orkG+=v; else orkC+=v; }
+    }
+    if(ORTAKLAR.has(r.alici||'')){
+      const v=-r.tutar; // ortak karşı taraf — ortağın bakış açısına göre işaret çevrilir
+      fmTarget[r.alici]=(fmTarget[r.alici]||0)+v;
+      if(disi){ if(v>0)orkGDisi+=v; else orkCDisi+=v; } else { if(v>0)orkG+=v; else orkC+=v; }
+    }
+  });
   const orkNet=orkG+orkC;
-  // Firmadan ortağa (filtreli)
+  const orkNetDisi=orkGDisi+orkCDisi;
+  // Firmadan ortağa (filtreli, rapor içi) — sadece "şirket → ortak" ödemeleri (bu liste bilinçli olarak dar tutulur)
   const foMapF={};
   F.filter(r=>ORTAKLAR.has(r.alici||'')&&r.yon==='ÇIKIŞ').forEach(r=>{
     if(!foMapF[r.firma])foMapF[r.firma]=0; foMapF[r.firma]+=r.tutar;
   });
   const foListF=Object.entries(foMapF).sort((a,b)=>a[1]-b[1]).slice(0,12).map(([f,t])=>({firma:f,tutar:t}));
-  // KPI
+  // KPI — Rapor İçi (ortağın bakış açısından: ortağa giren / ortaktan çıkan)
   document.getElementById('orkKpi').innerHTML=[
-    {l:'Ortaklara Toplam Çıkış',v:fM(orkC),lc:'#fb7185',vc:'var(--rose)'},
-    {l:'Ortaklardan Toplam Giriş',v:fM(orkG),lc:'#4ade80',vc:'var(--sage)'},
+    {l:'Ortaktan Çıkan (Ortak Harcadı/Verdi)',v:fM(orkC),lc:'#fb7185',vc:'var(--rose)'},
+    {l:'Ortağa Giren (Ortak Aldı)',v:fM(orkG),lc:'#4ade80',vc:'var(--sage)'},
     {l:'Net Ortak Pozisyonu',v:fM(orkNet),lc:'#c9a84c',vc:'var(--gold)'},
-  ].map(k=>`<div class="kcard"><div class="kcard-line" style="background:${k.lc}"></div><div class="kcard-lbl">${k.l}</div><div class="kcard-val" style="color:${k.vc}">${k.v}</div></div>`).join('');
+  ].map(k=>`<div class="kcard"><div class="kcard-line" style="background:${k.lc}"></div><div class="kcard-lbl">${k.l} <span class="badge bx" style="font-size:8px">RAPOR İÇİ</span></div><div class="kcard-val" style="color:${k.vc}">${k.v}</div></div>`).join('');
+  // KPI — Rapor Dışı (ayrı kartlar; toplamlara otomatik karışmaz)
+  document.getElementById('orkKpiDisi').innerHTML=[
+    {l:'Rapor Dışı — Ortaktan Çıkan',v:fM(orkCDisi),lc:'#fb7185',vc:'var(--rose)'},
+    {l:'Rapor Dışı — Ortağa Giren',v:fM(orkGDisi),lc:'#4ade80',vc:'var(--sage)'},
+    {l:'Rapor Dışı Net',v:fM(orkNetDisi),lc:'#a78bfa',vc:'#a78bfa'},
+  ].map(k=>`<div class="kcard"><div class="kcard-line" style="background:${k.lc}"></div><div class="kcard-lbl">${k.l} <span class="badge bo" style="font-size:8px">⊘ RAPOR DIŞI</span></div><div class="kcard-val" style="color:${k.vc}">${k.v}</div></div>`).join('');
+  // KPI — Toplam (İçi + Dışı) — gerçek nakit izini görmek için
+  document.getElementById('orkKpiToplam').innerHTML=`<div class="kcard" style="grid-column:span 3"><div class="kcard-line" style="background:#60a5fa"></div><div class="kcard-lbl">Toplam Ortak Nakit Hareketi (Rapor İçi + Rapor Dışı)</div><div class="kcard-val" style="color:${(orkNet+orkNetDisi)>=0?'var(--sage)':'var(--rose)'}">${fM(orkNet+orkNetDisi)}</div></div>`;
 
-  // Ortakların net pozisyonları (filtreli F'den)
-  const orkFmF=calcFirmaFromF();
-  const orkFirmalar=D.firma.filter(f=>ORTAKLAR.has(f.firma))
-    .map(f=>({...f,fnet:(orkFmF[f.firma]?.g||0)+(orkFmF[f.firma]?.c||0)}))
-    .sort((a,b)=>b.fnet-a.fnet);
+  // Ortakların net pozisyonları — yukarıdaki aynı rol-bazlı (firma/alıcı) hesaptan, rapor içi + rapor dışı ayrı ayrı
+  const orkFirmalar=Array.from(ORTAKLAR).map(p=>{
+    const d0=D.firma.find(f=>f.firma===p)||{firma:p};
+    const ici=orkFmIci[p]||0, disi=orkFmDisi[p]||0;
+    return {...d0,firma:p,fnetIci:ici,fnetDisi:disi,fnet:ici+disi};
+  }).sort((a,b)=>b.fnet-a.fnet);
   document.getElementById('orkList').innerHTML=orkFirmalar.map(f=>`
     <div class="arow" onclick="drillFirma('${f.firma}')">
       <div class="albl fw6">${f.firma}</div>
       <div style="display:flex;gap:6px;align-items:center">
         <span class="badge bo" style="font-size:9px">★ ORTAK</span>
+        ${f.fnetDisi?`<span class="aval ${f.fnetDisi>=0?'pos':'neg'}" style="font-size:10px;opacity:.75" title="Rapor dışı katkı">(⊘ ${fK(f.fnetDisi)})</span>`:''}
         <span class="aval ${f.fnet>=0?'pos':'neg'} fw7">${fK(f.fnet)}</span>
       </div>
     </div>`).join('');
@@ -3194,13 +3292,96 @@ function renderOrtakPage(){
       <td style="font-family:var(--ffm);font-size:11px;white-space:nowrap">${d.tarih}</td>
       <td class="fw6" style="cursor:pointer;color:var(--sky)" onclick="drillFirma('${d.firma}')">${d.firma}${ORTAKLAR.has(d.firma)?` <span class="badge bo" style="font-size:9px">★</span>`:''}</td>
       <td class="clip fw6" style="max-width:160px;color:var(--txt)">${d.alici||'—'}${ORTAKLAR.has(d.alici||'')?` <span class="badge bo" style="font-size:9px">★</span>`:''}</td>
-      <td class="num ${d.tutar>=0?'pos':'neg'} fw7">${fK(d.tutar)}</td>
+      <td class="num ${d.tutar>=0?'pos':'neg'} fw7">${window.fFullTutar?window.fFullTutar(d.tutar):fK(d.tutar)}</td>
       <td><span class="badge bx">${d.doviz}</span></td>
       <td class="num dovbak-cell ${((window.NAKIT_DOVBAK_NUM?window.NAKIT_DOVBAK_NUM(d):0)>=0?'pos':'neg')}">${window.NAKIT_FMT_DOVBAK?window.NAKIT_FMT_DOVBAK(d):'—'}</td>
-      <td><span class="tg ${d.yon==='GİRİŞ'?'tg-g':d.yon==='ÇIKIŞ'?'tg-r':'tg-n'}">${d.yon}</span></td>
+      <td><span class="tg ${d.yon==='GİRİŞ'?'tg-g':d.yon==='ÇIKIŞ'?'tg-r':'tg-n'}">${d.yon}</span>${isOrtakRaporDisi(d)?' <span class="badge bo" style="font-size:8px" title="Resmi rapora dahil değil, gerçek nakit hareketi">⊘ DIŞI</span>':''}</td>
       <td class="clip" style="font-size:11px;color:var(--txt3)">${d.rm}</td>
     </tr>`).join('')||'<tr><td colspan="8" class="empty">İşlem yok</td></tr>';
 }
+
+// ══════════════════════════════════════
+// ORTAKLAR BAKİYE PAGE — dönem filtresinden bağımsız, kümülatif (D.detay tam geçmiş üzerinden)
+// ══════════════════════════════════════
+let OBK_SELECTED=null;
+function renderOrtaklarBakiyePage(){
+  if(!D||!D.detay) return;
+  const asOfEl=document.getElementById('obkAsOf');
+  let asOf=asOfEl?asOfEl.value:'';
+  if(!asOf){
+    let mx='';
+    D.detay.forEach(r=>{ if(r.tarih&&r.tarih>mx) mx=r.tarih; });
+    asOf=mx;
+    if(asOfEl&&asOf) asOfEl.value=asOf;
+  }
+  const rows=D.detay.filter(r=>r.tarih&&r.tarih<=asOf&&isOrtakInvolved(r));
+  const per={};
+  Array.from(ORTAKLAR).forEach(p=>per[p]={ici:0,disi:0,cp:{}});
+  rows.forEach(r=>{
+    const disi=isOrtakRaporDisi(r);
+    if(!disi&&r.yon!=='GİRİŞ'&&r.yon!=='ÇIKIŞ') return;
+    if(ORTAKLAR.has(r.firma)){
+      const v=r.tutar;
+      per[r.firma][disi?'disi':'ici']+=v;
+      const cp=r.alici||'(karşı taraf yok)';
+      per[r.firma].cp[cp]=(per[r.firma].cp[cp]||0)+v;
+    }
+    if(ORTAKLAR.has(r.alici||'')){
+      const v=-r.tutar;
+      per[r.alici][disi?'disi':'ici']+=v;
+      const cp=r.firma||'(karşı taraf yok)';
+      per[r.alici].cp[cp]=(per[r.alici].cp[cp]||0)+v;
+    }
+  });
+  const list=Array.from(ORTAKLAR).map(p=>({firma:p,ici:per[p].ici,disi:per[p].disi,net:per[p].ici+per[p].disi,cp:per[p].cp})).sort((a,b)=>b.net-a.net);
+  const toplamNet=list.reduce((s,x)=>s+x.net,0);
+  const toplamIci=list.reduce((s,x)=>s+x.ici,0);
+  const toplamDisi=list.reduce((s,x)=>s+x.disi,0);
+
+  document.getElementById('obkKpi').innerHTML=[
+    {l:'Toplam Ortak Bakiyesi ('+(asOf||'—')+' itibarıyla)',v:fM(toplamNet),lc:'#60a5fa',vc:toplamNet>=0?'var(--gold)':'var(--sky)'},
+    {l:'Rapor İçi Bakiye',v:fM(toplamIci),lc:'#c9a84c',vc:'var(--gold)'},
+    {l:'Rapor Dışı Bakiye',v:fM(toplamDisi),lc:'#a78bfa',vc:'#a78bfa'},
+  ].map(k=>`<div class="kcard"><div class="kcard-line" style="background:${k.lc}"></div><div class="kcard-lbl">${k.l}</div><div class="kcard-val" style="color:${k.vc}">${k.v}</div></div>`).join('');
+
+  document.getElementById('obkList').innerHTML=list.map(f=>`
+    <div class="arow" style="cursor:pointer" onclick="obkSelectFirma('${f.firma.replace(/'/g,"\\'")}')">
+      <div class="albl fw6">${f.firma}${OBK_SELECTED===f.firma?' <span class="badge bo" style="font-size:8px">seçili</span>':''}</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="aval" style="font-size:10px;opacity:.7">İçi:${fK(f.ici)} · Dışı:${fK(f.disi)}</span>
+        <span class="aval ${f.net>=0?'pos':'neg'} fw7">${fK(f.net)}</span>
+      </div>
+    </div>`).join('');
+
+  const sel=(OBK_SELECTED&&list.find(x=>x.firma===OBK_SELECTED))?OBK_SELECTED:(list[0]?list[0].firma:null);
+  OBK_SELECTED=sel;
+  document.getElementById('obkFirmSel').textContent=sel||'—';
+  const selData=list.find(x=>x.firma===sel);
+  const cpList=selData?Object.entries(selData.cp).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,15):[];
+  const maxAbsCp=Math.max(...cpList.map(x=>Math.abs(x[1])),1);
+  document.getElementById('obkFirmaKir').innerHTML=cpList.map(([f,t])=>`
+    <div class="arow">
+      <div class="albl">${f}</div>
+      <div class="abar"><div class="abar-bg"><div class="abar-fill" style="width:${Math.abs(t)/maxAbsCp*100}%;background:${t>=0?'var(--sage)':'var(--rose)'}"></div></div></div>
+      <div class="aval ${t>=0?'pos':'neg'}">${fK(t)}</div>
+    </div>`).join('')||'<div class="empty">Kayıt yok</div>';
+
+  const detRows=sel?rows.filter(r=>r.firma===sel||r.alici===sel).sort((a,b)=>(b.tarih||'').localeCompare(a.tarih||'')).slice(0,150):[];
+  document.getElementById('obkDetCnt').textContent=detRows.length+' işlem';
+  document.getElementById('obkDetB').innerHTML=detRows.map(d=>`
+    <tr>
+      <td style="font-family:var(--ffm);font-size:11px;white-space:nowrap">${d.tarih}</td>
+      <td class="fw6">${d.firma}${ORTAKLAR.has(d.firma)?' <span class="badge bo" style="font-size:9px">★</span>':''}</td>
+      <td class="clip fw6" style="max-width:160px;color:var(--txt)">${d.alici||'—'}${ORTAKLAR.has(d.alici||'')?' <span class="badge bo" style="font-size:9px">★</span>':''}</td>
+      <td class="num ${d.tutar>=0?'pos':'neg'} fw7">${window.fFullTutar?window.fFullTutar(d.tutar):fK(d.tutar)}</td>
+      <td><span class="badge bx">${d.doviz}</span></td>
+      <td><span class="tg ${d.yon==='GİRİŞ'?'tg-g':d.yon==='ÇIKIŞ'?'tg-r':'tg-n'}">${d.yon}</span>${isOrtakRaporDisi(d)?' <span class="badge bo" style="font-size:8px">⊘ DIŞI</span>':''}</td>
+      <td class="clip" style="font-size:11px;color:var(--txt3)">${d.rm}</td>
+    </tr>`).join('')||'<tr><td colspan="7" class="empty">İşlem yok</td></tr>';
+}
+function obkSelectFirma(f){ OBK_SELECTED=f; renderOrtaklarBakiyePage(); }
+window.renderOrtaklarBakiyePage=renderOrtaklarBakiyePage;
+window.obkSelectFirma=obkSelectFirma;
 
 // ══════════════════════════════════════
 // PANELLERARASIGEÇİŞ
@@ -3313,7 +3494,7 @@ function drillFirma(firma){
     <div style="display:flex;gap:6px;margin-bottom:12px">
       <button class="btn btn-ghost btn-sm" onclick="navToDetay('${firma}')">≡ Tüm İşlemleri Detay'da Gör →</button>
       <button class="btn btn-ghost btn-sm" onclick="navToFirma('${firma}')">◉ Firma Sayfasına Git →</button>
-      ${ORTAKLAR.has(firma)?`<button class="btn btn-gold btn-sm" onclick="closeDrill();nav('ortak')">★ Ortak Analizine Git →</button>`:''}
+      ${ORTAKLAR.has(firma)?`<button class="btn btn-gold btn-sm" onclick="closeDrill();nav('ortaklarBakiye')">⚖ Ortaklar Bakiyesine Git →</button>`:''}
     </div>
     <div class="krow" style="margin-bottom:14px">
       <div class="kcard"><div class="kcard-line" style="background:#4ade80"></div><div class="kcard-lbl">Giriş</div><div class="kcard-val c-sage">${fM(g)}</div></div>
@@ -3557,7 +3738,7 @@ function showKPIDrill(type){
         <td class="fw6 clip" style="cursor:pointer;color:var(--sky)" onclick="closeDrill();drillFirma('${d.firma}')">${d.firma}</td>
         <td class="clip col-alici">${d.alici||'—'}</td>
         <td class="clip" style="font-size:11px">${d.nakit_det}</td>
-        <td class="num ${d.tutar>=0?'pos':'neg'} fw6">${fK(d.tutar)}</td>
+        <td class="num ${d.tutar>=0?'pos':'neg'} fw6">${window.fFullTutar?window.fFullTutar(d.tutar):fK(d.tutar)}</td>
         <td><span class="badge bx">${d.doviz}</span></td>
         <td class="num dovbak-cell ${((window.NAKIT_DOVBAK_NUM?window.NAKIT_DOVBAK_NUM(d):0)>=0?'pos':'neg')}">${window.NAKIT_FMT_DOVBAK?window.NAKIT_FMT_DOVBAK(d):'—'}</td>
         <td class="clip col-rm" style="font-size:11px;color:var(--txt3)">${d.rm}</td>
@@ -4615,8 +4796,8 @@ exportKalite = function(){
 
 
 
-/* v8.5 targeted fix: quality false positives, duplicate logic, drilldown UX */
 <style id="v85-css-fix">
+/* v8.5 targeted fix: quality false positives, duplicate logic, drilldown UX */
 .modal{max-width:min(1180px,96vw)!important}
 #drillModal .modal{max-width:min(1250px,96vw)!important}
 #drillModal .twrap{max-height:420px!important}
@@ -5626,7 +5807,7 @@ exportKalite = function(){
 <script id="v811-filter-mobile-default-fix">
 (function(){
   'use strict';
-  const V811_TITLES={exec:'Yönetici Özeti',dashboard:'Kontrol Paneli',firma:'Firma Analizi',mapping:'Rapor Mapping',runway:'Nakit Ömrü',risk:'Risk & Açık',grup:'Grup / Ortak',ortak:'Ortak Analizi',doviz:'Döviz Riski',anormal:'Anormal İşlem',detay:'Detay İşlemler',trend:'Günlük Trend',log:'Manuel Log',kalite:'Veri Kalitesi'};
+  const V811_TITLES={exec:'Yönetici Özeti',dashboard:'Kategori Analizi',firma:'Firma Analizi',mapping:'Mapping Ayarları',runway:'Nakit Ömrü',risk:'Risk & Açık',grup:'Grup / Ortak',ortak:'Ortak Analizi',ortaklarBakiye:'Ortaklar Bakiyesi',sahisBanka:'Şahıs Banka Bakiyeleri',doviz:'Döviz Riski',anormal:'Anormal İşlem',detay:'Detay İşlemler',trend:'Günlük Trend',log:'Manuel Log',kalite:'Veri Kalitesi',senaryolab:'Senaryo Laboratuvarı',sektor:'Sektör Görünümü',bankaMerkezi:'Banka Bakiyeleri',raporDisi:'Rapor Dışı Hareketler'};
   window.PTITLES=Object.assign({}, window.PTITLES||{}, V811_TITLES);
   function el(id){return document.getElementById(id)}
   function setDefaults(){
@@ -6150,18 +6331,20 @@ document.addEventListener('DOMContentLoaded',function(){
 <script>
 /* v8.24 force chart render before print */
 (function(){
-  const REPORT_PAGE_MAP_V824 = {
-    exec:['pg-exec','Yönetici Özeti'],
-    dashboard:['pg-dashboard','Kontrol Paneli'],
-    firma:['pg-firma','Firma Analizi'],
-    mapping:['pg-mapping','Rapor Mapping'],
-    runway:['pg-runway','Nakit Ömrü'],
-    risk:['pg-risk','Risk & Açık'],
-    grup:['pg-grup','Grup / Ortak'],
-    ortak:['pg-ortak','Ortak Analizi'],
-    doviz:['pg-doviz','Döviz Riski'],
-    trend:['pg-trend','Günlük Trend']
-  };
+  /* V14.4 — eskiden burada sadece 10 sayfa elle listeleniyordu; menüdeki yeni sayfalar
+     (Ortaklar Bakiyesi, Şahıs Banka Bakiyeleri, Senaryo Lab., Sektör, Banka Bakiyeleri,
+     Rapor Dışı, Veri Kalitesi, Anormal İşlem, Detay) rapor modalında seçilse bile hiçbir
+     şey olmuyordu, çünkü bu haritada yoktular. Artık PTITLES'taki TÜM sayfalardan otomatik
+     üretiliyor — yeni bir sayfa eklenince burada da elle güncellemeye gerek kalmıyor. */
+  const REPORT_PAGE_MAP_V824 = (function(){
+    var src=(typeof PTITLES!=='undefined'&&PTITLES)?PTITLES:{};
+    var m={};
+    Object.keys(src).forEach(function(id){
+      if(id==='log') return;
+      m[id]=['pg-'+id, src[id]||id];
+    });
+    return m;
+  })();
 
   function sleep(ms){ return new Promise(function(resolve){ setTimeout(resolve, ms); }); }
   function safe(fn){ try{ if(typeof fn==='function') fn(); }catch(e){ console.warn('Rapor render uyarısı:', e); } }
@@ -6193,17 +6376,24 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 
   function renderAllReportCharts(){
+    /* V14.2 düzeltmesi — bu fonksiyon eskiden var olmayan isimleri (renderExec,
+       renderDashboard, renderTrend, ...) çağırıyordu; hepsi sessizce hiçbir şey
+       yapmıyordu (safe() hata yutuyor), bu yüzden Günlük Trend gibi sayfaların
+       grafikleri yazdırmadan önce hiç yenilenmiyor, canvas boş/varsayılan boyutta
+       (300×150) kalıyor ve rapora BOŞ grafik olarak giriyordu. Doğru, güncel
+       fonksiyon adlarıyla değiştirildi. */
     safe(window.applyF);
-    safe(window.renderExec);
-    safe(window.renderDashboard);
-    safe(window.renderFirma);
-    safe(window.renderMapping);
-    safe(window.renderRunway);
-    safe(window.renderRisk);
-    safe(window.renderGrup);
-    safe(window.renderOrtak);
-    safe(window.renderDoviz);
-    safe(window.renderTrend);
+    safe(window.renderExecEnhanced);
+    safe(window.renderExecSupplementV110);
+    safe(window.renderDashboardV110);
+    safe(window.renderFirmaPage);
+    safe(window.renderMappingPage || (typeof renderMappingPage==='function'?renderMappingPage:null));
+    safe(window.renderRunwayPage);
+    safe(window.renderRiskPageV110);
+    safe(window.renderGrupPage || (typeof renderGrupPage==='function'?renderGrupPage:null));
+    safe(window.renderOrtakPage || (typeof renderOrtakPage==='function'?renderOrtakPage:null));
+    safe(window.renderDovizPage || (typeof renderDovizPage==='function'?renderDovizPage:null));
+    safe(window.renderTrendPageV110 || (typeof renderTrendPage==='function'?renderTrendPage:null));
 
     /* Bazı projelerde renderAll güvenli olduğundan ek çağrı */
     try{
@@ -6214,7 +6404,20 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 
   async function forceVisibleRender(keys){
-    /* Seçilen orijinal sekmeleri geçici görünür yap */
+    /* V14.4 — artık her seçili sayfa, gerçek nav(id) ile TEK TEK ziyaret edilip kendi
+       render zincirini (ne olursa olsun — Chart.js grafiği, tablo, sekmeli özel sayfa
+       fark etmez) tetikliyor. Böylece "hangi fonksiyon adı doğru" diye elle liste tutmaya
+       gerek kalmıyor; sayfa normalde nasıl açılıyorsa rapor da öyle tazeliyor. Rapor
+       bitince kullanıcı en başta bulunduğu sayfaya geri döndürülür. */
+    const originalActive = (document.querySelector('.pg.on')||{}).id || '';
+    for(let i=0;i<keys.length;i++){
+      const k=keys[i];
+      if(!REPORT_PAGE_MAP_V824[k]) continue;
+      try{ if(typeof window.nav==='function') window.nav(k); }catch(e){ console.warn('Rapor nav uyarısı:',k,e); }
+      await sleep(120);
+    }
+
+    /* Şimdi seçili sayfaların hepsini AYNI ANDA görünür yap (yakalama bunu gerektiriyor) */
     const changed = [];
     keys.forEach(function(k){
       const cfg = REPORT_PAGE_MAP_V824[k];
@@ -6232,6 +6435,28 @@ document.addEventListener('DOMContentLoaded',function(){
 
     renderAllReportCharts();
     await sleep(850);
+    /* Ağır sayfalarda (39K+ işlem) grafik oluşturma 850ms'den uzun sürebiliyor;
+       yakalama başlamadan önce ilgili canvas'ların gerçekten çizildiğinden
+       (Chart.js'e kayıtlı olduğundan) emin olunana kadar en fazla ~3sn daha beklenir. */
+    try{
+      var _t0=Date.now();
+      var _lastCanvases=[];
+      while(Date.now()-_t0<4000){
+        var _canvases=[]; keys.forEach(function(k){var cfg=REPORT_PAGE_MAP_V824[k]; if(!cfg)return; var el=document.getElementById(cfg[0]); if(el)_canvases=_canvases.concat(Array.prototype.slice.call(el.querySelectorAll('canvas')));});
+        _lastCanvases=_canvases;
+        if(!_canvases.length) break;
+        // Chart.js bağlı olması yetmiyor; canvas'ın gerçekten sıfırdan farklı genişlikte
+        // çizilmiş olması gerekiyor (ResizeObserver bazen bir kaç yüz ms gecikmeli tetikleniyor).
+        var _ready=_canvases.every(function(c){return c.width>0 && (!window.Chart||!Chart.getChart||Chart.getChart(c));});
+        if(_ready) break;
+        // Görünür olduğu halde hâlâ 0 genişlikteyse, ilgili grafiğe elle resize dene.
+        _canvases.forEach(function(c){
+          if(c.width>0) return;
+          try{ var ch=window.Chart&&Chart.getChart?Chart.getChart(c):null; if(ch) ch.resize(); }catch(e){}
+        });
+        await sleep(150);
+      }
+    }catch(e){}
 
     /* Chart.js resize/update */
     try{
@@ -6248,13 +6473,35 @@ document.addEventListener('DOMContentLoaded',function(){
       item[0].className = item[1];
       item[0].style.cssText = item[2];
     });
+
+    /* Kullanıcıyı rapor öncesi bulunduğu sayfaya geri döndür. */
+    try{
+      var backId=(originalActive||'').replace('pg-','');
+      if(backId && typeof window.nav==='function') window.nav(backId);
+    }catch(e){}
   }
 
   function canvasDataURL(canvas){
+    /* Chart.js'in kendi devicePixelRatio ayarını çalışma anında değiştirmek
+       (resize/update ile) güvenilir sonuç vermiyor (Chart.js 4.4.1 boyut
+       değişmediyse yeniden çizimi atlıyor). Bunun yerine canvas, yazdırmadan
+       hemen önce 2.5x büyütülmüş ayrı bir tuvale yumuşak ölçeklemeyle
+       çizilip öyle yakalanır — küçük tuvalin yazdırma motorunca sert/pikselli
+       büyütülmesini önler. */
     try{
       if(!canvas || !canvas.width || !canvas.height) return '';
-      return canvas.toDataURL('image/png');
-    }catch(e){ return ''; }
+      var scale=2.5;
+      var big=document.createElement('canvas');
+      big.width=Math.round(canvas.width*scale);
+      big.height=Math.round(canvas.height*scale);
+      var ctx=big.getContext('2d');
+      ctx.imageSmoothingEnabled=true;
+      if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality='high';
+      ctx.drawImage(canvas,0,0,big.width,big.height);
+      return big.toDataURL('image/png');
+    }catch(e){
+      try{ return canvas.toDataURL('image/png'); }catch(e2){ return ''; }
+    }
   }
 
   function replaceCanvasWithImagesRobust(clone, source){
@@ -6320,6 +6567,9 @@ document.addEventListener('DOMContentLoaded',function(){
       clone.classList.add('print-active');
       clone.style.display='block';
       clone.style.visibility='visible';
+      /* V14.5 — sekme çubuğu, Excel/Yazdır aksiyon çubuğu ve arama/filtre kutuları
+         gezinme kontrolüdür, rapor İÇERİĞİ değildir; PDF'e sızmasınlar. */
+      clone.querySelectorAll('.cfo-tabbar,.page-toolbar-generic,.bb-actions,.bb-filterbar,.v121-tools').forEach(function(x){x.remove();});
       replaceCanvasWithImagesRobust(clone,src);
       page.appendChild(clone);
 
@@ -7575,8 +7825,8 @@ document.addEventListener('DOMContentLoaded',function(){
        Böylece NÖTR ve RAPOR DIŞI kayıtlar da doğru şekilde hesaba katılır. */
     return Math.abs(tutar(d))>0.0000001||Math.abs(bankDovAmount(d))>0.0000001;
   }
-  function bankRows(){
-    var asof=bankAsOfDate();
+  function bankRows(asOfOverride){
+    var asof=asOfOverride!==undefined?asOfOverride:bankAsOfDate();
     var year=asof?asof.slice(0,4):'';
 
     /* V13.4 — FON/VADELİ/TEMLİK artık çöpe atılmıyor.
@@ -7775,11 +8025,130 @@ document.addEventListener('DOMContentLoaded',function(){
   };
   window.v97BankExport=function(){
     var data=bankMatrix(),banks=BANK_STATE.bank?data.banks.filter(function(b){return b===BANK_STATE.bank;}):data.banks,curs=bankDisplayCurrencies();var q=bankNorm(BANK_STATE.q),firms=data.firms.filter(function(f){return !q||bankNorm(f).indexOf(q)>-1;});
-    var hdr=['Firma'];banks.forEach(function(b){curs.forEach(function(c){hdr.push(b+' '+c);});});var out=[hdr];firms.forEach(function(f){var r=[f];banks.forEach(function(b){curs.forEach(function(c){r.push(bankCell(data,f,b,c).v.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}));});});out.push(r);});
-    var csv='\ufeff'+out.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='banka_bakiyeleri_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},500);
+    var hdr=['Firma'];banks.forEach(function(b){curs.forEach(function(c){hdr.push(b+' '+c);});});var out=[hdr];firms.forEach(function(f){var r=[f];banks.forEach(function(b){curs.forEach(function(c){r.push(bankCell(data,f,b,c).v);});});out.push(r);});
+    window.exportRowsToXLSX('banka_bakiyeleri_'+new Date().toISOString().slice(0,10),'Banka Bakiyeleri',out);
   };
   window.v97BankPrint=function(){document.body.classList.add('bb-print-mode');setTimeout(function(){window.print();},80);};
   window.addEventListener('afterprint',function(){document.body.classList.remove('bb-print-mode');});
+
+  /* ── ŞAHIS BANKA BAKİYELERİ ──────────────────────────────────────────
+     Ortakların (İhsan, Semra, Hacer, Oğuz, Osman) kişisel banka + vadeli + fon +
+     döviz fon hesap bakiyeleri. Banka Bakiyeleri ile AYNI motor (bankRows/bankCanon/
+     bankAccountCur/bankAmount) üzerinden çalışır; sadece firma listesi ORTAKLAR'dır. */
+  var SAHIS_STORE_HIDDEN='NAKIT_SAHIS_BAKIYE_HIDDEN_V1';
+  var SAHIS_STORE_SELECTED_CURS='NAKIT_SAHIS_BAKIYE_SELECTED_CURS_V1';
+  var SAHIS_STATE={bank:'',cur:'',q:'',asOf:'',detail:null};
+  function sahisFirms(){try{return Array.from(ORTAKLAR);}catch(e){return [];}}
+  function sahisHidden(){try{return new Set(JSON.parse(localStorage.getItem(SAHIS_STORE_HIDDEN)||'[]')||[]);}catch(e){return new Set();}}
+  function sahisSaveHidden(s){localStorage.setItem(SAHIS_STORE_HIDDEN,JSON.stringify(Array.from(s||[])));}
+  function sahisVisibleFirms(){var h=sahisHidden();return sahisFirms().filter(function(f){return !h.has(firmKey(f));});}
+  function sahisDefaultCurrencies(){
+    var avail=bankAvailableCurrencies(), base=['TL','USD','EUR'];
+    var special=avail.filter(function(c){return base.indexOf(c)<0&&/VADEL|FON|TEML/i.test(c);});
+    return base.concat(special);
+  }
+  function sahisSelectedCurrencies(){
+    var available=bankAvailableCurrencies(), arr=null;
+    try{arr=JSON.parse(localStorage.getItem(SAHIS_STORE_SELECTED_CURS)||'null');}catch(e){}
+    if(!Array.isArray(arr))arr=sahisDefaultCurrencies();
+    arr=arr.map(function(x){return String(x||'').trim().toLocaleUpperCase('tr-TR');}).filter(Boolean);
+    var selected={};arr.forEach(function(c){selected[c]=1;});
+    var clean=available.filter(function(c){return !!selected[c];});
+    return clean.length?clean:sahisDefaultCurrencies();
+  }
+  function sahisSaveSelectedCurrencies(a){localStorage.setItem(SAHIS_STORE_SELECTED_CURS,JSON.stringify((a||[]).filter(Boolean)));}
+  function sahisAsOfDate(){
+    /* Şahıs sayfası kendi "bakiye tarihi" durumunu tutar — Banka Bakiyeleri sayfasının
+       BANK_STATE.asOf değerinden bağımsızdır, birbirini etkilemez. */
+    var mx=bankDatasetMaxDate();
+    if(SAHIS_STATE.asOf){ if(mx&&SAHIS_STATE.asOf>mx)return mx; return SAHIS_STATE.asOf; }
+    return mx;
+  }
+  function sahisMatrix(){
+    var cfg=bankCfg(), cfgMap={}; cfg.forEach(function(b){cfgMap[bankNorm(b)]=b;});
+    var visible=sahisVisibleFirms(), fMap={}; visible.forEach(function(f){fMap[firmKey(f)]=f;});
+    var m={}, counts={};
+    bankRows(sahisAsOfDate()).forEach(function(d){
+      var fk=firmKey(firma(d)), bc=bankCanon(banka(d)), ck=bankAccountCur(d);
+      if(!bc||!ck||!fMap[fk]||!cfgMap[bankNorm(bc)])return;
+      var key=fk+'|||'+bankNorm(bc)+'|||'+ck;
+      m[key]=(m[key]||0)+bankAmount(d); counts[key]=(counts[key]||0)+1;
+    });
+    return {m:m,counts:counts,firms:visible,banks:cfg};
+  }
+  function sahisDetailRows(sel){
+    if(!sel)return [];
+    var rows0=bankRows(sahisAsOfDate()).filter(function(d){
+      var bc=bankCanon(banka(d));
+      if(!bc)return false;
+      if(sel.firm&&firmKey(firma(d))!==firmKey(sel.firm))return false;
+      if(sel.bank&&bankNorm(bc)!==bankNorm(sel.bank))return false;
+      if(sel.cur&&bankAccountCur(d)!==sel.cur)return false;
+      return true;
+    });
+    rows0.sort(function(a,b){return String(tarih(b)||'').localeCompare(String(tarih(a)||''));});
+    return rows0;
+  }
+  function sahisRenderDetail(){
+    var el=document.getElementById('v97SahisDetail'); if(!el)return;
+    var s=SAHIS_STATE.detail; if(!s){el.innerHTML='';return;}
+    var rr=sahisDetailRows(s), cur=s.cur||'';
+    var bal=rr.reduce(function(x,d){return x+bankAmount(d);},0);
+    var ttl=[s.firm||'Tüm Ortaklar',s.bank||'Tüm Bankalar',s.cur||'Tüm Dövizler'].join(' · ');
+    el.innerHTML='<div class="bb-detail">'+
+      '<div class="bb-detail-head"><div><div class="bb-detail-kicker">İŞLEM HAREKETLERİ</div><div class="bb-detail-title">'+E(ttl)+'</div></div><div class="bb-detail-actions"><span class="bb-detail-total">'+(cur?bankFmt(bal,cur,false):rr.length.toLocaleString('tr-TR')+' kayıt')+'</span><button class="btn btn-ghost btn-sm" onclick="v97SahisCloseDetail()">✕ Kapat</button></div></div>'+
+      '<div class="bb-detail-wrap"><table class="bb-detail-table"><thead><tr><th>Tarih</th><th>Ortak</th><th>Banka</th><th>Döviz</th><th>Yön</th><th class="num">Tutar</th><th class="num">Döviz Bakiyesi</th><th>Nakit İşlem Detayı</th><th>Alıcı Ünvanı</th><th>Açıklama</th></tr></thead><tbody>'+
+      rr.slice(0,700).map(function(d){var c=bankAccountCur(d), t=tutar(d), fx=bankDovAmount(d), y=String(val(d,['yon','Yönü','Nakit Yönü'],'')||(t>=0?'GİRİŞ':'ÇIKIŞ')).toLocaleUpperCase('tr-TR'); var ac=val(d,['aciklama','Açıklama'],''); var nd=detay(d); var al=val(d,['alici','Alıcı Ünvanı','Alıcı/Karşı Taraf','counterparty'],''); return '<tr><td>'+E(tarih(d)||'—')+'</td><td>'+E(firma(d)||'—')+'</td><td>'+E(bankCanon(banka(d))||banka(d)||'—')+'</td><td>'+E(c)+'</td><td><span class="bb-dir '+(y.indexOf('GİR')>-1?'in':(y.indexOf('ÇIK')>-1?'out':'neutral'))+'">'+E(y||'NÖTR')+'</span></td><td class="num '+(t>=0?'pos':'neg')+'">'+bankFmt(t,'TL',false)+'</td><td class="num '+(fx>=0?'pos':'neg')+'">'+(c==='TL'?'—':bankFmt(fx,c,true))+'</td><td class="bb-clip" title="'+E(nd)+'">'+E(nd||'—')+'</td><td class="bb-clip" title="'+E(al)+'">'+E(al||'—')+'</td><td class="bb-clip" title="'+E(ac)+'">'+E(ac||'—')+'</td></tr>';}).join('')+
+      (rr.length?'':'<tr><td colspan="10" class="empty">Bu seçimde hareket yok.</td></tr>')+'</tbody></table></div>'+
+      (rr.length>700?'<div class="bb-limit">İlk 700 kayıt gösteriliyor.</div>':'')+'</div>';
+  }
+  function renderSahisBanka(){
+    var root=document.getElementById('v97Sahis'); if(!root)return;
+    var data=sahisMatrix(), bankList=data.banks.slice();
+    var q=bankNorm(SAHIS_STATE.q), firms=data.firms.filter(function(f){return !q||bankNorm(f).indexOf(q)>-1;});
+    var banks=SAHIS_STATE.bank?bankList.filter(function(b){return b===SAHIS_STATE.bank;}):bankList;
+    var curs=sahisSelectedCurrencies();
+    var allCurs=bankAvailableCurrencies(), selectedMap={};curs.forEach(function(c){selectedMap[c]=1;});
+    var cards=bankList.map(function(b){
+      var active=SAHIS_STATE.bank===b;
+      var lines=curs.map(function(c){var v=bankSumFor(data,b,c);return '<div class="bb-bank-line"><span>'+E(c)+'</span><b>'+bankFmt(v,c,false)+'</b></div>';}).join('');
+      return '<button type="button" class="bb-bank-card '+(active?'on':'')+'" onclick="v97SahisLocal(\'bank\',decodeURIComponent(\''+encodeURIComponent(SAHIS_STATE.bank===b?'':b)+'\'))">'+
+        '<div class="bb-bank-title">'+bankLogo(b,false)+E(b)+'</div>'+lines+'</button>';
+    }).join('');
+    var curChecks=allCurs.map(function(c){return '<label class="bb-cur-check '+(selectedMap[c]?'on':'')+'"><input type="checkbox" '+(selectedMap[c]?'checked':'')+' onchange="v97SahisToggleCur(decodeURIComponent(\''+encodeURIComponent(c)+'\'),this.checked)"><span>'+E(c)+'</span></label>';}).join('');
+    var h1='<tr><th class="bb-firm-h" rowspan="2">ORTAK</th>'+banks.map(function(b){return '<th colspan="'+curs.length+'" class="bb-bank-h"><span class="bb-bank-head-inner">'+bankLogo(b,false)+E(b)+'</span></th>';}).join('')+'</tr>';
+    var h2='<tr>'+banks.map(function(){return curs.map(function(c){return '<th class="bb-cur-h">'+E(c)+'</th>';}).join('');}).join('')+'</tr>';
+    var body=firms.map(function(f){return '<tr><td class="bb-firm"><button class="bb-plus" onclick="v97SahisFirmDetail(decodeURIComponent(\''+encodeURIComponent(f)+'\'))">＋</button>'+E(f)+'</td>'+banks.map(function(b){return curs.map(function(c){var z=bankCell(data,f,b,c), encF=encodeURIComponent(f), encB=encodeURIComponent(b), encC=encodeURIComponent(c); return '<td class="num bb-cell '+(z.v<0?'neg':'')+' '+(z.n?'clickable':'')+'" '+(z.n?'onclick="v97SahisDetail(decodeURIComponent(\''+encF+'\'),decodeURIComponent(\''+encB+'\'),decodeURIComponent(\''+encC+'\'))" title="'+z.n+' hareketi göster"':'')+'>'+bankFmt(z.v,c,true)+'</td>';}).join('');}).join('')+'</tr>';}).join('');
+    var total='<tr class="bb-total"><td>TOPLAM BAKİYE</td>'+banks.map(function(b){return curs.map(function(c){var v=bankSumFor(data,b,c);return '<td class="num '+(v>=0?'pos':'neg')+'">'+bankFmt(v,c,false)+'</td>';}).join('');}).join('')+'</tr>';
+    var bankOpts='<option value="">Tüm Bankalar</option>'+bankList.map(function(b){return '<option '+(SAHIS_STATE.bank===b?'selected':'')+'>'+E(b)+'</option>';}).join('');
+    root.innerHTML='<div class="v97-note"><b>Amaç:</b> Ortakların kişisel banka, vadeli, fon ve döviz fon hesap bakiyelerini — Banka Bakiyeleri ekranıyla aynı mantıkla — ayrı gösterir. Rapor dışı / NÖTR gerçek banka hareketleri dahildir.</div>'+
+      '<div class="bb-actions"><button class="btn btn-ghost btn-sm" onclick="v97SahisExport()">▣ Excel\'e Aktar</button><button class="btn btn-ghost btn-sm" onclick="v97SahisPrint()">▤ Yazdır</button></div>'+
+      '<div class="bb-card-strip">'+cards+'</div>'+
+      '<div class="bb-cur-togglebar"><div class="bb-cur-toggle-title"><b>Döviz / Hesap Sütunları</b><span>Vadeli, Fon, Döviz Fon dahil algılanan tüm türler burada.</span></div><div class="bb-cur-checks">'+curChecks+'</div></div>'+
+      '<div class="bb-filterbar bb-filterbar-v136"><label><span>Bakiye Tarihi</span><input type="date" value="'+E(sahisAsOfDate()||'')+'" max="'+E(bankDatasetMaxDate()||'')+'" onchange="v97SahisLocal(\'asOf\',this.value)"></label><label><span>Banka</span><select onchange="v97SahisLocal(\'bank\',this.value)">'+bankOpts+'</select></label><label class="bb-search"><span>Ortak ara</span><input value="'+E(SAHIS_STATE.q)+'" placeholder="Ortak ara..." oninput="v97SahisLocal(\'q\',this.value)"></label><button class="bb-filter-btn" onclick="v97SahisResetLocal()">Filtreyi Temizle</button></div>'+
+      '<div class="bb-matrix-panel"><div class="bb-panel-head"><div><b>ORTAK</b> BANKA BAKİYELERİ <span style="margin-left:8px;color:var(--txt3);font-size:10px;font-weight:500">Bakiye tarihi: '+E(sahisAsOfDate()||'—')+' · NÖTR / rapor dışı gerçek banka hareketleri dahil</span></div></div><div class="bb-table-wrap"><table class="bb-table"><thead>'+h1+h2+'</thead><tbody>'+body+total+'</tbody></table></div></div><div id="v97SahisDetail"></div>';
+    sahisRenderDetail();
+  }
+  window.renderSahisBanka=renderSahisBanka;
+  window.v97SahisLocal=function(k,v){SAHIS_STATE[k]=v||'';SAHIS_STATE.detail=null;renderSahisBanka();};
+  window.v97SahisResetLocal=function(){SAHIS_STATE.bank='';SAHIS_STATE.cur='';SAHIS_STATE.q='';SAHIS_STATE.asOf='';SAHIS_STATE.detail=null;renderSahisBanka();};
+  window.v97SahisDetail=function(f,b,c){SAHIS_STATE.detail={firm:f,bank:b,cur:c};sahisRenderDetail();var e=document.getElementById('v97SahisDetail');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});};
+  window.v97SahisFirmDetail=function(f){SAHIS_STATE.detail={firm:f,bank:'',cur:''};sahisRenderDetail();var e=document.getElementById('v97SahisDetail');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});};
+  window.v97SahisCloseDetail=function(){SAHIS_STATE.detail=null;sahisRenderDetail();};
+  window.v97SahisExport=function(){
+    var data=sahisMatrix(),banks=SAHIS_STATE.bank?data.banks.filter(function(b){return b===SAHIS_STATE.bank;}):data.banks,curs=sahisSelectedCurrencies();var q=bankNorm(SAHIS_STATE.q),firms=data.firms.filter(function(f){return !q||bankNorm(f).indexOf(q)>-1;});
+    var hdr=['Ortak'];banks.forEach(function(b){curs.forEach(function(c){hdr.push(b+' '+c);});});var out=[hdr];firms.forEach(function(f){var r=[f];banks.forEach(function(b){curs.forEach(function(c){r.push(bankCell(data,f,b,c).v);});});out.push(r);});
+    window.exportRowsToXLSX('sahis_banka_bakiyeleri_'+new Date().toISOString().slice(0,10),'Şahıs Banka Bakiyeleri',out);
+  };
+  window.v97SahisPrint=function(){document.body.classList.add('bb-print-mode');setTimeout(function(){window.print();},80);};
+  window.v97SahisToggleCur=function(c,on){
+    c=String(c||'').trim().toLocaleUpperCase('tr-TR');
+    var a=sahisSelectedCurrencies(), i=a.indexOf(c);
+    if(on&&i<0)a.push(c);
+    if(!on&&i>-1)a.splice(i,1);
+    if(!a.length){try{toast('En az bir döviz / hesap sütunu seçili kalmalı.','info');}catch(e){} renderSahisBanka();return;}
+    sahisSaveSelectedCurrencies(a);SAHIS_STATE.cur='';SAHIS_STATE.detail=null;renderSahisBanka();
+  };
 
   function renderBeklenen(){var a=expected().sort(function(x,y){return String(x.vade).localeCompare(String(y.vade));}); var tah=a.filter(function(x){return x.tip==='TAHSİLAT';}).reduce(function(s,x){return s+num(x.tutar);},0), od=a.filter(function(x){return x.tip==='ÖDEME';}).reduce(function(s,x){return s+num(x.tutar);},0); document.getElementById('v97Beklenen').innerHTML='<div class="v97-note"><b>Şimdilik demo kayıt:</b> Bu ekrana girilen kayıtlar tarayıcı localStorage alanına kaydedilir. Backend aşamasında aynı kayıtlar PostgreSQL tablosuna yazılacak; kullanıcı, onay, log ve yetki bilgisi tutulacak.</div>'+kcards([{l:'Beklenen Tahsilat',v:fmt(tah),s:'manuel plan',c:'#4ade80',cls:'pos'},{l:'Beklenen Ödeme',v:fmt(od),s:'manuel plan',c:'#fb7185',cls:'neg'},{l:'Net Beklenen',v:fmt(tah+od),s:'tahsilat + ödeme',c:(tah+od)>=0?'#4ade80':'#fb7185',cls:(tah+od)>=0?'pos':'neg'},{l:'Kayıt Sayısı',v:String(a.length),s:'local demo',c:'#60a5fa'}])+'<div class="card" style="margin-bottom:12px"><div class="card-h"><div class="card-ht">Yeni Beklenen Nakit Kaydı</div></div><div class="card-b"><div class="v97-form"><div class="v97-field"><label>Tip</label><select id="exTip"><option>TAHSİLAT</option><option>ÖDEME</option></select></div><div class="v97-field"><label>Firma</label><input id="exFirma" placeholder="Firma"></div><div class="v97-field"><label>Karşı Taraf</label><input id="exKarsi" placeholder="Alıcı / borçlu"></div><div class="v97-field"><label>Vade</label><input id="exVade" type="date"></div><div class="v97-field"><label>Tutar</label><input id="exTutar" placeholder="1.000.000,00"></div><div class="v97-actions"><button class="btn btn-gold btn-sm" onclick="v97AddExpected()">Kaydet</button><button class="btn btn-ghost btn-sm" onclick="v97ClearExpected()">Temizle</button></div></div></div></div><div class="card"><div class="card-h"><div class="card-ht">Beklenen Tahsilat / Ödeme Listesi</div><span class="badge bo">Backend öncesi geçici kayıt</span></div><div class="v97-table-wrap"><table class="v97-table"><thead><tr><th>Tip</th><th>Firma</th><th>Karşı Taraf</th><th>Vade</th><th class="num">Tutar</th><th>Durum</th><th></th></tr></thead><tbody>'+a.map(function(x,i){var sign=x.tip==='ÖDEME'?-1:1, tv=num(x.tutar)*sign; return '<tr><td><span class="v97-pill '+(x.tip==='TAHSİLAT'?'green':'red')+'">'+E(x.tip)+'</span></td><td>'+E(x.firma)+'</td><td>'+E(x.karsi)+'</td><td>'+E(x.vade)+'</td><td class="num '+(tv>=0?'pos':'neg')+'">'+fmt(tv)+'</td><td>'+E(x.durum||'PLANLANDI')+'</td><td><button class="btn btn-ghost btn-xs" onclick="v97DelExpected('+i+')">Sil</button></td></tr>';}).join('')+'</tbody></table></div></div>';}
   window.v97AddExpected=function(){var tip=document.getElementById('exTip').value, firma=document.getElementById('exFirma').value||'Tanımsız', karsi=document.getElementById('exKarsi').value||'', vade=document.getElementById('exVade').value||new Date().toISOString().slice(0,10), tut=num(document.getElementById('exTutar').value); var a=expected(); a.push({id:Date.now(),tip:tip,firma:firma,karsi:karsi,vade:vade,tutar:tut,durum:'PLANLANDI',createdAt:new Date().toISOString()}); saveExpected(a); renderBeklenen(); if(window.toast)toast('Beklenen kayıt eklendi');};
@@ -7833,27 +8202,16 @@ document.addEventListener('DOMContentLoaded',function(){
     if(!foot){foot=document.createElement('div'); foot.className='sb-foot'; foot.innerHTML='<button class="btn btn-ghost btn-sm" style="justify-content:center;width:100%" onclick="nav(\'ayarlar\')">⚙ Ayarlar</button><button class="btn btn-ghost btn-sm" style="justify-content:center;width:100%;color:var(--rose);border-color:rgba(251,113,133,.3)" onclick="doLogout&&doLogout()">⏻ Çıkış Yap</button>';}
     sb.innerHTML=''; sb.appendChild(logo);
     sb.insertAdjacentHTML('beforeend',''+
-      '<div class="sb-sec v98-group">Yönetim</div>'+
-      '<div class="sb-item on v98-keep" onclick="nav(\'exec\')"><span class="sb-ico">◈</span>Yönetici Özeti</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'dashboard\')"><span class="sb-ico">▦</span>Kontrol Paneli</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'firma\')"><span class="sb-ico">◉</span>Firma Analizi</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'mapping\')"><span class="sb-ico">◈</span>Rapor Mapping</div>'+ 
-      '<div class="sb-sec v98-group">CFO Analiz</div>'+
-      '<div class="sb-item v98-keep" onclick="nav(\'runway\')"><span class="sb-ico">▲</span>Nakit Ömrü <span class="sb-badge warn" id="bRW">—</span></div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'risk\')"><span class="sb-ico">⚑</span>Risk & Açık <span class="sb-badge" id="bRK">—</span></div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'grup\')"><span class="sb-ico">⇄</span>Grup / Ortak</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'ortak\')"><span class="sb-ico">★</span>Ortak Analizi</div>'+
-      '<div class="sb-item v98-keep" onclick="nav(\'senaryolab\')" title="What-if analizi: tahsilat gecikmesi, kur şoku, gider artışı senaryoları"><span class="sb-ico">⚗</span>Senaryo Lab.</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'sektor\')"><span class="sb-ico">▤</span>Sektör Görünümü</div>'+ 
-      '<div class="sb-sec v98-group">Nakit / Veri</div>'+
-      '<div class="sb-item v98-keep" onclick="nav(\'bankaMerkezi\')"><span class="sb-ico">▣</span>Banka Bakiyeleri</div>'+
-      '<div class="sb-item v98-keep" onclick="nav(\'detay\')"><span class="sb-ico">≡</span>Nakit Hareketleri</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'raporDisi\')"><span class="sb-ico">⊘</span>Rapor Dışı Hareketler</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'trend\')"><span class="sb-ico">↗</span>Günlük Trend</div>'+ 
-      '<div class="sb-sec v98-group">Kontrol</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'doviz\')"><span class="sb-ico">◈</span>Döviz Riski</div>'+ 
-      '<div class="sb-item v98-keep" onclick="nav(\'anormal\')"><span class="sb-ico">◉</span>Anormal İşlem <span class="sb-badge" id="bAN">—</span></div>'+ 
-      '<div class="sb-item admin-only v98-keep" onclick="nav(\'kalite\')"><span class="sb-ico">🔬</span>Veri Kalitesi <span class="sb-badge" id="bKL">—</span></div>'+ 
+      '<div class="sb-sec v98-group">Analiz &amp; Raporlama</div>'+
+      '<div class="sb-item on v98-keep" onclick="nav(\'exec\')" title="Genel bakış: KPI, aylık trend, öne çıkan bulgular"><span class="sb-ico">◈</span>Yönetici Özeti</div>'+
+      '<div class="sb-item v98-keep" onclick="nav(\'dashboard\')" title="Firma dağılımı, kategori kırılımı, tüm gider/gelir mapping kalemleri"><span class="sb-ico">▦</span>Kategori Analizi</div>'+
+      '<div class="sb-item v98-keep" onclick="nav(\'firma\')" title="Firma bazında giriş/çıkış, nakit tüketim hızı, finansman bağımlılığı"><span class="sb-ico">◉</span>Firma Analizi</div>'+
+      '<div class="sb-item v98-keep" onclick="nav(\'mapping\')" title="Nakit işlem detaylarının hangi kategoriye (Rapor Mapping) eşleneceğini tanımlar"><span class="sb-ico">🗂</span>Mapping Ayarları</div>'+
+      '<div class="sb-item v98-keep" onclick="nav(\'sektor\')" title="Sektör bazlı nakit akış görünümü"><span class="sb-ico">▤</span>Sektör Görünümü</div>'+
+      '<div class="sb-item v98-keep" onclick="nav(\'runway\')" title="Nakit Ömrü + Risk &amp; Açık + Günlük Trend + Senaryo Lab. + Döviz Riski — tek sayfada sekmeli"><span class="sb-ico">📈</span>Risk &amp; Projeksiyon</div>'+
+      '<div class="sb-item v98-keep" onclick="nav(\'ortaklarBakiye\')" title="Ortaklar Bakiyesi + Grup / Ortak — tek sayfada sekmeli"><span class="sb-ico">⚖</span>Ortaklar</div>'+
+      '<div class="sb-sec v98-group">Veri &amp; Banka Kontrolü</div>'+
+      '<div class="sb-item v98-keep" onclick="nav(\'bankaMerkezi\')" title="Banka Bakiyeleri + Nakit Hareketleri + Şahıs Banka Bakiyeleri + Anormal İşlem + Veri Kalitesi + Rapor Dışı Hareketler — tek sayfada sekmeli"><span class="sb-ico">🏦</span>Banka &amp; Veri Kontrolü</div>'+
       '<div class="sb-div"></div>');
     sb.appendChild(foot);
   }
@@ -8854,6 +9212,8 @@ window.kpiDrillClear = function(){
       if(pg==='risk') window.renderRiskPageV110();
       if(pg==='grup') safe(window.renderGrupPage || (typeof renderGrupPage==='function'?renderGrupPage:null));
       if(pg==='ortak') safe(window.renderOrtakPage || (typeof renderOrtakPage==='function'?renderOrtakPage:null));
+      if(pg==='ortaklarBakiye') safe(window.renderOrtaklarBakiyePage || (typeof renderOrtaklarBakiyePage==='function'?renderOrtaklarBakiyePage:null));
+      if(pg==='sahisBanka') safe(window.renderSahisBanka);
       if(pg==='doviz') safe(window.renderDovizPage || (typeof renderDovizPage==='function'?renderDovizPage:null));
       if(pg==='anormal') safe(window.renderAnormalPage || (typeof renderAnormalPage==='function'?renderAnormalPage:null));
       if(pg==='trend') window.renderTrendPageV110();
@@ -9101,11 +9461,24 @@ window.kpiDrillClear = function(){
 
     var fl=getFilters();
     var open=openingRows(fl).filter(function(d){return rowFirma(d)===firma;});
-    var moves=kpiRows(fl).filter(function(d){return rowFirma(d)===firma;});
+    var isPartnerDrill=(typeof ORTAKLAR!=='undefined')&&ORTAKLAR.has(firma);
+    var moves;
+    if(isPartnerDrill){
+      // Ortaklar için: sadece "firma" alanında değil, "alıcı/karşı taraf" alanında geçtiği satırlar da
+      // (işaret ters çevrilerek, ortağın bakış açısına göre) ve rapor dışı işaretli gerçek nakit hareketleri de dahil edilir —
+      // Ortak Analizi / Ortaklar Bakiyesi sayfalarındaki toplamlarla tutarlı olması için.
+      moves=[];
+      movementRows(fl).forEach(function(d){
+        if(rowFirma(d)===firma){ moves.push(d); }
+        else if(rowAlici(d)===firma){ var fd=Object.assign({},d); fd.tutar=-rowTutar(d); fd.__flipped=true; moves.push(fd); }
+      });
+    } else {
+      moves=kpiRows(fl).filter(function(d){return rowFirma(d)===firma;});
+    }
 
     var opening=sum(open,false),
-        g=sum(inRows(moves),true),
-        c=sum(outRows(moves),true),
+        g=isPartnerDrill?moves.filter(function(d){return signedAmount(d)>0;}).reduce(function(s,d){return s+signedAmount(d);},0):sum(inRows(moves),true),
+        c=isPartnerDrill?moves.filter(function(d){return signedAmount(d)<0;}).reduce(function(s,d){return s+signedAmount(d);},0):sum(outRows(moves),true),
         net=g+c,
         closing=opening+net;
 
@@ -9128,6 +9501,7 @@ window.kpiDrillClear = function(){
         '<button class="btn btn-ghost btn-sm" onclick="closeDrill()">← Geri / Kapat</button>'+
         '<button class="btn btn-sm" onclick="closeDrill();nav(\'firma\')">Firma Analizi ekranına dön</button>'+
         '<button class="btn btn-ghost btn-sm" onclick="showKPIDrill(\'net\',{firma:\''+jsq(firma)+'\'})">≡ Detay İşlemler</button>'+
+        (isPartnerDrill?'<button class="btn btn-gold btn-sm" onclick="closeDrill();nav(\'ortaklarBakiye\')">⚖ Ortaklar Bakiyesine Git →</button>':'')+
       '</div>'+
       '<div class="krow" style="margin-bottom:14px">'+
         kcard('Dönem Başı',opening,'#60a5fa',opening>=0?'pos':'neg')+
@@ -9160,7 +9534,7 @@ window.kpiDrillClear = function(){
                   '<td>'+esc(rowBanka(d))+'</td>'+
                   '<td><span class="badge bx">'+esc(rowDoviz(d))+'</span></td>'+
                   '<td class="num dovbak-cell '+((window.NAKIT_DOVBAK_NUM?window.NAKIT_DOVBAK_NUM(d):0)>=0?'pos':'neg')+'">'+esc(window.NAKIT_FMT_DOVBAK?window.NAKIT_FMT_DOVBAK(d):'—')+'</td>'+
-                  '<td class="num '+(t>=0?'pos':'neg')+'">'+fmtK(t)+'</td>'+
+                  '<td class="num '+(t>=0?'pos':'neg')+'">'+(window.fFullTutar?window.fFullTutar(t):fmtK(t))+'</td>'+
                   '<td class="clip">'+esc(rowAciklama(d))+'</td>'+
                 '</tr>';
               }).join('') || '<tr><td colspan="6" class="empty">Dönem başı kaydı yok</td></tr>')+
@@ -9176,9 +9550,9 @@ window.kpiDrillClear = function(){
                 var t=signedAmount(d);
                 return '<tr>'+
                   '<td>'+esc(rowDate(d))+'</td>'+
-                  '<td class="clip">'+esc(rowDetay(d))+'</td>'+
+                  '<td class="clip">'+esc(rowDetay(d))+(d.__flipped?' <span class="badge bo" style="font-size:8px" title="Bu satırda karşı taraf/alıcı olarak geçiyor; tutar ortağın bakış açısına göre ters çevrildi">↔ karşı taraf</span>':'')+'</td>'+
                   '<td class="clip">'+esc(rowRM(d))+'</td>'+
-                  '<td class="num '+(t>=0?'pos':'neg')+'">'+fmtK(t)+'</td>'+
+                  '<td class="num '+(t>=0?'pos':'neg')+'">'+(window.fFullTutar?window.fFullTutar(t):fmtK(t))+'</td>'+
                   '<td><span class="badge bx">'+esc(rowDoviz(d))+'</span></td>'+
                   '<td class="num dovbak-cell '+((window.NAKIT_DOVBAK_NUM?window.NAKIT_DOVBAK_NUM(d):0)>=0?'pos':'neg')+'">'+esc(window.NAKIT_FMT_DOVBAK?window.NAKIT_FMT_DOVBAK(d):'—')+'</td>'+
                 '</tr>';
@@ -9233,7 +9607,7 @@ window.kpiDrillClear = function(){
   window.renderRaporDisiV110=function(selectedRM){
     var el=document.getElementById('v98RaporDisi')||document.getElementById('v97RaporDisi'); if(!el) return;
     STATE.reportOutRM=selectedRM||''; var rows=filteredRows(getFilters(),{}).filter(isReportOut); var by=groupRows(rows,rowRM,true).slice(0,50); var list=selectedRM?rows.filter(function(d){return rowRM(d)===selectedRM;}):rows; var total=sum(list,true);
-    el.innerHTML='<div class="v97-note"><b>Amaç:</b> Ayarlar &gt; Nakit Mapping tablosunda <b>Rapor Dışı</b> olan hareketleri gösterir. Kategoriye tıklayınca sağdaki liste süzülür.</div><div class="v97-grid"><div class="kcard"><div class="kcard-line" style="background:#c9a84c"></div><div class="kcard-lbl">Rapor Dışı Net</div><div class="kcard-val '+(total>=0?'pos':'neg')+'">'+fmtM(total)+'</div></div><div class="kcard"><div class="kcard-line" style="background:#60a5fa"></div><div class="kcard-lbl">İşlem Sayısı</div><div class="kcard-val">'+list.length.toLocaleString('tr-TR')+'</div></div></div><div class="v97-grid3"><div class="card"><div class="card-h"><div class="card-ht">Kategori Dağılımı</div></div><div style="padding:8px 10px">'+(selectedRM?'<button class="btn btn-ghost btn-sm" onclick="renderRaporDisiV110(\'\')">Tüm kategorileri göster</button>':'')+'</div><div class="alist">'+by.map(function(x){var ac=selectedRM===x.key;return '<div class="arow '+(ac?'on':'')+'" style="cursor:pointer;'+(ac?'background:rgba(201,168,76,.12);':'')+'" onclick="renderRaporDisiV110(\''+jsq(ac?'':x.key)+'\')"><div class="albl">'+esc(x.key)+'<div class="v98-muted">'+x.val.n.toLocaleString('tr-TR')+' işlem</div></div><div class="aval '+(x.val.sum>=0?'pos':'neg')+'">'+fmtK(x.val.sum)+'</div></div>';}).join('')+'</div></div><div class="card" style="grid-column:span 2"><div class="card-h"><div class="card-ht">Rapor Dışı İşlem Listesi'+(selectedRM?' — '+esc(selectedRM):'')+'</div></div><div class="v97-table-wrap"><table class="v97-table"><thead><tr><th>Tarih</th><th>Firma</th><th>Banka</th><th>Rapor Mapping</th><th>Detay</th><th>Döviz</th><th class="num">Döviz Bakiyesi</th><th class="num">Tutar</th></tr></thead><tbody>'+list.slice(0,700).map(function(d){var t=signedAmount(d);return '<tr><td>'+esc(rowDate(d))+'</td><td>'+esc(rowFirma(d))+'</td><td>'+esc(rowBanka(d))+'</td><td>'+esc(rowRM(d))+'</td><td>'+esc(rowDetay(d))+'</td><td><span class="badge bx">'+esc(rowDoviz(d))+'</span></td><td class="num dovbak-cell '+((window.NAKIT_DOVBAK_NUM?window.NAKIT_DOVBAK_NUM(d):0)>=0?'pos':'neg')+'">'+esc(window.NAKIT_FMT_DOVBAK?window.NAKIT_FMT_DOVBAK(d):'—')+'</td><td class="num '+(t>=0?'pos':'neg')+'">'+fmtK(t)+'</td></tr>';}).join('')+'</tbody></table></div></div></div>';
+    el.innerHTML='<div class="v97-note"><b>Amaç:</b> Ayarlar &gt; Nakit Mapping tablosunda <b>Rapor Dışı</b> olan hareketleri gösterir. Kategoriye tıklayınca sağdaki liste süzülür.</div><div class="v97-grid"><div class="kcard"><div class="kcard-line" style="background:#c9a84c"></div><div class="kcard-lbl">Rapor Dışı Net</div><div class="kcard-val '+(total>=0?'pos':'neg')+'">'+fmtM(total)+'</div></div><div class="kcard"><div class="kcard-line" style="background:#60a5fa"></div><div class="kcard-lbl">İşlem Sayısı</div><div class="kcard-val">'+list.length.toLocaleString('tr-TR')+'</div></div></div><div class="v97-grid3"><div class="card"><div class="card-h"><div class="card-ht">Kategori Dağılımı</div></div><div style="padding:8px 10px">'+(selectedRM?'<button class="btn btn-ghost btn-sm" onclick="renderRaporDisiV110(\'\')">Tüm kategorileri göster</button>':'')+'</div><div class="alist">'+by.map(function(x){var ac=selectedRM===x.key;return '<div class="arow '+(ac?'on':'')+'" style="cursor:pointer;'+(ac?'background:rgba(201,168,76,.12);':'')+'" onclick="renderRaporDisiV110(\''+jsq(ac?'':x.key)+'\')"><div class="albl">'+esc(x.key)+'<div class="v98-muted">'+x.val.n.toLocaleString('tr-TR')+' işlem</div></div><div class="aval '+(x.val.sum>=0?'pos':'neg')+'">'+fmtK(x.val.sum)+'</div></div>';}).join('')+'</div></div><div class="card" style="grid-column:span 2"><div class="card-h"><div class="card-ht">Rapor Dışı İşlem Listesi'+(selectedRM?' — '+esc(selectedRM):'')+'</div></div><div class="v97-table-wrap"><table class="v97-table"><thead><tr><th>Tarih</th><th>Firma</th><th>Banka</th><th>Rapor Mapping</th><th>Detay</th><th>Döviz</th><th class="num">Döviz Bakiyesi</th><th class="num">Tutar</th></tr></thead><tbody>'+list.slice(0,700).map(function(d){var t=signedAmount(d);return '<tr><td>'+esc(rowDate(d))+'</td><td>'+esc(rowFirma(d))+'</td><td>'+esc(rowBanka(d))+'</td><td>'+esc(rowRM(d))+'</td><td>'+esc(rowDetay(d))+'</td><td><span class="badge bx">'+esc(rowDoviz(d))+'</span></td><td class="num dovbak-cell '+((window.NAKIT_DOVBAK_NUM?window.NAKIT_DOVBAK_NUM(d):0)>=0?'pos':'neg')+'">'+esc(window.NAKIT_FMT_DOVBAK?window.NAKIT_FMT_DOVBAK(d):'—')+'</td><td class="num '+(t>=0?'pos':'neg')+'">'+(window.fFullTutar?window.fFullTutar(t):fmtK(t))+'</td></tr>';}).join('')+'</tbody></table></div></div></div>';
   };
 
   var oldNav=window.nav;
@@ -9659,7 +10033,7 @@ window.kpiDrillClear = function(){
         '<td class="fw6 clip" style="cursor:pointer;color:var(--sky)" onclick="drillFirma(\''+jsq(rowFirma(d))+'\')">'+esc(rowFirma(d)||'—')+'</td>'+
         '<td style="font-size:11px;color:var(--txt3)">'+esc(rowBanka(d)||'—')+'</td>'+
         '<td><span class="tg '+(norm(y)==='GIRIS'?'tg-g':norm(y)==='CIKIS'?'tg-r':'tg-n')+'">'+esc(y||'—')+'</span></td>'+
-        '<td class="num '+(t>=0?'pos':'neg')+' fw6" data-sort="'+Math.abs(t)+'">'+esc(fmtK(t))+(uyari?' <span title="Yön/tutar uyuşmuyor" style="color:var(--rose)">⚠</span>':'')+'</td>'+
+        '<td class="num '+(t>=0?'pos':'neg')+' fw6" data-sort="'+Math.abs(t)+'">'+esc(window.fFullTutar?window.fFullTutar(t):fmtK(t))+(uyari?' <span title="Yön/tutar uyuşmuyor" style="color:var(--rose)">⚠</span>':'')+'</td>'+
         '<td><span class="badge bx">'+esc(rowDoviz(d))+'</span></td>'+
         '<td class="num dovbak-cell '+((window.NAKIT_DOVBAK_NUM?window.NAKIT_DOVBAK_NUM(d):0)>=0?'pos':'neg')+' fw6">'+esc(window.NAKIT_FMT_DOVBAK?window.NAKIT_FMT_DOVBAK(d):'—')+'</td>'+
         '<td class="clip col-rm" style="font-size:11px;color:var(--txt3)" title="'+esc(rowRM(d))+'">'+esc(rowRM(d)||'—')+'</td>'+
@@ -13086,6 +13460,15 @@ html[data-theme="light"] #pg-bankaMerkezi .bb-detected-cur.on{border-color:rgba(
   function n(v){if(typeof v==='number')return isFinite(v)?v:0;var s=String(v==null?'':v).replace(/\s/g,'');if(!s)return 0;if(s.indexOf(',')>-1)s=s.replace(/\./g,'').replace(',','.');var x=Number(s);return isFinite(x)?x:0;}
   window.NAKIT_DOVBAK_NUM=function(d){if(!d)return 0;var keys=['dov_bak','Döviz Bakiye','Döviz Bakiyesi','currency_amount','doviz_bakiyesi'];for(var i=0;i<keys.length;i++){if(d[keys[i]]!=null&&String(d[keys[i]]).trim()!=='')return n(d[keys[i]]);}return 0;};
   window.NAKIT_FMT_DOVBAK=function(d){var v=window.NAKIT_DOVBAK_NUM(d);if(Math.abs(v)<0.0000001)return '—';var c=String((d&&(d.doviz||d['Döviz Cinsi']||d.Döviz||d.currency))||'').trim().toLocaleUpperCase('tr-TR');var x=Math.abs(v).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});var sign=v<0?'-':'';if(c.indexOf('USD')>-1)return sign+'$ '+x;if(c.indexOf('EUR')>-1||c==='EURO')return sign+'€ '+x;if(c==='TL'||c==='TRY')return sign+'₺ '+x;return sign+x+(c?' '+c:'');};
+  /* V14.6 — "detay listelerinde döviz bakiyeleri tam gösteriliyor, TL de öyle olsun" isteği:
+     KPI kartlarındaki kısaltılmış (Mr/Mn/B) gösterim korunur (fK/fM); ama işlem detay
+     tablolarındaki Tutar hücreleri artık Döviz Bakiyesi sütunuyla aynı mantıkta TAM
+     hassasiyette (₺ 1.234.567,89) gösterilir. */
+  window.fFullTutar=function(v){
+    var n=Number(v)||0, sign=n<0?'-':'+';
+    var x=Math.abs(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    return sign+'₺ '+x;
+  };
   function sync(){var cb=document.getElementById('globalThemeToggle');if(cb)cb.checked=document.documentElement.getAttribute('data-theme')==='light';}
   window.setGlobalThemeFromSwitch=function(wantLight){var cur=document.documentElement.getAttribute('data-theme')==='light';if(cur!==!!wantLight&&typeof window.toggleTheme==='function')window.toggleTheme();sync();};
   var old=window.toggleTheme;if(typeof old==='function'&&!old.__v138){window.toggleTheme=function(){var r=old.apply(this,arguments);setTimeout(sync,0);return r;};window.toggleTheme.__v138=true;}
@@ -13220,3 +13603,257 @@ html[data-theme="light"] tr:hover td,html:not([data-theme="dark"]) tr:hover td{
 .global-theme-wrap{font-family:var(--ff)!important;border-radius:999px!important}
 .global-theme-label{font-family:var(--ff)!important;font-weight:800!important}
 </style>
+<script id="v142_xlsx_export_helper">
+/* V14.2 — "Excel'e Aktar" butonları aslında .csv üretiyordu (dosya adı .xlsx değil,
+   gerçek Excel formatı da değil). SheetJS (xlsx) kütüphanesi eklendi; artık gerçek
+   .xlsx dosyası indiriliyor. Diğer sayfalar da bu tek fonksiyonu çağırabilir. */
+window.exportRowsToXLSX=function(filename,sheetName,aoa){
+  try{
+    if(!window.XLSX){ if(window.toast) toast('Excel kütüphanesi yüklenemedi (internet bağlantısını kontrol edin).','err'); return false; }
+    var ws=XLSX.utils.aoa_to_sheet(aoa);
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,(sheetName||'Sayfa1').slice(0,31));
+    XLSX.writeFile(wb, filename.replace(/\.xlsx$/i,'')+'.xlsx');
+    return true;
+  }catch(e){ console.error('xlsx export hatası:',e); if(window.toast) toast('Excel dosyası oluşturulamadı: '+e.message,'err'); return false; }
+};
+</script>
+<script id="v140_sidebar_menu_guard">
+/* V14.0 — Menü birden fazla eski "rebuildMenu" yaması tarafından zaman zaman
+   sıfırdan yeniden kuruluyor (gecikmeli setTimeout ile), bu da sonradan eklenen
+   menü öğelerini (Ortaklar Bakiyesi, Şahıs Banka Bakiyeleri) silebiliyor.
+   Bu koruma, menü her değiştiğinde bu öğelerin var olduğunu garanti eder. */
+(function(){
+  'use strict';
+  var ITEMS=[];
+  function ensureItems(){
+    var sb=document.querySelector('.sidebar'); if(!sb) return;
+    var foot=sb.querySelector('.sb-foot');
+    ITEMS.forEach(function(it){
+      var already=Array.prototype.some.call(sb.querySelectorAll('.sb-item'),function(el){return el.getAttribute('onclick')==="nav('"+it.id+"')";});
+      if(already) return;
+      var div=document.createElement('div');
+      div.className='sb-item';
+      div.setAttribute('onclick',"nav('"+it.id+"')");
+      div.setAttribute('title',it.title);
+      div.innerHTML='<span class="sb-ico">'+it.icon+'</span>'+it.label;
+      if(foot) sb.insertBefore(div,foot); else sb.appendChild(div);
+    });
+  }
+  ensureItems();
+  var sbEl=document.querySelector('.sidebar');
+  if(sbEl && typeof MutationObserver!=='undefined'){
+    var mo=new MutationObserver(function(){ensureItems();});
+    mo.observe(sbEl,{childList:true});
+  }
+  document.addEventListener('DOMContentLoaded',ensureItems);
+  setTimeout(ensureItems,500);
+  setTimeout(ensureItems,1500);
+  setTimeout(ensureItems,3000);
+})();
+</script>
+
+<style id="v141_cfo_tools_tabbar_css">
+.cfo-tabbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;padding:8px;border:1px solid var(--brd,rgba(148,163,184,.22));border-radius:12px;background:rgba(148,163,184,.06)}
+.cfo-tab-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;border:1px solid transparent;background:transparent;color:var(--txt3,#94a3b8);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.cfo-tab-btn:hover{background:rgba(201,168,76,.10);color:var(--txt,#e5e9f2)}
+.cfo-tab-btn.on{background:rgba(201,168,76,.18);color:var(--gold,#c9a84c);border-color:rgba(201,168,76,.35)}
+</style>
+<script id="v141_cfo_tools_tabbar">
+/* V14.1/14.3 — Birden fazla eski menü maddesi artık TEK sidebar maddesi altında
+   sekmeli olarak birleştirildi. Bu script, her gruptaki sayfaların en üstüne
+   aralarında geçiş yapan bir sekme çubuğu ekler. Sayfaların kendi içeriğine ve
+   render fonksiyonlarına dokunulmaz — sadece üstlerine bir gezinme şeridi eklenir.
+   Her grup, sidebar'daki TEK maddenin onclick'inde kullanılan "entry" id'siyle eşleşir. */
+(function(){
+  'use strict';
+  var GROUPS=[
+    { entry:'runway', tabs:[
+      {id:'runway',icon:'▲',label:'Nakit Ömrü'},
+      {id:'risk',icon:'⚑',label:'Risk & Açık'},
+      {id:'trend',icon:'↗',label:'Günlük Trend'},
+      {id:'senaryolab',icon:'⚗',label:'Senaryo Lab.'},
+      {id:'doviz',icon:'◈',label:'Döviz Riski'}
+    ]},
+    { entry:'bankaMerkezi', tabs:[
+      {id:'bankaMerkezi',icon:'▣',label:'Banka Bakiyeleri'},
+      {id:'detay',icon:'≡',label:'Nakit Hareketleri'},
+      {id:'sahisBanka',icon:'🏦',label:'Şahıs Banka Bakiyeleri'},
+      {id:'anormal',icon:'◉',label:'Anormal İşlem'},
+      {id:'kalite',icon:'🔬',label:'Veri Kalitesi'},
+      {id:'raporDisi',icon:'⊘',label:'Rapor Dışı Hareketler'}
+    ]},
+    { entry:'ortaklarBakiye', tabs:[
+      {id:'ortaklarBakiye',icon:'⚖',label:'Ortaklar Bakiyesi'},
+      {id:'grup',icon:'⇄',label:'Grup / Ortak'}
+    ]}
+  ];
+  function tabBarHtml(tabs){
+    return '<div class="cfo-tabbar">'+tabs.map(function(t){
+      return '<button type="button" class="cfo-tab-btn" onclick="nav(\''+t.id+'\');if(window.cfoToolsSyncSidebar)cfoToolsSyncSidebar();"><span>'+t.icon+'</span>'+t.label+'</button>';
+    }).join('')+'</div>';
+  }
+  function ensureTabBars(){
+    GROUPS.forEach(function(g){
+      g.tabs.forEach(function(t){
+        var pg=document.getElementById('pg-'+t.id); if(!pg) return;
+        var first=pg.firstElementChild;
+        if(first && first.classList && first.classList.contains('cfo-tabbar')) return;
+        pg.insertAdjacentHTML('afterbegin',tabBarHtml(g.tabs));
+      });
+    });
+  }
+  window.cfoToolsSyncSidebar=function(){
+    try{
+      var cur=(document.querySelector('.pg.on')||{}).id||'';
+      GROUPS.forEach(function(g){
+        var inGroup=g.tabs.some(function(t){return cur==='pg-'+t.id;});
+        var entryBtn=document.querySelector(".sb-item[onclick=\"nav('"+g.entry+"')\"]");
+        if(entryBtn&&inGroup) entryBtn.classList.add('on');
+      });
+      document.querySelectorAll('.cfo-tabbar').forEach(function(bar){
+        var btns=bar.querySelectorAll('.cfo-tab-btn');
+        var group=GROUPS.find(function(g){return g.tabs.length===btns.length && Array.prototype.every.call(btns,function(b,i){return b.textContent.trim().indexOf(g.tabs[i].label)>-1;});});
+        if(!group) return;
+        btns.forEach(function(b,i){ b.classList.toggle('on', cur==='pg-'+group.tabs[i].id); });
+      });
+    }catch(e){}
+  };
+  ensureTabBars();
+  var contentEl=document.querySelector('.content');
+  if(contentEl && typeof MutationObserver!=='undefined'){
+    var mo=new MutationObserver(function(){ensureTabBars(); window.cfoToolsSyncSidebar();});
+    mo.observe(contentEl,{childList:true,subtree:false,attributes:true,attributeFilter:['class']});
+  }
+  document.addEventListener('DOMContentLoaded',ensureTabBars);
+  setTimeout(ensureTabBars,500);
+  setTimeout(ensureTabBars,1500);
+  setTimeout(ensureTabBars,3000);
+})();
+</script>
+
+<style id="v144_page_toolbar_css">
+.page-toolbar-generic{display:flex;gap:8px;margin-bottom:10px}
+</style>
+<script id="v144_page_toolbar_generic">
+/* V14.4 — "her sayfa ve sekmenin yazdırma/excel ayarları eklensin" isteği için: Banka
+   Bakiyeleri ve Şahıs Banka Bakiyeleri gibi kendi Excel/Yazdır butonu olmayan TÜM
+   sayfalara/sekmelere jenerik bir "Excel'e Aktar / Yazdır" çubuğu eklenir.
+   - Yazdır: o tek sayfayı, merkezi rapor motoruyla (grafikler dahil, boş çıkmayan,
+     yüksek çözünürlüklü) PDF'e hazırlar.
+   - Excel'e Aktar: sayfadaki görünür tüm <table>'ları gerçek .xlsx dosyasına döker
+     (özel bir veri fonksiyonu gerekmez, her sayfada otomatik çalışır). */
+(function(){
+  'use strict';
+  var SKIP_IDS=['bankaMerkezi','sahisBanka']; // zaten kendi Excel/Yazdır çubuğu var
+  function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function tableToAOA(table){
+    var rows=[];
+    Array.prototype.forEach.call(table.querySelectorAll('tr'),function(tr){
+      var cells=Array.prototype.map.call(tr.querySelectorAll('th,td'),function(td){return td.textContent.replace(/\s+/g,' ').trim();});
+      if(cells.length) rows.push(cells);
+    });
+    return rows;
+  }
+  window.pageQuickExport=function(pageId){
+    var pg=document.getElementById('pg-'+pageId); if(!pg) return;
+    if(!window.XLSX){ if(window.toast) toast('Excel kütüphanesi yüklenemedi.','err'); return; }
+    var tables=Array.prototype.filter.call(pg.querySelectorAll('table'),function(t){return tableToAOA(t).length;});
+    if(!tables.length){ if(window.toast) toast('Bu sayfada dışa aktarılacak tablo bulunamadı.','info'); return; }
+    try{
+      var wb=XLSX.utils.book_new();
+      tables.forEach(function(t,i){
+        var ws=XLSX.utils.aoa_to_sheet(tableToAOA(t));
+        XLSX.utils.book_append_sheet(wb, ws, ('Tablo'+(i+1)).slice(0,31));
+      });
+      XLSX.writeFile(wb, pageId+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+    }catch(e){ console.error('sayfa excel export hatası:',e); if(window.toast) toast('Excel oluşturulamadı: '+e.message,'err'); }
+  };
+  window.pageQuickPrint=function(pageId){
+    if(typeof window.printSelectedReport==='function') return window.printSelectedReport([pageId]);
+    window.print();
+  };
+  function toolbarHtml(pageId){
+    return '<div class="page-toolbar-generic"><button class="btn btn-ghost btn-sm" onclick="pageQuickExport(\''+pageId+'\')">▣ Excel\'e Aktar</button><button class="btn btn-ghost btn-sm" onclick="pageQuickPrint(\''+pageId+'\')">🖨 Yazdır</button></div>';
+  }
+  function ensureToolbars(){
+    Array.prototype.forEach.call(document.querySelectorAll('.pg[id^="pg-"]'),function(pg){
+      var id=pg.id.replace('pg-','');
+      if(SKIP_IDS.indexOf(id)>-1) return;
+      if(pg.querySelector(':scope > .page-toolbar-generic')) return;
+      if(pg.querySelector(':scope > .bb-actions')) return;
+      var tabbar=pg.querySelector(':scope > .cfo-tabbar');
+      var html=toolbarHtml(id);
+      if(tabbar) tabbar.insertAdjacentHTML('afterend', html);
+      else pg.insertAdjacentHTML('afterbegin', html);
+    });
+  }
+  ensureToolbars();
+  var contentEl=document.querySelector('.content');
+  if(contentEl && typeof MutationObserver!=='undefined'){
+    var mo=new MutationObserver(function(){ensureToolbars();});
+    mo.observe(contentEl,{childList:true,subtree:false});
+  }
+  document.addEventListener('DOMContentLoaded',ensureToolbars);
+  setTimeout(ensureToolbars,500);
+  setTimeout(ensureToolbars,1500);
+  setTimeout(ensureToolbars,3000);
+})();
+</script>
+
+<style id="v145_theme_variants_css">
+/* V14.7 — Açık/koyu modun ÜSTÜNE, tamamen ayrı bir renk paleti + yazı tipi
+   kombinasyonuna sahip 2 ek tema. Mevcut "Marka" teması (varsayılan) hiç
+   değişmedi — data-theme-variant boşsa/=="marka" ise hiçbir kural devreye girmez.
+   Açık/koyu anahtarı (data-theme) her tema içinde bağımsız çalışmaya devam eder. */
+
+.theme-variant-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.theme-variant-btn{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:12px;border-radius:14px;border:1px solid var(--rim2);background:var(--ink3);cursor:pointer;text-align:left;font-family:var(--ff)}
+.theme-variant-btn:hover{border-color:var(--gold)}
+.theme-variant-btn.on{border-color:var(--gold);background:var(--gold3);box-shadow:0 0 0 1px var(--gold) inset}
+.theme-variant-swatch{width:100%;height:28px;border-radius:9px;display:block}
+.theme-variant-name{font-size:13px;font-weight:700;color:var(--txt)}
+.theme-variant-desc{font-size:10.5px;color:var(--txt3);line-height:1.4}
+
+/* ── Zümrüt (yazı tipleri) ── */
+html[data-theme-variant="zumrut"]{
+  --ffd:'Space Grotesk',sans-serif!important;
+  --ff:'Inter',sans-serif!important;
+  --ffm:'IBM Plex Mono',monospace!important;
+}
+/* Zümrüt — koyu */
+html[data-theme-variant="zumrut"][data-theme="dark"]{
+  --gold:#10b981!important; --gold2:#34d399!important; --gold3:rgba(16,185,129,.16)!important;
+  --ink:#071a15!important; --ink2:#0d241d!important; --ink3:#123328!important; --ink4:#184436!important;
+  --rim:#1c4636!important; --rim2:#276350!important; --rim3:#347e68!important;
+  --txt:#e7f6ef!important; --txt2:#9dcbb4!important; --txt3:#77a892!important;
+  --sky:#22d3ee!important; --aqua:#2dd4bf!important; --sage:#4ade80!important; --rose:#fb7185!important;
+}
+/* Zümrüt — açık */
+html[data-theme-variant="zumrut"]:not([data-theme="dark"]){
+  --gold:#059669!important; --gold2:#10b981!important; --gold3:rgba(5,150,105,.10)!important;
+  --ink:#f2faf7!important; --ink2:#ffffff!important; --ink3:#eaf7f1!important; --ink4:#dcf0e6!important;
+  --rim:#cdeadd!important; --rim2:#a9d9c4!important; --rim3:#84c7a9!important;
+  --txt:#0c2e22!important; --txt2:#3d6152!important; --txt3:#5f8271!important;
+  /* V14.8 — açık zeminde --sage/--rose (pos/neg tutar renkleri) çok soluk kalıyordu,
+     okunmuyordu. Beyaz zemine göre koyulaştırılmış, kontrastlı sürümleri. */
+  --sage:#15803d!important; --sage2:rgba(21,128,61,.12)!important;
+  --rose:#dc2626!important; --rose2:rgba(220,38,38,.10)!important;
+  --sky:#0369a1!important; --sky2:rgba(3,105,161,.10)!important;
+  --aqua:#0d9488!important; --aqua2:rgba(13,148,136,.10)!important;
+}
+</style>
+<script id="v145_theme_variants_js">
+(function(){
+  'use strict';
+  /* V14.9 — tek tema kararı: Zümrüt kalıcı/tek tema oldu, seçici kaldırıldı.
+     Açık/koyu mod anahtarı (data-theme) Zümrüt İÇİNDE bağımsız çalışmaya devam eder. */
+  function apply(){
+    document.documentElement.setAttribute('data-theme-variant','zumrut');
+  }
+  window.setThemeVariant=apply; // geriye dönük uyumluluk için no-op benzeri
+  document.addEventListener('DOMContentLoaded',apply);
+  setTimeout(apply,200);
+  setTimeout(apply,1200);
+})();
+</script>
