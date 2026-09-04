@@ -12366,16 +12366,11 @@ function svAliciOf(d){
 }
 /* Saf veri: satırları Alıcı'ya göre gruplar (Alıcı'sı olmayanlar ayrı, gruplanmamış listede kalır) */
 function svGroupRowsByAlici(rows){
-  /* V15.1 — "detay açınca firma yazsın, firma gruplama yapsın" isteği: küme başlıkları
-     artık Alıcı/karşı taraf yerine FİRMA'ya göre gruplanır (her satırdaki Alıcı sütunu
-     olduğu gibi kalır, sadece üstteki toplu satır kırılımı değişti). Fonksiyon/özellik
-     adları (alici, mgExpandedAlici, data-alici, svToggleTrxGrp) geriye dönük uyumluluk
-     için aynı bırakıldı ama artık FİRMA adını taşıyorlar. */
   var withA=[], withoutA=[];
-  rows.forEach(function(d){ (d.firma?withA:withoutA).push(d); });
+  rows.forEach(function(d){ var a=svAliciOf(d); (a?withA:withoutA).push(d); });
   var byAlici={};
   withA.forEach(function(d){
-    var a=String(d.firma||'');
+    var a=svAliciOf(d);
     if(!byAlici[a])byAlici[a]={rows:[],net:0,n:0};
     byAlici[a].rows.push(d); byAlici[a].net+=svN(d.tutar); byAlici[a].n++;
   });
