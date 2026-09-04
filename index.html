@@ -12366,11 +12366,16 @@ function svAliciOf(d){
 }
 /* Saf veri: satırları Alıcı'ya göre gruplar (Alıcı'sı olmayanlar ayrı, gruplanmamış listede kalır) */
 function svGroupRowsByAlici(rows){
+  /* V15.1 — "detay açınca firma yazsın, firma gruplama yapsın" isteği: küme başlıkları
+     artık Alıcı/karşı taraf yerine FİRMA'ya göre gruplanır (her satırdaki Alıcı sütunu
+     olduğu gibi kalır, sadece üstteki toplu satır kırılımı değişti). Fonksiyon/özellik
+     adları (alici, mgExpandedAlici, data-alici, svToggleTrxGrp) geriye dönük uyumluluk
+     için aynı bırakıldı ama artık FİRMA adını taşıyorlar. */
   var withA=[], withoutA=[];
-  rows.forEach(function(d){ (svAliciOf(d)?withA:withoutA).push(d); });
+  rows.forEach(function(d){ (d.firma?withA:withoutA).push(d); });
   var byAlici={};
   withA.forEach(function(d){
-    var a=svAliciOf(d);
+    var a=String(d.firma||'');
     if(!byAlici[a])byAlici[a]={rows:[],net:0,n:0};
     byAlici[a].rows.push(d); byAlici[a].net+=svN(d.tutar); byAlici[a].n++;
   });
@@ -12592,31 +12597,35 @@ window.SV_mgDropToGroup=function(e,sid,toGid){
 
 /* Export & Print */
 window.SV_exportExcel=function(){
+  /* V15.0 — bu fonksiyon aslında TSV (tab ile ayrılmış metin) üretip dosya adını ".xls"
+     yapıyordu; gerçek Excel formatı değildi, tutarlar da metin (virgüllü string) olarak
+     giriyordu — Excel'de sayı gibi davranmıyordu, bazı Excel sürümlerinde format uyarısı/
+     hatalı açılma oluyordu. Artık diğer sayfalardaki gibi gerçek .xlsx (SheetJS) kullanır,
+     Tutar sütunu da gerçek sayı olarak yazılır. */
   var rows=SV._lastFiltered||[];
   var title=SV._lastTitle||'Sektor';
   if(!rows.length){alert('Gösterilecek veri yok');return;}
   var hdr=['Tarih','Firma','Rapor Mapping','Alıcı / Karşı Taraf','Döviz','Tutar','Yön'];
-  var lines=[hdr.join('	')];
+  var aoa=[hdr];
   rows.forEach(function(d){
     var t=svN(d.tutar);
     var alici=String(d.alici||d['Alıcı / Karşı Taraf']||d.alici_unvani||'');
-    lines.push([
+    aoa.push([
       String(d.tarih||'').slice(0,10),
       String(d.firma||''),
       String(d.rm||''),
       alici,
       String(d.doviz||'TL'),
-      String(t).replace('.',','),
+      t,
       t>=0?'GİRİŞ':'ÇIKIŞ'
-    ].map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join('	'));
+    ]);
   });
-  var bom='﻿';
-  var blob=new Blob([bom+lines.join(String.fromCharCode(10))],{type:'text/tab-separated-values;charset=utf-8'});
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='sektor_'+title.replace(/[^a-zA-Z0-9_\-ğüşıöçĞÜŞİÖÇ]/g,'_').slice(0,40)+'_'+new Date().toISOString().slice(0,10)+'.xls';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+  var fname='sektor_'+title.replace(/[^a-zA-Z0-9_\-ğüşıöçĞÜŞİÖÇ]/g,'_').slice(0,40)+'_'+new Date().toISOString().slice(0,10);
+  if(window.exportRowsToXLSX){
+    window.exportRowsToXLSX(fname,(title||'Sektor').slice(0,31),aoa);
+  }else{
+    alert('Excel kütüphanesi yüklenemedi.');
+  }
 };
 
 /* ════════════════════════════════════════════════
@@ -12809,7 +12818,8 @@ window.SV_doPrint=function(){
   var css=
     'body{font-family:Arial,sans-serif;font-size:'+fontSize+'px;color:'+T.txt+';background:'+T.bg+';margin:16px}'+
     '@page{size:A4 '+orient+';margin:12mm}'+
-    '@media print{body{margin:0}.no-print{display:none}tr{page-break-inside:avoid}}'+
+    '@media print{body{margin:0}.no-print{display:none}tr{page-break-inside:avoid}tr.sv-detail-row{page-break-inside:auto}}'+
+    'table table{page-break-inside:auto}'+
     'h1{font-size:16px;font-weight:700;margin:0 0 4px}'+
     '.meta{font-size:9px;color:'+T.sub+';margin-bottom:12px}'+
     '.kpi-wrap{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}'+
@@ -12883,7 +12893,11 @@ window.SV_doPrint=function(){
         '<td class="fw7 '+(t>=0?'pos':'neg')+'">'+svFmt(t)+'</td></tr>';
     });
     inner+='</tbody></table></div>';
-    return '<tr><td colspan="5" style="padding:0;border:none">'+inner+'</td></tr>';
+    /* V15.0 — bu satır (açık grup detayı) onlarca alt işlem içerebiliyor, tek sayfaya
+       sığmayabilir. Genel "tr{page-break-inside:avoid}" kuralı bunu tek parça tutmaya
+       zorlayınca PDF'te ya kocaman boş sayfa ya da bozuk/kesik görünüm çıkıyordu.
+       sv-detail-row sınıfı bu satırı o kuraldan muaf tutar, normal sayfalara bölünür. */
+    return '<tr class="sv-detail-row"><td colspan="5" style="padding:0;border:none">'+inner+'</td></tr>';
   }
 
   if(showRM&&(rmGroupRows.length||rmSingleRows.length)){
